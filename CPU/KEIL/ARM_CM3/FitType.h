@@ -57,7 +57,7 @@ typedef uOS32_t                 uOSBase_t;
 typedef uOS32_t                 uOSTick_t;
 
 #define FITSTACK_GROWTH         ( -1 )
-#define FITBYTE_ALIGNMENT       ( 4 )
+#define FITBYTE_ALIGNMENT       ( 8 )
 
 #ifdef __cplusplus
 }

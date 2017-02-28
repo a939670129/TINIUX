@@ -82,7 +82,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 
 #ifndef FITBYTE_ALIGNMENT
-  #define	OSMEM_ALIGNMENT			( 4 )
+  #define	OSMEM_ALIGNMENT			( 8 )
 #else
   #define	OSMEM_ALIGNMENT			( FITBYTE_ALIGNMENT )
 #endif
