@@ -44,9 +44,9 @@ extern "C" {
 
 #include "FitType.h"
 #include "OSType.h"
-#include "OSMemory.h"
 //#include "FitCPU.h"
-//#include "OSList.h"
+#include "OSMemory.h"
+#include "OSList.h"
 //#include "OSTask.h"
 //#include "OSMsgQ.h"
 //#include "OSSem.h"
@@ -58,6 +58,25 @@ extern "C" {
 #define REVISION_NUM         1
 
 //MAJOR_VERSION.MINOR_VERSION.REVISION_NUM //version 0.0.1
+
+#define OSIntLock()
+#define OSIntLockFromISR()
+#define OSIntUnlock()
+#define OSIntUnlockFromISR()
+#define OSIntMask()
+#define OSIntUnmask()
+#define OSScheduleLock()
+#define OSScheduleUnlock()
+
+#define OSSchedule()
+#define OSScheduleFromISR()
+
+#define OSStart()
+
+// Milliseconds to OS Ticks
+#define OSM2T(X) 					( ( uOSTick_t )( ( X )*( OSTICK_RATE_HZ/1000.0 ) ) )
+// Frequency to OS Ticks
+#define OSF2T(X) 					( ( uOSTick_t )( ( OSTICK_RATE_HZ/( X ) ) ) )
 
 #ifdef __cplusplus
 }

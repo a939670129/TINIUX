@@ -173,11 +173,6 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 #endif //(OS_MSGQ_ON==1)
 
-// Milliseconds to OS Ticks
-#define OSM2T(X) 					((uOSTick_t)((X)*(OSTICK_RATE_HZ/1000.0)))
-// Frequency to OS Ticks
-#define OSF2T(X) 					((uOSTick_t)((OSTICK_RATE_HZ/(X))))
-
 #ifdef __cplusplus
 }
 #endif
