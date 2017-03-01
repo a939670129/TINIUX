@@ -55,7 +55,7 @@ extern "C" {
 
 #define MAJOR_VERSION        0
 #define MINOR_VERSION        0
-#define REVISION_NUM         1
+#define REVISION_NUM         2
 
 //MAJOR_VERSION.MINOR_VERSION.REVISION_NUM //version 0.0.1
 
@@ -74,9 +74,9 @@ extern "C" {
 #define OSStart()
 
 // Milliseconds to OS Ticks
-#define OSM2T(X) 					( ( uOSTick_t )( ( X )*( OSTICK_RATE_HZ/1000.0 ) ) )
+#define OSM2T( X ) 					( ( uOSTick_t )( ( X )*( OSTICK_RATE_HZ/1000.0 ) ) )
 // Frequency to OS Ticks
-#define OSF2T(X) 					( ( uOSTick_t )( ( OSTICK_RATE_HZ/( X ) ) ) )
+#define OSF2T( X ) 					( ( uOSTick_t )( ( OSTICK_RATE_HZ/( X ) ) ) )
 
 #ifdef __cplusplus
 }
