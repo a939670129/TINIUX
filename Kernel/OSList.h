@@ -102,4 +102,4 @@ uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove );
 }
 #endif
 
-#endif //__OS_TIMER_HPP
+#endif //__OS_LIST_H_
