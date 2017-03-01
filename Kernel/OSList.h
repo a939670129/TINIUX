@@ -35,8 +35,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __OS_MEMORY_H_
-#define __OS_MEMORY_H_
+#ifndef __OS_LIST_H_
+#define __OS_LIST_H_
 
 #include "OSType.h"
 
@@ -44,44 +44,62 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#define OSMEM_SIZE			OSTOTAL_HEAP_SIZE
+struct OSListItem
+{
+	volatile uOSTick_t 					uxItemValue;	
+	struct OSListItem * volatile 		ptNext;
+	struct OSListItem * volatile 		ptPrevious;
+	void * 								pvHolder;
+	void * volatile 					pvList;
+};
+typedef struct OSListItem 				tOSListItem_t;	
 
-/** OSMEM_SIZE would have to be aligned, but using 64000 here instead of
- * 65535 leaves some room for alignment. */
-#if OSMEM_SIZE > 64000L
-typedef uOS32_t uOSMemSize_t;
-#else
-typedef uOS16_t uOSMemSize_t;
-#endif /* OSMEM_SIZE > 64000 */
+typedef struct OSList
+{
+	volatile uOSBase_t 					uxNumberOfItems;
+	tOSListItem_t * volatile 			ptIndex;
+	tOSListItem_t						tListEnd;
+} tOSList_t;
 
-void  OSMemInit(void);
-void *OSMemTrim(void *pMem, uOSMemSize_t size);
-void *OSMemMalloc(uOSMemSize_t size);
-void *OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size);
-void  OSMemFree(void *pMem);
+#define OSListItemSetHolder( ptListItem, pxHolder )		( ( ptListItem )->pvHolder = ( void * ) ( pxHolder ) )
+#define OSListItemGetHolder( ptListItem )				( ( ptListItem )->pvHolder )
+#define OSListItemSetValue( ptListItem, xValue )		( ( ptListItem )->uxItemValue = ( xValue ) )
+#define OSListItemGetValue( ptListItem )				( ( ptListItem )->uxItemValue )
+#define OSListItemGetNextItem( ptListItem )				( ( ptListItem )->ptNext )
+#define OSListItemGetList( ptListItem ) 				( ( ptListItem )->pvList )
 
-/** Calculate memory size for an aligned buffer - returns the next highest
- * multiple of OSMEM_ALIGNMENT (e.g. OSMEM_ALIGN_SIZE(3) and
- * OSMEM_ALIGN_SIZE(4) will both yield 4 for OSMEM_ALIGNMENT == 4). */
-#ifndef OSMEM_ALIGN_SIZE
-#define OSMEM_ALIGN_SIZE(size) (((size) + OSMEM_ALIGNMENT - 1) & ~(OSMEM_ALIGNMENT-1))
-#endif
+#define OSlistGetHeadItemValue( ptList )				( ( ( ptList )->tListEnd ).ptNext->uxItemValue )
+#define OSListGetHeadItem( ptList )						( ( ( ptList )->tListEnd ).ptNext )
+#define OSListGetEndMarkerItem( ptList )				( ( tOSListItem_t const * ) ( &( ( ptList )->tListEnd ) ) )
+#define OSListIsEmpty( ptList )							( ( uOSBase_t ) ( ( ptList )->uxNumberOfItems == ( uOSBase_t ) 0 ) )
+#define OSListGetLength( ptList )						( ( ptList )->uxNumberOfItems )
 
-/** Calculate safe memory size for an aligned buffer when using an unaligned
- * type as storage. This includes a safety-margin on (OSMEM_ALIGNMENT - 1) at the
- * start (e.g. if buffer is UINT16[] and actual data will be UINT32*) */
-#ifndef OSMEM_ALIGN_BUFFER
-#define OSMEM_ALIGN_BUFFER(size) (((size) + OSMEM_ALIGNMENT - 1))
-#endif
+#define OSListGetNextItemHolder(ptList, pxHolder)											\
+{																							\
+	tOSList_t * const ptConstList = ( ptList );												\
+	/* Increment the index to the next item and return the item, ensuring */				\
+	/* we don't return the marker used at the end of the list.  */							\
+	( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;							\
+	if( ( void * ) ( ptConstList )->ptIndex == ( void * ) &( ( ptConstList )->tListEnd ) )	\
+	{																						\
+		( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;						\
+	}																						\
+	( pxHolder ) = ( ptConstList )->ptIndex->pvHolder;										\
+}
 
-/** Align a memory pointer to the alignment defined by OSMEM_ALIGNMENT
- * so that ADDR % OSMEM_ALIGNMENT == 0 */
-#ifndef OSMEM_ALIGN_ADDR
-#define OSMEM_ALIGN_ADDR(addr) ((void *)(((uOS32_t)(addr) + OSMEM_ALIGNMENT - 1) & ~(uOS32_t)(OSMEM_ALIGNMENT-1)))
-#endif
+#define OSListGetHeadItemHolder( ptList )  				( (&( ( ptList )->tListEnd ))->ptNext->pvHolder )
+#define OSListContainListItem( ptList, ptListItem ) 	( ( sOSBase_t ) ( ( ptListItem )->pvList == ( void * ) ( ptList ) ) )
+#define OSListISInitialised( ptList ) 					( ( ptList )->tListEnd.uxItemValue == OSPEND_FOREVER_VALUE )
+
+void OSListItemInitialise( tOSListItem_t * const ptListItem );
+
+void OSListInitialise( tOSList_t * const ptList );
+void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem );
+void OSListInsertItemToEnd( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem );
+uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__OS_MEMORY_H_
+#endif //__OS_TIMER_HPP
