@@ -207,7 +207,7 @@ void OSMemFree(void *pMem)
 		// finally, see if prev or next are free also 
 		OSMemCombine(ptOSMemTemp);		
 	}
-	OSScheduleUnock();
+	OSScheduleUnlock();
 	
 	return;
 }
@@ -327,7 +327,7 @@ void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 		-> the remaining space stays unused since it is too small
 	} 
 */
-  OSScheduleUnock();
+  OSScheduleUnlock();
   return pMem;
 }
 
@@ -435,7 +435,7 @@ void* OSMemMalloc(uOSMemSize_t size)
 		}
 	}
 
-	OSScheduleUnock();
+	OSScheduleUnlock();
 
 	return pResult;
 }
