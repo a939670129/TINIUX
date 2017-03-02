@@ -63,28 +63,28 @@ extern "C" {
 //#define OSIntLockFromISR()
 #define OSIntUnlock( x )
 //#define OSIntUnlockFromISR( x )
-#define OSIntMask()								FitSetInterruptMask()
-#define OSIntUnmask()							FitClearInterruptMask( 0 )
+#define OSIntMask()                                FitSetInterruptMask()
+#define OSIntUnmask()                              FitClearInterruptMask( 0 )
 //#define OSScheduleLock()
 //#define OSScheduleUnlock()
 
-#define OSScheduleLock()						FitEnterCritical()
-#define OSScheduleUnlock()						FitExitCritical()
+#define OSScheduleLock()                           FitEnterCritical()
+#define OSScheduleUnlock()                         FitExitCritical()
 
 //#define OSSchedule()
 //#define OSScheduleFromISR( bNeedSchedule )
-#define OSIntLockFromISR()						FitSetInterruptMask()
-#define OSIntUnlockFromISR( x )					FitClearInterruptMask( x )
-#define OSSchedule()							FitYield()
-#define OSScheduleFromISR( bNeedSchedule )		FitYIELD_FROM_ISR( bNeedSchedule )
+#define OSIntLockFromISR()                         FitSetInterruptMask()
+#define OSIntUnlockFromISR( x )                    FitClearInterruptMask( x )
+#define OSSchedule()                               FitYield()
+#define OSScheduleFromISR( bNeedSchedule )         FitYIELD_FROM_ISR( bNeedSchedule )
 
 
-#define OSStart()								OSStartScheduler()
+#define OSStart()                                  OSStartScheduler()
 
 // Milliseconds to OS Ticks
-#define OSM2T( x )								( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
+#define OSM2T( x )                                 ( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
 // Frequency to OS Ticks
-#define OSF2T( x )								( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
+#define OSF2T( x )								                         ( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
 
 #ifdef __cplusplus
 }
