@@ -50,22 +50,22 @@ Return      : None
 *****************************************************************************/
 void OSListInitialise( tOSList_t * const ptList )
 {
-	/* The list structure contains a list item which is used to mark the
-	end of the list.  To initialise the list the list end is inserted
+	/* The list structure contains a list item which is used as sentinel item.  
+	To initialise the list. the sentinel item is inserted
 	as the only list entry. */
-	ptList->ptIndex = ( tOSListItem_t * ) &( ptList->tListEnd );
+	ptList->ptIndex = ( tOSListItem_t * ) &( ptList->tNilItem );
 
-	/* The list end value is the highest possible value in the list to
+	/* The list sentinel item value is the highest possible value in the list to
 	ensure it remains at the end of the list. */
-	ptList->tListEnd.uxItemValue = OSPEND_FOREVER_VALUE;
+	ptList->tNilItem.uxItemValue = OSPEND_FOREVER_VALUE;
 
-	/* The list end next and previous pointers point to itself so we know
+	/* The list sentinel item next and previous pointers point to itself so we know
 	when the list is empty. */
-	ptList->tListEnd.ptNext = ( tOSListItem_t * ) &( ptList->tListEnd );
-	ptList->tListEnd.ptPrevious = ( tOSListItem_t * ) &( ptList->tListEnd );
+	ptList->tNilItem.ptNext = ( tOSListItem_t * ) &( ptList->tNilItem );
+	ptList->tNilItem.ptPrevious = ( tOSListItem_t * ) &( ptList->tNilItem );
 
-	ptList->tListEnd.pvHolder = OS_NULL; //pvHolder is not use in tListEnd
-	ptList->tListEnd.pvList = OS_NULL;   //pvList is in tListEnd
+	ptList->tNilItem.pvHolder = OS_NULL; //pvHolder is not use in tNilItem
+	ptList->tNilItem.pvList = OS_NULL;   //pvList is in tNilItem
 
 	ptList->uxNumberOfItems = ( uOSBase_t ) 0U;
 }
@@ -124,16 +124,16 @@ void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewList
 	/* If the list already contains a list item with the same item value then the
 	new list item should be placed after it.  This ensures that TCB's which are
 	stored in ready lists (all of which have the same uxItemValue value) get a
-	share of the CPU.  However, if the uxItemValue is the same as the back marker
+	share of the CPU.  However, if the uxItemValue is the same as the sentinel item,
 	the iteration loop below will not end.  Therefore the value is checked
 	first, and the algorithm slightly modified if necessary. */
 	if( uxValueOfInsertion == OSPEND_FOREVER_VALUE )
 	{
-		ptIterator = ptList->tListEnd.ptPrevious;
+		ptIterator = ptList->tNilItem.ptPrevious;
 	}
 	else
 	{
-		for( ptIterator = ( tOSListItem_t * ) &( ptList->tListEnd ); ptIterator->ptNext->uxItemValue <= uxValueOfInsertion; ptIterator = ptIterator->ptNext )
+		for( ptIterator = ( tOSListItem_t * ) &( ptList->tNilItem ); ptIterator->ptNext->uxItemValue <= uxValueOfInsertion; ptIterator = ptIterator->ptNext )
 		{
 			/* There is nothing to do here, just iterating to the wanted
 			insertion position. */

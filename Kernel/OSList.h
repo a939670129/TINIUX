@@ -54,11 +54,12 @@ struct OSListItem
 };
 typedef struct OSListItem               tOSListItem_t;	
 
+//circular doubly linked list with a single sentinel item.
 typedef struct OSList
 {
 	volatile uOSBase_t                  uxNumberOfItems;
 	tOSListItem_t * volatile            ptIndex;
-	tOSListItem_t                       tListEnd;
+	tOSListItem_t                       tNilItem;            //tNilItem as sentinel item.
 } tOSList_t;
 
 #define OSListItemSetHolder( ptListItem, pxHolder )         ( ( ptListItem )->pvHolder = ( void * ) ( pxHolder ) )
@@ -68,9 +69,9 @@ typedef struct OSList
 #define OSListItemGetNextItem( ptListItem )                 ( ( ptListItem )->ptNext )
 #define OSListItemGetList( ptListItem )                     ( ( ptListItem )->pvList )
 
-#define OSlistGetHeadItemValue( ptList )                    ( ( ( ptList )->tListEnd ).ptNext->uxItemValue )
-#define OSListGetHeadItem( ptList )                         ( ( ( ptList )->tListEnd ).ptNext )
-#define OSListGetEndMarkerItem( ptList )                    ( ( tOSListItem_t const * ) ( &( ( ptList )->tListEnd ) ) )
+#define OSlistGetHeadItemValue( ptList )                    ( ( ( ptList )->tNilItem ).ptNext->uxItemValue )
+#define OSListGetHeadItem( ptList )                         ( ( ( ptList )->tNilItem ).ptNext )
+#define OSListGetEndMarkerItem( ptList )                    ( ( tOSListItem_t const * ) ( &( ( ptList )->tNilItem ) ) )
 #define OSListIsEmpty( ptList )                             ( ( uOSBase_t ) ( ( ptList )->uxNumberOfItems == ( uOSBase_t ) 0 ) )
 #define OSListGetLength( ptList )                           ( ( ptList )->uxNumberOfItems )
 
@@ -80,16 +81,16 @@ typedef struct OSList
 	/* Increment the index to the next item and return the item, ensuring */                \
 	/* we don't return the marker used at the end of the list.  */                          \
 	( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                            \
-	if( ( void * ) ( ptConstList )->ptIndex == ( void * ) &( ( ptConstList )->tListEnd ) )  \
+	if( ( void * ) ( ptConstList )->ptIndex == ( void * ) &( ( ptConstList )->tNilItem ) )  \
 	{                                                                                       \
 		( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                        \
 	}                                                                                       \
 	( pxHolder ) = ( ptConstList )->ptIndex->pvHolder;                                      \
 }
 
-#define OSListGetHeadItemHolder( ptList )                   ( (&( ( ptList )->tListEnd ))->ptNext->pvHolder )
+#define OSListGetHeadItemHolder( ptList )                   ( (&( ( ptList )->tNilItem ))->ptNext->pvHolder )
 #define OSListContainListItem( ptList, ptListItem )         ( ( sOSBase_t ) ( ( ptListItem )->pvList == ( void * ) ( ptList ) ) )
-#define OSListISInitialised( ptList )                       ( ( ptList )->tListEnd.uxItemValue == OSPEND_FOREVER_VALUE )
+#define OSListISInitialised( ptList )                       ( ( ptList )->tNilItem.uxItemValue == OSPEND_FOREVER_VALUE )
 
 void OSListItemInitialise( tOSListItem_t * const ptListItem );
 
