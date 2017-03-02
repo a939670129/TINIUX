@@ -57,26 +57,34 @@ extern "C" {
 #define MINOR_VERSION        0
 #define REVISION_NUM         2
 
-//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM //version 0.0.1
+//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
 
 #define OSIntLock()
-#define OSIntLockFromISR()
-#define OSIntUnlock()
-#define OSIntUnlockFromISR()
-#define OSIntMask()
-#define OSIntUnmask()
-#define OSScheduleLock()
-#define OSScheduleUnlock()
+//#define OSIntLockFromISR()
+#define OSIntUnlock( x )
+//#define OSIntUnlockFromISR( x )
+#define OSIntMask()								FitSetInterruptMask()
+#define OSIntUnmask()							FitClearInterruptMask( 0 )
+//#define OSScheduleLock()
+//#define OSScheduleUnlock()
 
-#define OSSchedule()
-#define OSScheduleFromISR()
+#define OSScheduleLock()						FitEnterCritical()
+#define OSScheduleUnlock()						FitExitCritical()
 
-#define OSStart()
+//#define OSSchedule()
+//#define OSScheduleFromISR( bNeedSchedule )
+#define OSIntLockFromISR()						FitSetInterruptMask()
+#define OSIntUnlockFromISR( x )					FitClearInterruptMask( x )
+#define OSSchedule()							FitYield()
+#define OSScheduleFromISR( bNeedSchedule )		FitYIELD_FROM_ISR( bNeedSchedule )
+
+
+#define OSStart()								OSStartScheduler()
 
 // Milliseconds to OS Ticks
-#define OSM2T( X ) 					( ( uOSTick_t )( ( X )*( OSTICK_RATE_HZ/1000.0 ) ) )
+#define OSM2T( x )								( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
 // Frequency to OS Ticks
-#define OSF2T( X ) 					( ( uOSTick_t )( ( OSTICK_RATE_HZ/( X ) ) ) )
+#define OSF2T( x )								( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
 
 #ifdef __cplusplus
 }

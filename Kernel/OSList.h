@@ -72,7 +72,7 @@ typedef struct OSList
 #define OSlistGetHeadItemValue( ptList )                    ( ( ( ptList )->tNilItem ).ptNext->uxItemValue )
 #define OSListGetHeadItem( ptList )                         ( ( ( ptList )->tNilItem ).ptNext )
 #define OSListGetEndMarkerItem( ptList )                    ( ( tOSListItem_t const * ) ( &( ( ptList )->tNilItem ) ) )
-#define OSListIsEmpty( ptList )                             ( ( uOSBase_t ) ( ( ptList )->uxNumberOfItems == ( uOSBase_t ) 0 ) )
+#define OSListIsEmpty( ptList )                             ( ( uOSBool_t ) ( ( ptList )->uxNumberOfItems == ( uOSBase_t ) 0 ) )
 #define OSListGetLength( ptList )                           ( ( ptList )->uxNumberOfItems )
 
 #define OSListGetNextItemHolder(ptList, pxHolder)                                           \
@@ -89,8 +89,8 @@ typedef struct OSList
 }
 
 #define OSListGetHeadItemHolder( ptList )                   ( (&( ( ptList )->tNilItem ))->ptNext->pvHolder )
-#define OSListContainListItem( ptList, ptListItem )         ( ( sOSBase_t ) ( ( ptListItem )->pvList == ( void * ) ( ptList ) ) )
-#define OSListISInitialised( ptList )                       ( ( ptList )->tNilItem.uxItemValue == OSPEND_FOREVER_VALUE )
+#define OSListContainListItem( ptList, ptListItem )         ( ( uOSBool_t ) ( ( ptListItem )->pvList == ( void * ) ( ptList ) ) )
+#define OSListIsInitialised( ptList )                       ( ( uOSBool_t ) ( ( ptList )->tNilItem.uxItemValue == OSPEND_FOREVER_VALUE ) )
 
 void OSListItemInitialise( tOSListItem_t * const ptListItem );
 
