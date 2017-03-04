@@ -1,0 +1,479 @@
+/**********************************************************************************************************
+AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+--------------------------------------------------------------------------------------------------------
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met: 
+1. Redistributions of source code must retain the above copyright notice, this list of 
+conditions and the following disclaimer. 
+2. Redistributions in binary form must reproduce the above copyright notice, this list 
+of conditions and the following disclaimer in the documentation and/or other materials 
+provided with the distribution. 
+3. Neither the name of the copyright holder nor the names of its contributors may be used 
+to endorse or promote products derived from this software without specific prior written 
+permission. 
+--------------------------------------------------------------------------------------------------------
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+--------------------------------------------------------------------------------------------------------
+ Notice of Export Control Law 
+--------------------------------------------------------------------------------------------------------
+ SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ applicable export control laws and regulations. 
+***********************************************************************************************************/
+
+#include "AIOS.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if (OS_SEMAPHORE_ON==1)
+
+/* Semaphores do not actually store or copy data, so have an item size of zero. */
+//AIOS_DATA static uOSBase_t const SEMAPHORE_QUEUE_ITEM_LENGTH		= ( ( uOSBase_t ) 0U );
+AIOS_DATA static uOSBase_t const SEMAPHORE_QUEUE_LENGTH			= ( ( uOSBase_t ) 1U );
+AIOS_DATA static uOSTick_t const SEMAPOST_BLOCK_TIME			= ( ( uOSTick_t ) 0U );
+
+AIOS_DATA static sOSBase_t const SEM_STATUS_UNLOCKED			= ( ( sOSBase_t ) -1 );
+AIOS_DATA static sOSBase_t const SEM_STATUS_LOCKED				= ( ( sOSBase_t ) 0 );
+
+static uOSBool_t OSSemIsEmpty( OSSemHandle_t SemHandle )
+{
+	uOSBool_t bReturn;
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	OSIntLock();
+	{
+		if( ptSem->uxCurNum == ( uOSBase_t )  0 )
+		{
+			bReturn = OS_TRUE;
+		}
+		else
+		{
+			bReturn = OS_FALSE;
+		}
+	}
+	OSIntUnlock();
+
+	return bReturn;
+}
+
+static uOSBool_t OSSemIsFull( OSSemHandle_t SemHandle )
+{
+	uOSBool_t bReturn;
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	OSIntLock();
+	{
+		if( ptSem->uxCurNum == ptSem->uxMaxNum )
+		{
+			bReturn = OS_TRUE;
+		}
+		else
+		{
+			bReturn = OS_FALSE;
+		}
+	}
+	OSIntUnlock();
+
+	return bReturn;
+}
+
+#define OSSemStateLock( ptSem )								\
+	OSIntLock();											\
+	{														\
+		if( ( ptSem )->xRxLock == SEM_STATUS_UNLOCKED )		\
+		{													\
+			( ptSem )->xRxLock = SEM_STATUS_LOCKED;			\
+		}													\
+		if( ( ptSem )->xTxLock == SEM_STATUS_UNLOCKED )		\
+		{													\
+			( ptSem )->xTxLock = SEM_STATUS_LOCKED;			\
+		}													\
+	}														\
+	OSIntUnlock()
+
+
+static void OSSemStateUnlock( tOSSem_t * const ptSem )
+{
+	/* THIS FUNCTION MUST BE CALLED WITH THE SCHEDULER LOCKED. */
+
+	OSIntLock();
+	{
+		sOSBase_t xTxLock = ptSem->xTxLock;
+		
+		while( xTxLock > SEM_STATUS_LOCKED )
+		{
+			if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+			{
+				if( OSTaskRemoveFromEventList( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+				{
+					OSTaskNeedSchedule();
+				}
+			}
+			else
+			{
+				break;
+			}
+
+			--xTxLock;
+		}
+
+		ptSem->xTxLock = SEM_STATUS_UNLOCKED;
+	}
+	OSIntUnlock();
+
+	/* Do the same for the Rx lock. */
+	OSIntLock();
+	{
+		sOSBase_t xRxLock = ptSem->xRxLock;
+		
+		while( xRxLock > SEM_STATUS_LOCKED )
+		{
+			if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+			{
+				if( OSTaskRemoveFromEventList( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+				{
+					OSTaskNeedSchedule();
+				}
+
+				--xRxLock;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		ptSem->xRxLock = SEM_STATUS_UNLOCKED;
+	}
+	OSIntUnlock();
+}
+
+sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
+{
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	OSIntLock();
+	{
+		ptSem->uxCurNum = ( uOSBase_t ) 0U;
+		ptSem->xRxLock = SEM_STATUS_UNLOCKED;
+		ptSem->xTxLock = SEM_STATUS_UNLOCKED;
+
+		if( bNewQueue == OS_FALSE )
+		{
+			if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+			{
+				if( OSTaskRemoveFromEventList( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+				{
+					OSSchedule();
+				}
+			}
+		}
+		else
+		{
+			OSListInitialise( &( ptSem->tSendTaskList ) );
+			OSListInitialise( &( ptSem->tRecvTaskList ) );
+		}
+	}
+	OSIntUnlock();
+
+	return OS_TRUE;
+}
+
+OSSemHandle_t OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount )
+{
+	tOSSem_t *ptNewSem;
+	OSSemHandle_t xReturn = OS_NULL;
+
+	ptNewSem = ( tOSSem_t * ) OSMemMalloc( sizeof( tOSSem_t ) );
+
+	if( ptNewSem != OS_NULL )
+	{
+		ptNewSem->uxMaxNum = uxMaxNum;
+
+		( void ) OSSemReset( ptNewSem, OS_TRUE );
+
+		ptNewSem->uxCurNum = uxInitialCount;
+
+		xReturn = ptNewSem;
+	}
+
+	return xReturn;
+}
+
+OSSemHandle_t OSSemCreate( const uOSBase_t uxInitialCount )
+{
+	uOSBase_t uxInitialCountTemp = uxInitialCount;
+	if(uxInitialCountTemp>SEMAPHORE_QUEUE_LENGTH)
+	{
+		uxInitialCountTemp = SEMAPHORE_QUEUE_LENGTH;
+	}
+	return OSSemCreateCount( ( uOSBase_t )SEMAPHORE_QUEUE_LENGTH, ( uOSBase_t )uxInitialCountTemp );
+}
+
+void OSSemDelete( OSSemHandle_t SemHandle )
+{
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	OSMemFree( ptSem );
+}
+
+sOSBase_t OSSemSetID(OSSemHandle_t const SemHandle, sOSBase_t xID)
+{
+	if(SemHandle == OS_NULL)
+	{
+		return 1;
+	}
+	OSIntLock();
+	{
+		SemHandle->xID = xID;
+	}
+	OSIntUnlock();
+
+	return 0;
+}
+
+sOSBase_t OSSemGetID(OSSemHandle_t const SemHandle)
+{
+	sOSBase_t xID = 0;
+	
+	OSIntLock();
+	if(SemHandle != OS_NULL)
+	{
+		xID = SemHandle->xID;
+	}
+	OSIntUnlock();
+
+	return xID;
+}
+
+uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
+{
+	uOSBool_t bEntryTimeSet = OS_FALSE;
+	tOSTimeOut_t tTimeOut;
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	for( ;; )
+	{
+		OSIntLock();
+		{
+			const uOSBase_t uxCurNum = ptSem->uxCurNum;
+			
+			if( uxCurNum > ( uOSBase_t ) 0 )
+			{
+				ptSem->uxCurNum = uxCurNum - 1;
+
+				if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+				{
+					if( OSTaskRemoveFromEventList( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+					{
+						OSSchedule();
+					}
+				}
+
+				OSIntUnlock();
+				return OS_TRUE;
+			}
+			else
+			{
+				if( uxTicksToWait == ( uOSTick_t ) 0 )
+				{
+					OSIntUnlock();
+					//the semaphore is empty
+					return OS_FALSE;
+				}
+				else if( bEntryTimeSet == OS_FALSE )
+				{
+					OSTaskSetTimeOutState( &tTimeOut );
+					bEntryTimeSet = OS_TRUE;
+				}
+			}
+		}
+		OSIntUnlock();
+
+		OSScheduleLock();
+		OSSemStateLock( ptSem );
+
+		if( OSTaskCheckForTimeOut( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+		{
+			if( OSSemIsEmpty( ptSem ) != OS_FALSE )
+			{
+				OSTaskListOfEventAdd( &( ptSem->tRecvTaskList ), uxTicksToWait );
+				OSSemStateUnlock( ptSem );
+				if( OSScheduleUnlock() == OS_FALSE )
+				{
+					OSSchedule();
+				}
+			}
+			else
+			{
+				/* Try again. */
+				OSSemStateUnlock( ptSem );
+				( void ) OSScheduleUnlock();
+			}
+		}
+		else
+		{
+			OSSemStateUnlock( ptSem );
+			( void ) OSScheduleUnlock();
+			
+			if( OSSemIsEmpty( ptSem ) != OS_FALSE )
+			{
+				//the semaphore is empty
+				return OS_FALSE;
+			}
+		}
+	}
+}
+
+uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
+{
+	uOSBool_t bEntryTimeSet = OS_FALSE;
+	tOSTimeOut_t tTimeOut;
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	uOSTick_t uxTicksToWait = SEMAPOST_BLOCK_TIME;
+
+	for( ;; )
+	{
+		OSIntLock();
+		{
+			const uOSBase_t uxCurNum = ptSem->uxCurNum;
+			
+			if( uxCurNum < ptSem->uxMaxNum )
+			{
+				ptSem->uxCurNum = uxCurNum + 1;
+
+				if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+				{
+					if( OSTaskRemoveFromEventList( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+					{
+						OSSchedule();
+					}
+				}
+
+				OSIntUnlock();
+				return OS_TRUE;
+			}
+			else
+			{
+				if( uxTicksToWait == ( uOSTick_t ) 0 )
+				{
+					OSIntUnlock();
+					//the semaphore is full
+					return OS_FALSE;
+				}
+				else if( bEntryTimeSet == OS_FALSE )
+				{
+					OSTaskSetTimeOutState( &tTimeOut );
+					bEntryTimeSet = OS_TRUE;
+				}
+			}
+		}
+		OSIntUnlock();
+
+		OSScheduleLock();
+		OSSemStateLock( ptSem );
+
+		if( OSTaskCheckForTimeOut( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+		{
+			if( OSSemIsFull( ptSem ) != OS_FALSE )
+			{
+				OSTaskListOfEventAdd( &( ptSem->tSendTaskList ), uxTicksToWait );
+
+				OSSemStateUnlock( ptSem );
+
+				if( OSScheduleUnlock() == OS_FALSE )
+				{
+					OSSchedule();
+				}
+			}
+			else
+			{
+				/* Try again. */
+				OSSemStateUnlock( ptSem );
+				( void ) OSScheduleUnlock();
+			}
+		}
+		else
+		{
+			/* The timeout has expired. */
+			OSSemStateUnlock( ptSem );
+			( void ) OSScheduleUnlock();
+			//the semaphore is full
+			return OS_FALSE;
+		}
+	}
+}
+
+uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
+{
+	uOSBool_t bReturn;
+	uOSBase_t uxSavedInterruptStatus;
+	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
+
+	uOSBool_t bNeedSchedule = OS_FALSE;
+
+	uxSavedInterruptStatus = OSIntLockFromISR();
+	{
+		const uOSBase_t uxCurNum = ptSem->uxCurNum;
+		
+		if( uxCurNum < ptSem->uxMaxNum )
+		{
+			const sOSBase_t xTxLock = ptSem->xTxLock;
+	
+			ptSem->uxCurNum = uxCurNum + 1;
+
+			if( xTxLock == SEM_STATUS_UNLOCKED )
+			{
+				if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+				{
+					if( OSTaskRemoveFromEventList( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+					{
+						bNeedSchedule = OS_TRUE;
+					}
+				}
+			}
+			else
+			{
+				ptSem->xTxLock = ( sOSBase_t )(xTxLock + 1);
+			}
+
+			bReturn = OS_TRUE;
+		}
+		else
+		{
+			//the semaphore is full
+			bReturn = OS_FALSE;
+		}
+	}
+	OSIntUnlockFromISR( uxSavedInterruptStatus );
+
+	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	{
+		OSScheduleFromISR( bNeedSchedule );
+	}
+
+	return bReturn;
+}
+
+#endif //(OS_SEMAPHORE_ON==1)
+
+#ifdef __cplusplus
+}
+#endif

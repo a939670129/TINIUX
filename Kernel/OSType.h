@@ -65,10 +65,16 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define 	OS_PASS					( OS_TRUE )
 #define 	OS_FAIL					( OS_FALSE )
 
-#ifndef SETOS_TICK_RATE_HZ
-  #define	OSTICK_RATE_HZ			( ( uOSTick_t )1000 )
+#ifndef SETOS_CPU_CLOCK_HZ
+  #define	OSCPU_CLOCK_HZ			( ( uOSBase_t )36000000 )
 #else
-  #define	OSTICK_RATE_HZ			( ( uOSTick_t ) SETOS_TICK_RATE_HZ )
+  #define	OSCPU_CLOCK_HZ			( ( uOSBase_t ) SETOS_CPU_CLOCK_HZ )
+#endif
+
+#ifndef SETOS_TICK_RATE_HZ
+  #define	OSTICK_RATE_HZ			( ( uOSBase_t )1000 )
+#else
+  #define	OSTICK_RATE_HZ			( ( uOSBase_t ) SETOS_TICK_RATE_HZ )
 #endif
 
 #define 	OSTICKS_PER_MS			( ( uOSTick_t ) OSTICK_RATE_HZ/1000 )
@@ -172,6 +178,12 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
   #define	OSCALLBACK_TASK_PRIO	( SETOS_CALLBACK_TASK_PRIORITY )
 #endif
 #endif //(OS_MSGQ_ON==1)
+
+
+// Milliseconds to OS Ticks
+#define OSM2T( x )                  ( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
+// Frequency to OS Ticks
+#define OSF2T( x )                  ( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
 
 #ifdef __cplusplus
 }

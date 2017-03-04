@@ -35,32 +35,69 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __AIOS_H_
-#define __AIOS_H_
+#ifndef __OS_MSGQ_H_
+#define __OS_MSGQ_H_
+
+#include "OSType.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "FitType.h"
-#include "OSType.h"
-#include "FitCPU.h"
-#include "OSMemory.h"
-#include "OSList.h"
-#include "OSTask.h"
-#include "OSMsgQ.h"
-#include "OSSem.h"
-#include "OSMutex.h"
-#include "OSTimer.h"
+typedef struct tOSMsgQ
+{
+	char						pcMsgQName[ OSNAME_MAX_LEN ];
 
-#define MAJOR_VERSION        0
-#define MINOR_VERSION        9
-#define REVISION_NUM         3
+	sOS8_t *					pcHead;	
+	sOS8_t *					pcTail;	
+	sOS8_t *					pcWriteTo;
+	sOS8_t *					pcReadFrom;
+	
+	tOSList_t 					tSendTaskList;
+	tOSList_t 					tRecvTaskList;
 
-//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
+	volatile uOSBase_t 			uxCurNum;	
+	uOSBase_t 					uxMaxNum;
+	uOSBase_t 					uxItemSize;
+
+	volatile sOSBase_t 			xRxLock;
+	volatile sOSBase_t 			xTxLock;
+
+	sOSBase_t					xID;
+} tOSMsgQ_t;
+
+typedef tOSMsgQ_t* 	OSMsgQHandle_t;
+
+OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) AIOS_FUNCTION;
+void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+
+sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) AIOS_FUNCTION;
+sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) AIOS_FUNCTION;
+
+uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+
+uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+
+uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+
+uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) AIOS_FUNCTION;
+
+uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+
+sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) AIOS_FUNCTION;
+
+#if (OS_TIMER_ON==1)
+void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) AIOS_FUNCTION;
+#endif /* (OS_TIMER_ON==1) */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__AIOS_H_
+#endif /* __OS_MSGQ_H_ */
+

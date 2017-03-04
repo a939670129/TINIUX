@@ -1,4 +1,4 @@
-/**********************************************************************************************************
+﻿/**********************************************************************************************************
 AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
 http://www.aios.io -- Documentation, latest information, license and contact details.
@@ -35,32 +35,40 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __AIOS_H_
-#define __AIOS_H_
+#ifndef __FIT_CPU_H_
+#define __FIT_CPU_H_
+
+#include "OSType.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "FitType.h"
-#include "OSType.h"
-#include "FitCPU.h"
-#include "OSMemory.h"
-#include "OSList.h"
-#include "OSTask.h"
-#include "OSMsgQ.h"
-#include "OSSem.h"
-#include "OSMutex.h"
-#include "OSTimer.h"
+extern uOS32_t FitSetInterruptMask( void );
+extern void FitClearInterruptMask( uOS32_t ulNewMask );
+extern void FitEnterCritical( void );
+extern void FitExitCritical( void );
+extern void FitSchedule( void );
 
-#define MAJOR_VERSION        0
-#define MINOR_VERSION        9
-#define REVISION_NUM         3
+#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+	
+#define FitDISABLE_INTERRUPTS()		FitSetInterruptMask()
+#define FitENABLE_INTERRUPTS()		FitClearInterruptMask( 0 )
+	
+#define FIT_QUICK_GET_PRIORITY		1
+#define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( guxReadyPriorities ) ) )
 
-//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
+uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
+uOSBase_t FitStartScheduler( void );
+
+void FitPendSVHandler( void );
+void FitOSTickISR( void );
+void FitSVCHandler( void );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__AIOS_H_
+#endif //__FIT_CPU_H_

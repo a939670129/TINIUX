@@ -35,32 +35,51 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __AIOS_H_
-#define __AIOS_H_
+#ifndef __OS_SEMAPHORE_H_
+#define __OS_SEMAPHORE_H_
+
+#include "OSType.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "FitType.h"
-#include "OSType.h"
-#include "FitCPU.h"
-#include "OSMemory.h"
-#include "OSList.h"
-#include "OSTask.h"
-#include "OSMsgQ.h"
-#include "OSSem.h"
-#include "OSMutex.h"
-#include "OSTimer.h"
+#if (OS_SEMAPHORE_ON==1)
 
-#define MAJOR_VERSION        0
-#define MINOR_VERSION        9
-#define REVISION_NUM         3
+typedef struct tOSSem
+{
+	char						pcSemName[ OSNAME_MAX_LEN ];
 
-//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
+	tOSList_t 					tSendTaskList;
+	tOSList_t 					tRecvTaskList;
+
+	volatile uOSBase_t 			uxCurNum;	
+	uOSBase_t 					uxMaxNum;
+
+	volatile sOSBase_t 			xRxLock;
+	volatile sOSBase_t 			xTxLock;
+
+	sOSBase_t					xID;
+} tOSSem_t;
+
+typedef tOSSem_t* OSSemHandle_t;
+
+OSSemHandle_t 	OSSemCreate( const uOSBase_t uxInitialCount ) AIOS_FUNCTION;
+OSSemHandle_t 	OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount ) AIOS_FUNCTION;
+void 			OSSemDelete(OSSemHandle_t SemHandle) AIOS_FUNCTION;
+
+sOSBase_t 		OSSemSetID(OSSemHandle_t const SemHandle, sOSBase_t xID) AIOS_FUNCTION;
+sOSBase_t 		OSSemGetID(OSSemHandle_t const SemHandle) AIOS_FUNCTION;
+
+uOSBool_t 		OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+
+uOSBool_t 		OSSemPost( OSSemHandle_t SemHandle) AIOS_FUNCTION;
+uOSBool_t 		OSSemPostFromISR( OSSemHandle_t SemHandle ) AIOS_FUNCTION;
+
+#endif //(OS_SEMAPHORE_ON==1)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__AIOS_H_
+#endif //__OS_SEMAPHORE_H_

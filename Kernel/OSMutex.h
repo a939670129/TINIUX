@@ -35,32 +35,48 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __AIOS_H_
-#define __AIOS_H_
+#ifndef __OS_MUTEX_H_
+#define __OS_MUTEX_H_
+
+#include "OSType.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "FitType.h"
-#include "OSType.h"
-#include "FitCPU.h"
-#include "OSMemory.h"
-#include "OSList.h"
-#include "OSTask.h"
-#include "OSMsgQ.h"
-#include "OSSem.h"
-#include "OSMutex.h"
-#include "OSTimer.h"
+#if (OS_MUTEX_ON==1)
 
-#define MAJOR_VERSION        0
-#define MINOR_VERSION        9
-#define REVISION_NUM         3
+typedef struct tOSMutex
+{
+	char						pcMutexName[ OSNAME_MAX_LEN ];
+	sOS8_t *					pxMutexHolder;
+	
+	tOSList_t 					tSendTaskList;
+	tOSList_t 					tRecvTaskList;
 
-//MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
+	volatile uOSBase_t 			uxCurNum;	
+	uOSBase_t 					uxMaxNum;
+
+	volatile sOSBase_t 			xRxLock;
+	volatile sOSBase_t 			xTxLock;
+
+	sOSBase_t					xID;
+} tOSMutex_t;
+
+typedef	tOSMutex_t*		OSMutexHandle_t;
+
+OSMutexHandle_t OSMutexCreate( void ) AIOS_FUNCTION;
+void 			OSMutexDelete( OSMutexHandle_t MutexHandle ) AIOS_FUNCTION;
+sOSBase_t 		OSMutexSetID(OSMutexHandle_t const MutexHandle, sOSBase_t xID) AIOS_FUNCTION;
+sOSBase_t 		OSMutexGetID(OSMutexHandle_t const MutexHandle) AIOS_FUNCTION;
+
+uOSBool_t 		OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+uOSBool_t 		OSMutexUnlock( OSMutexHandle_t MutexHandle) AIOS_FUNCTION;
+
+#endif //(OS_MUTEX_ON==1)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__AIOS_H_
+#endif //__OS_MUTEX_H_

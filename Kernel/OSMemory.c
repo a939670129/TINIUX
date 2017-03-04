@@ -188,7 +188,7 @@ void OSMemFree(void *pMem)
 	}
 	
 	// protect the heap from concurrent access 
-	OSScheduleLock();
+	OSIntLock();
 	// Get the corresponding tOSMem_t ... 
 	ptOSMemTemp = (tOSMem_t *)(void *)((uOS8_t *)pMem - SIZEOF_OSMEM_ALIGNED);
 	
@@ -207,7 +207,7 @@ void OSMemFree(void *pMem)
 		// finally, see if prev or next are free also 
 		OSMemCombine(ptOSMemTemp);		
 	}
-	OSScheduleUnlock();
+	OSIntUnlock();
 	
 	return;
 }
@@ -265,7 +265,7 @@ void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 	}
 
 	// protect the heap from concurrent access 
-	OSScheduleLock();
+	OSIntLock();
 
 	ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp->NextMem];
 	if(ptOSMemTemp2->Used == 0) 
@@ -327,7 +327,7 @@ void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 		-> the remaining space stays unused since it is too small
 	} 
 */
-  OSScheduleUnlock();
+  OSIntUnlock();
   return pMem;
 }
 
@@ -374,7 +374,7 @@ void* OSMemMalloc(uOSMemSize_t size)
 	}
 
 	// protect the heap from concurrent access 
-	OSScheduleLock();
+	OSIntLock();
 
 	// Scan through the heap searching for a free block that is big enough,
 	// beginning with the lowest free block.
@@ -435,7 +435,7 @@ void* OSMemMalloc(uOSMemSize_t size)
 		}
 	}
 
-	OSScheduleUnlock();
+	OSIntUnlock();
 
 	return pResult;
 }
