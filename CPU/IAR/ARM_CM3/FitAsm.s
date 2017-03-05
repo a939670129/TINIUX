@@ -63,7 +63,7 @@ FitPendSVHandler:
 	str r0, [r2]					/* Save the new top of stack into the first member of the TCB. */
 
 	stmdb sp!, {r3, r14}
-	mov r0, #configMAX_SYSCALL_INTERRUPT_PRIORITY
+	mov r0, #SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY
 	msr basepri, r0
 	dsb
 	isb	
@@ -83,7 +83,7 @@ FitPendSVHandler:
 
 FitSetInterruptMask:
 	mrs r0, basepri
-	mov r1, #configMAX_SYSCALL_INTERRUPT_PRIORITY
+	mov r1, #SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY
 	msr basepri, r1
 	bx r14
 
