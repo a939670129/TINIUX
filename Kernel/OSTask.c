@@ -177,6 +177,10 @@ static OSTaskHandle_t OSAllocateTCBAndStack( const uOS16_t usStackDepth, uOSStac
 {
 	OSTaskHandle_t ptNewTCB;
 	ptNewTCB = ( OSTaskHandle_t ) OSMemMalloc( sizeof( tOSTCB_t ) );
+	
+	/* Just to avoid compiler warnings. */
+	( void ) puxStackBuffer;
+	
 	if( ptNewTCB != OS_NULL )
 	{
 		ptNewTCB->puxStartStack = ( uOSStack_t * )OSMemMalloc( ( ( uOS16_t )usStackDepth ) * sizeof( uOSStack_t ));
@@ -1144,13 +1148,17 @@ void OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait
 {
 	OSListInsertItemToEnd( ptEventList, &( gptCurrentTCB->tEventListItem ) );
 
-	OSTaskListOfTimerAdd( gptCurrentTCB, uxTicksToWait, OS_TRUE );
+	OSTaskListOfTimerAdd( gptCurrentTCB, uxTicksToWait, bNeedSuspend );
 }
 #endif /* (OS_TIMER_ON==1) */
 
 static void OSIdleTask( void *pvParameters)
 {
 	int i = 0;
+	
+	/* Just to avoid compiler warnings. */
+	( void ) pvParameters;
+	
 	for( ;; )
 	{
 		// if there is not any other task ready, then OS enter idle task;
