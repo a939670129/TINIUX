@@ -179,6 +179,11 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 #endif //(OS_MSGQ_ON==1)
 
+#ifndef SETOS_TASK_SIGNAL_ON
+  #define	OS_TASK_SIGNAL_ON		( 1 )
+#else
+  #define	OS_TASK_SIGNAL_ON		( SETOS_TASK_SIGNAL_ON )
+#endif
 
 // Milliseconds to OS Ticks
 #define OSM2T( x )                  ( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )

@@ -65,7 +65,7 @@ void OSListInitialise( tOSList_t * const ptList )
 	ptList->tNilItem.ptPrevious = ( tOSListItem_t * ) &( ptList->tNilItem );
 
 	ptList->tNilItem.pvHolder = OS_NULL; //pvHolder is not use in tNilItem
-	ptList->tNilItem.pvList = OS_NULL;   //pvList is in tNilItem
+	ptList->tNilItem.pvList = OS_NULL;   //pvList is not use in tNilItem
 
 	ptList->uxNumberOfItems = ( uOSBase_t ) 0U;
 }

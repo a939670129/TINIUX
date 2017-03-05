@@ -1232,7 +1232,7 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 	{
 		xTemp = gptCurrentTCB->xSigValue;
 
-		if( xTemp > 0UL )
+		if( (uOS32_t)xTemp > 0UL )
 		{
 			gptCurrentTCB->xSigValue = xTemp - 1;
 			
