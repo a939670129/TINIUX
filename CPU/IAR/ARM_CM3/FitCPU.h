@@ -35,8 +35,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __FITCPU_HPP
-#define __FITCPU_HPP
+#ifndef __FIT_CPU_H_
+#define __FIT_CPU_H_
 
 #include "OSType.h"
 
@@ -83,4 +83,4 @@ void FitSVCHandler( void );
 }
 #endif
 
-#endif //__FITCPU_HPP
+#endif //__FIT_CPU_H_

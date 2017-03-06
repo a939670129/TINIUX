@@ -35,8 +35,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __FIT_TYPE_HPP
-#define __FIT_TYPE_HPP
+#ifndef __FIT_TYPE_H_
+#define __FIT_TYPE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,4 +63,4 @@ typedef		uOS32_t 				uOSTick_t;
 }
 #endif
 
-#endif //__FIT_TYPE_HPP
+#endif //__FIT_TYPE_H_

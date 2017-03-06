@@ -124,12 +124,12 @@ sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) AIOS_FUNC
 sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) AIOS_FUNCTION;
 
 void 		OSTaskListOfEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskRemoveFromEventList( const tOSList_t * const ptEventList ) AIOS_FUNCTION;
+uOSBool_t 	OSTaskListOfEventRemove( const tOSList_t * const ptEventList ) AIOS_FUNCTION;
 uOSBool_t 	OSTaskIncrementTick( void ) AIOS_FUNCTION;
 void 		OSTaskNeedSchedule( void ) AIOS_FUNCTION;
 void 		OSTaskSwitchContext( void ) AIOS_FUNCTION;
 void 		OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskCheckForTimeOut( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) AIOS_FUNCTION;
+uOSBool_t 	OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) AIOS_FUNCTION;
 OSTaskHandle_t OSTaskGetCurrentTaskHandle( void ) AIOS_FUNCTION;
 
 void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;

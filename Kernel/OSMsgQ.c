@@ -117,7 +117,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tRecvTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskRemoveFromEventList( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -143,7 +143,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tSendTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskRemoveFromEventList( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -226,7 +226,7 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tSendTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskRemoveFromEventList( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
 				{
 					OSSchedule();
 				}
@@ -326,7 +326,7 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
 
 				if( OSListIsEmpty( &( ptMsgQ->tRecvTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskRemoveFromEventList( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -359,7 +359,7 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
 		OSScheduleLock();
 		OSMsgQLock( ptMsgQ );
 
-		if( OSTaskCheckForTimeOut( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
 		{
 			if( OSMsgQIsFull( ptMsgQ ) != OS_FALSE )
 			{
@@ -403,10 +403,10 @@ uOSBool_t OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemT
 static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSBool_t * const pbNeedSchedule, const sOSBase_t xCopyPosition )
 {
 	uOSBool_t bReturn;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
 		{
@@ -418,7 +418,7 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 			{
 				if( OSListIsEmpty( &( ptMsgQ->tRecvTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskRemoveFromEventList( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
 					{
 						if( pbNeedSchedule != OS_NULL )
 						{
@@ -440,7 +440,7 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );
+	OSIntUnlockFromISR( uxIntSave );
 
 	return bReturn;
 }
@@ -498,7 +498,7 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 
 					if( OSListIsEmpty( &( ptMsgQ->tSendTaskList ) ) == OS_FALSE )
 					{
-						if( OSTaskRemoveFromEventList( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
+						if( OSTaskListOfEventRemove( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
 						{
 							OSSchedule();
 						}
@@ -510,7 +510,7 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 
 					if( OSListIsEmpty( &( ptMsgQ->tRecvTaskList ) ) == OS_FALSE )
 					{
-						if( OSTaskRemoveFromEventList( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
+						if( OSTaskListOfEventRemove( &( ptMsgQ->tRecvTaskList ) ) != OS_FALSE )
 						{
 							OSSchedule();
 						}
@@ -540,7 +540,7 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 		OSScheduleLock();
 		OSMsgQLock( ptMsgQ );
 
-		if( OSTaskCheckForTimeOut( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
 		{
 			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
 			{
@@ -584,11 +584,11 @@ uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTi
 uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer )
 {
 	uOSBool_t bReturn;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
 		
@@ -603,7 +603,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 			{
 				if( OSListIsEmpty( &( ptMsgQ->tSendTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskRemoveFromEventList( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMsgQ->tSendTaskList ) ) != OS_FALSE )
 					{
 						bNeedSchedule = OS_TRUE;
 					}
@@ -620,7 +620,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );
+	OSIntUnlockFromISR( uxIntSave );
 
 	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
 	{
@@ -633,11 +633,11 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 {
 	uOSBool_t bReturn;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 	sOS8_t *pcOriginalReadPosition;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		if( ptMsgQ->uxCurNum > ( uOSBase_t ) 0 )
 		{
@@ -652,7 +652,7 @@ uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );
+	OSIntUnlockFromISR( uxIntSave );
 
 	return bReturn;
 }

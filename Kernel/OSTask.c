@@ -393,7 +393,7 @@ sOSBase_t OSTaskGetID(OSTaskHandle_t const TaskHandle)
 	return xID;
 }
 
-static void OSTaskRemoveFromDeadList( void )
+static void OSTaskListOfRecycleRemove( void )
 {
 	uOSBool_t bListIsEmpty;
 
@@ -470,7 +470,7 @@ void OSTaskListOfEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTick
 	OSTaskListOfTimerAdd( gptCurrentTCB, uxTicksToWait, OS_TRUE );
 }
 
-uOSBool_t OSTaskRemoveFromEventList( const tOSList_t * const ptEventList )
+uOSBool_t OSTaskListOfEventRemove( const tOSList_t * const ptEventList )
 {
 	tOSTCB_t *pxUnblockedTCB;
 	uOSBool_t bReturn;
@@ -732,7 +732,7 @@ void OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut )
 	ptTimeOut->uxTimeOnEntering = guxTickCount;
 }
 
-uOSBool_t OSTaskCheckForTimeOut( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait )
+uOSBool_t OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait )
 {
 	uOSBool_t bReturn;
 
@@ -1110,9 +1110,9 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 {
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	tOSTCB_t * const ptTCB = ( tOSTCB_t * ) TaskHandle;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		if( OSTaskIsSuspended( ptTCB ) != OS_FALSE )
 		{
@@ -1138,7 +1138,7 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );
+	OSIntUnlockFromISR( uxIntSave );
 
 	return bNeedSchedule;
 }
@@ -1171,7 +1171,7 @@ static void OSIdleTask( void *pvParameters)
 		 
 		if(guxTasksDeleted > ( uOSBase_t ) 0U)
 		{
-			OSTaskRemoveFromDeadList();
+			OSTaskListOfRecycleRemove();
 		}
 	}
 }
@@ -1212,10 +1212,10 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 
 	OSIntLock();
 	{
-		/* Only block if the notification count is not already non-zero. */
+		/* Only block if the signal count is not already non-zero. */
 		if( gptCurrentTCB->xSigValue == 0UL )
 		{
-			/* Mark this task as waiting for a notification. */
+			/* Mark this task as waiting for a signal. */
 			gptCurrentTCB->uxSigState = SIG_STATE_WAITING;
 
 			if( uxTicksToWait > ( uOSTick_t ) 0 )
@@ -1268,21 +1268,17 @@ uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 			bRet = OS_TRUE;
 		}
 		/* If the task is in the blocked state specifically to wait for a
-		notification then unblock it now. */
+		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
 			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
 			OSTaskListOfReadyAdd( ptTCB );
 
-			#if( configUSE_TICKLESS_IDLE != 0 )
-			{
-				OSTaskUpdateUnblockTime();
-			}
-			#endif
+			OSTaskUpdateUnblockTime();
 
 			if( ptTCB->uxPriority > gptCurrentTCB->uxPriority )
 			{
-				/* The notified task has a priority above the currently
+				/* The signaled task has a priority above the currently
 				executing task so schedule is required. */
 				OSSchedule();
 			}
@@ -1296,14 +1292,13 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 {
 	tOSTCB_t * ptTCB;
 	uint8_t ucOldState;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	uOSBool_t bRet = OS_FALSE;
-//	portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
 
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		ucOldState = ptTCB->uxSigState;
 		ptTCB->uxSigState = SIG_STATE_RECEIVED;
@@ -1319,7 +1314,7 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
-		notification then unblock it now. */
+		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
 			/* The task should not have been on an event list. */
@@ -1343,7 +1338,7 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );	
+	OSIntUnlockFromISR( uxIntSave );	
 	
 	if(bNeedSchedule == OS_TRUE)
 	{
@@ -1358,13 +1353,13 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
 	
 	OSIntLock();
 	{
-		/* Only block if a notification is not already pending. */
+		/* Only block if a signal is not already pending. */
 		if( gptCurrentTCB->uxSigState != SIG_STATE_RECEIVED )
 		{
 			/* clear the value to zero. */
 			gptCurrentTCB->xSigValue = 0;
 
-			/* Mark this task as waiting for a notification. */
+			/* Mark this task as waiting for a signal. */
 			gptCurrentTCB->uxSigState = SIG_STATE_WAITING;
 
 			if( uxTicksToWait > ( uOSTick_t ) 0 )
@@ -1383,21 +1378,21 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
 
 	OSIntLock();
 	{
-		/* Output the current notification value. */
+		/* Output the current signal value. */
 		xSigValue = gptCurrentTCB->xSigValue;
 
 		/* If ucNotifyValue is set then either the task never entered the
-		blocked state (because a notification was already pending) or the
-		task unblocked because of a notification.  Otherwise the task
+		blocked state (because a signal was already pending) or the
+		task unblocked because of a signal.  Otherwise the task
 		unblocked because of a timeout. */
 		if( gptCurrentTCB->uxSigState == SIG_STATE_WAITING )
 		{
-			/* A notification was not received. */
+			/* A signal was not received. */
 			bRet = OS_FALSE;
 		}
 		else
 		{
-			/* A notification was already pending or a notification was
+			/* A signal was already pending or a signal was
 			received while the task was waiting. */
 			gptCurrentTCB->xSigValue = 0;
 			bRet = OS_TRUE;
@@ -1434,31 +1429,17 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
-		notification then unblock it now. */
+		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
 			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
 			OSTaskListOfReadyAdd( ptTCB );
 
-			#if( configUSE_TICKLESS_IDLE != 0 )
-			{
-				/* If a task is blocked waiting for a notification then
-				xNextTaskUnblockTime might be set to the blocked task's time
-				out time.  If the task is unblocked for a reason other than
-				a timeout xNextTaskUnblockTime is normally left unchanged,
-				because it will automatically get reset to a new value when
-				the tick count equals xNextTaskUnblockTime.  However if
-				tickless idling is used it might be more important to enter
-				sleep mode at the earliest possible time - so reset
-				xNextTaskUnblockTime here to ensure it is updated at the
-				earliest possible time. */
-				OSTaskUpdateUnblockTime();
-			}
-			#endif
+			OSTaskUpdateUnblockTime();
 
 			if( ptTCB->uxPriority > gptCurrentTCB->uxPriority )
 			{
-				/* The notified task has a priority above the currently
+				/* The signaled task has a priority above the currently
 				executing task so schedule is required. */
 				OSSchedule();
 			}
@@ -1473,12 +1454,12 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 	tOSTCB_t * ptTCB;
 	uint8_t ucOldState;
 	uOSBool_t bRet = OS_TRUE;
-	uOSBase_t uxSavedInterruptStatus;
+	uOSBase_t uxIntSave;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
-	uxSavedInterruptStatus = OSIntLockFromISR();
+	uxIntSave = OSIntLockFromISR();
 	{
 		ucOldState = ptTCB->uxSigState;
 		ptTCB->uxSigState = SIG_STATE_RECEIVED;
@@ -1494,7 +1475,7 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
-		notification then unblock it now. */
+		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
 			if( guxSchedulerLocked == ( uOSBase_t ) OS_FALSE )
@@ -1518,7 +1499,7 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxSavedInterruptStatus );
+	OSIntUnlockFromISR( uxIntSave );
 
 	if(bNeedSchedule == OS_TRUE)
 	{
@@ -1532,7 +1513,7 @@ uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
 	uOSBool_t bRet;
 
 	/* If null is passed in here then it is the calling task that is having
-	its notification state cleared. */
+	its signal state cleared. */
 	ptTCB = OSTaskGetTCBFromHandle( TaskHandle );
 
 	OSIntLock();
