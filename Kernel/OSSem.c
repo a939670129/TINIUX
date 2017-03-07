@@ -429,7 +429,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 
 	uOSBool_t bNeedSchedule = OS_FALSE;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		const uOSBase_t uxCurNum = ptSem->uxCurNum;
 		
@@ -462,7 +462,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
 	{

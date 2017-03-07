@@ -58,14 +58,14 @@ typedef enum
 #define SCHEDULER_NOT_STARTED				( ( sOSBase_t ) 1 )
 #define SCHEDULER_RUNNING					( ( sOSBase_t ) 2 )
 
-#define OSIntLock()                         FitSetInterruptMask()
-#define OSIntUnlock()                       FitClearInterruptMask( 0 )
+#define OSIntLock()                         FitIntLock()
+#define OSIntUnlock()                       FitIntUnlock()
 
-#define OSIntLockFromISR()                  FitSetInterruptMask()
-#define OSIntUnlockFromISR( x )             FitClearInterruptMask( x )
+#define OSIntMaskFromISR()                  FiIntMask()
+#define OSIntUnmaskFromISR( x )             FiIntUnmask( x )
 
-#define OSIntMask()                         FitSetInterruptMask()
-#define OSIntUnmask()                       FitClearInterruptMask( 0 )
+#define OSIntMask()                         FiIntMask()
+#define OSIntUnmask()                       FiIntUnmask( 0 )
 
 #define OSSchedule()                        FitSchedule()
 #define OSScheduleFromISR( b )              FitScheduleFromISR( b )

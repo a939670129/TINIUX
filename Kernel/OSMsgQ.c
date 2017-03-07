@@ -406,7 +406,7 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 	uOSBase_t uxIntSave;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
 		{
@@ -440,7 +440,7 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	return bReturn;
 }
@@ -588,7 +588,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
 		
@@ -620,7 +620,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
 	{
@@ -637,7 +637,7 @@ uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 	sOS8_t *pcOriginalReadPosition;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		if( ptMsgQ->uxCurNum > ( uOSBase_t ) 0 )
 		{
@@ -652,7 +652,7 @@ uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 			bReturn = OS_FALSE;
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	return bReturn;
 }

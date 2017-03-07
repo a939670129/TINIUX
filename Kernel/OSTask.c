@@ -838,12 +838,12 @@ uOSBase_t OSTaskGetPriorityFromISR( OSTaskHandle_t TaskHandle )
 	tOSTCB_t *ptTCB;
 	uOSBase_t uxReturn, uxSavedInterruptState;
 
-	uxSavedInterruptState = OSIntLockFromISR();
+	uxSavedInterruptState = OSIntMaskFromISR();
 	{
 		ptTCB = OSTaskGetTCBFromHandle( TaskHandle );
 		uxReturn = ptTCB->uxPriority;
 	}
-	OSIntUnlockFromISR( uxSavedInterruptState );
+	OSIntUnmaskFromISR( uxSavedInterruptState );
 
 	return uxReturn;
 }
@@ -1112,7 +1112,7 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 	tOSTCB_t * const ptTCB = ( tOSTCB_t * ) TaskHandle;
 	uOSBase_t uxIntSave;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		if( OSTaskIsSuspended( ptTCB ) != OS_FALSE )
 		{
@@ -1138,7 +1138,7 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	return bNeedSchedule;
 }
@@ -1298,7 +1298,7 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		ucOldState = ptTCB->uxSigState;
 		ptTCB->uxSigState = SIG_STATE_RECEIVED;
@@ -1338,7 +1338,7 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );	
+	OSIntUnmaskFromISR( uxIntSave );	
 	
 	if(bNeedSchedule == OS_TRUE)
 	{
@@ -1459,7 +1459,7 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 	
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
-	uxIntSave = OSIntLockFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		ucOldState = ptTCB->uxSigState;
 		ptTCB->uxSigState = SIG_STATE_RECEIVED;
@@ -1499,7 +1499,7 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 			}
 		}
 	}
-	OSIntUnlockFromISR( uxIntSave );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	if(bNeedSchedule == OS_TRUE)
 	{
