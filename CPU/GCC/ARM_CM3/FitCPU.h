@@ -54,11 +54,6 @@ extern void FitSchedule( void );
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
-#define FitDISABLE_INTERRUPTS()					FiIntMask()
-#define FitENABLE_INTERRUPTS()					FiIntUnmask( 0 )
-#define FitSET_INTERRUPT_MASK_FROM_ISR()		FiIntMask()
-#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FiIntUnmask(x)
-	
 /* Generic helper function. */
 __attribute__( ( always_inline ) ) static inline uint8_t ucFitCountLeadingZeros( uint32_t ulBitmap )
 {

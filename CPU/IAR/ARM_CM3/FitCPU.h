@@ -61,12 +61,6 @@ extern void FitIntUnlock( void );
 extern uOS32_t FiIntMask( void );
 extern void FiIntUnmask( uOS32_t ulNewMask );
 
-#define FitDISABLE_INTERRUPTS()					FiIntMask()
-#define FitENABLE_INTERRUPTS()					FiIntUnmask( 0 )
-#define FitENTER_CRITICAL()						FitIntLock()
-#define FitEXIT_CRITICAL()						FitIntUnlock()
-#define FitSET_INTERRUPT_MASK_FROM_ISR()		FiIntMask()
-#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FiIntUnmask( x )
 /*-----------------------------------------------------------*/
 
 #define OS_ENTER_CRITICAL()						FitIntLock()

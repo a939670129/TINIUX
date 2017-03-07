@@ -1,4 +1,4 @@
-﻿/**********************************************************************************************************
+/**********************************************************************************************************
 AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
 http://www.aios.io -- Documentation, latest information, license and contact details.
@@ -44,20 +44,86 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-extern uOS32_t FiIntMask( void );
-extern void FiIntUnmask( uOS32_t ulNewMask );
+/* Constants used with memory barrier intrinsics. */
+#define FitSY_FULL_READ_WRITE		( 15 )
+
+/* Scheduler utilities. */
+#define FitSchedule()															\
+{																				\
+	/* Set a PendSV to request a context switch. */								\
+	FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;								\
+																				\
+	/* Barriers are normally not required but do ensure the code is completely	\
+	within the specified behaviour for the architecture. */						\
+	__dsb( FitSY_FULL_READ_WRITE );												\
+	__isb( FitSY_FULL_READ_WRITE );												\
+}
+/*-----------------------------------------------------------*/
+
+#define FitNVIC_INT_CTRL_REG					( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT					( 1UL << 28UL )
+#define FitScheduleFromISR( b ) 				if( b ) FitSchedule()
+
+/* Critical section management. */
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
-extern void FitSchedule( void );
 
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FiIntMask()								FitRaiseBasePRI()
+#define FiIntUnmask( x )						FitSetBasePRI( x )
 
-#define FIT_QUICK_GET_PRIORITY		1
-#define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( guxReadyPriorities ) ) )
+#define FIT_QUICK_GET_PRIORITY	1
+#define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( uxReadyPriorities ) ) )
 
-uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
+
+#ifndef FIT_FORCE_INLINE
+	#define FIT_FORCE_INLINE __forceinline
+#endif
+
+/*-----------------------------------------------------------*/
+
+static FIT_FORCE_INLINE void FitSetBasePRI( uOS32_t ulBASEPRI )
+{
+	__asm
+	{
+		/* Barrier instructions are not used as this function is only used to
+		lower the BASEPRI value. */
+		msr basepri, ulBASEPRI
+	}
+}
+/*-----------------------------------------------------------*/
+
+static FIT_FORCE_INLINE void FitClearBASEPRIFromISR( void )
+{
+	__asm
+	{
+		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
+		used to lower the mask in an interrupt, so memory barriers are not 
+		used. */
+		msr basepri, #0
+	}
+}
+
+/*-----------------------------------------------------------*/
+
+static FIT_FORCE_INLINE uOS32_t FitRaiseBasePRI( void )
+{
+uOS32_t ulReturn, ulNewBASEPRI = SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY;
+
+	__asm
+	{
+		/* Set BASEPRI to the max syscall priority to effect a critical
+		section. */
+		mrs ulReturn, basepri
+		msr basepri, ulNewBASEPRI
+		dsb
+		isb
+	}
+
+	return ulReturn;
+}
+
+uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack,
+		OSTaskFunction_t TaskFunction, void *pvParameters );
 uOSBase_t FitStartScheduler( void );
 
 void FitPendSVHandler( void );

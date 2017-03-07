@@ -119,7 +119,7 @@ static void FitTaskExitError( void )
 	its caller as there is nothing to return to.  If a task wants to exit it
 	should instead call OSTaskDelete( OS_NULL ). */
 	
-	FitDISABLE_INTERRUPTS();
+	FiIntMask();
 	for( ;; );
 }
 
@@ -205,7 +205,7 @@ void FitSchedule( void )
 
 void FitIntLock( void )
 {
-	FitDISABLE_INTERRUPTS();
+	FiIntMask();
 	uxCriticalNesting++;
 
 	__asm volatile( "dsb" );
@@ -217,7 +217,7 @@ void FitIntUnlock( void )
 	uxCriticalNesting--;
 	if( uxCriticalNesting == 0 )
 	{
-		FitENABLE_INTERRUPTS();
+		FiIntUnmask( 0 );
 	}	
 }
 
@@ -263,7 +263,7 @@ void FitOSTickISR()
 {
 	// Increment the RTOS tick count, then look for the highest priority
 	// task that is ready to run. 
-	( void ) FitSET_INTERRUPT_MASK_FROM_ISR();
+	( void ) FiIntMask();
 	{
 		/* Increment the RTOS tick. */
 		if( OSTaskIncrementTick() != OS_FALSE )
@@ -273,7 +273,7 @@ void FitOSTickISR()
 			FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;
 		}
 	}
-	FitCLEAR_INTERRUPT_MASK_FROM_ISR( 0 );
+	FiIntUnmask( 0 );
 }
 
 __attribute__(( weak )) void FitSetupTimerInterrupt( void )

@@ -1,4 +1,4 @@
-﻿/**********************************************************************************************************
+/**********************************************************************************************************
 AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
 http://www.aios.io -- Documentation, latest information, license and contact details.
@@ -35,37 +35,32 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __FIT_CPU_H_
-#define __FIT_CPU_H_
-
-#include "OSType.h"
+#ifndef __FIT_TYPE_H_
+#define __FIT_TYPE_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-extern uOS32_t FiIntMask( void );
-extern void FiIntUnmask( uOS32_t ulNewMask );
-extern void FitIntLock( void );
-extern void FitIntUnlock( void );
-extern void FitSchedule( void );
+typedef unsigned   char    		uOS8_t;
+typedef      char    			sOS8_t;
+typedef unsigned   short  		uOS16_t;
+typedef signed     short   		sOS16_t;
+typedef unsigned   int    		uOS32_t;
+typedef signed     int    		sOS32_t;
 
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
-#define FIT_QUICK_GET_PRIORITY		1
-#define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( guxReadyPriorities ) ) )
+typedef		uOS32_t 				uOSStack_t;
+typedef		sOS32_t 				sOSBase_t;
+typedef		uOS32_t 				uOSBase_t;
+typedef		uOS32_t 				uOSTick_t;
 
-uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
-uOSBase_t FitStartScheduler( void );
+#define 	FITSTACK_GROWTH			( -1 )
+#define		FITBYTE_ALIGNMENT		( 8 )
 
-void FitPendSVHandler( void );
-void FitOSTickISR( void );
-void FitSVCHandler( void );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //__FIT_CPU_H_
+#endif //__FIT_TYPE_H_
