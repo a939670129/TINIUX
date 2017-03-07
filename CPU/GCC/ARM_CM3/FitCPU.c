@@ -203,7 +203,7 @@ void FitSchedule( void )
 }
 
 
-void FitEnterCritical( void )
+void FitIntLock( void )
 {
 	FitDISABLE_INTERRUPTS();
 	uxCriticalNesting++;
@@ -212,7 +212,7 @@ void FitEnterCritical( void )
 	__asm volatile( "isb" );
 }
 
-void FitExitCritical( void )
+void FitIntUnlock( void )
 {
 	uxCriticalNesting--;
 	if( uxCriticalNesting == 0 )
@@ -283,7 +283,7 @@ __attribute__(( weak )) void FitSetupTimerInterrupt( void )
 	FitNVIC_SYSTICK_CTRL_REG = ( FitNVIC_SYSTICK_CLK_BIT | FitNVIC_SYSTICK_INT_BIT | FitNVIC_SYSTICK_ENABLE_BIT );
 }
 
-__attribute__(( naked )) uOS32_t FitSetInterruptMask( void )
+__attribute__(( naked )) uOS32_t FiIntMask( void )
 {
 	__asm volatile														\
 	(																	\
@@ -300,7 +300,7 @@ __attribute__(( naked )) uOS32_t FitSetInterruptMask( void )
 }
 /*-----------------------------------------------------------*/
 
-__attribute__(( naked )) void FitClearInterruptMask( uOS32_t ulNewMask )
+__attribute__(( naked )) void FiIntUnmask( uOS32_t ulNewMask )
 {
 	__asm volatile													\
 	(																\

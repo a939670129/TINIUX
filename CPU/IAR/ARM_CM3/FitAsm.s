@@ -44,8 +44,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	EXTERN OSTaskSwitchContext
 
 	PUBLIC FitPendSVHandler
-	PUBLIC FitSetInterruptMask
-	PUBLIC FitClearInterruptMask        
+	PUBLIC FiIntMask
+	PUBLIC FiIntUnmask        
 	PUBLIC FitSVCHandler
 	PUBLIC FitStartFirstTask
 
@@ -81,7 +81,7 @@ FitPendSVHandler:
 
 /*-----------------------------------------------------------*/
 
-FitSetInterruptMask:
+FiIntMask:
 	mrs r0, basepri
 	mov r1, #SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY
 	msr basepri, r1
@@ -89,7 +89,7 @@ FitSetInterruptMask:
 
 /*-----------------------------------------------------------*/
 
-FitClearInterruptMask:
+FiIntUnmask:
 	msr basepri, r0
 	bx r14
         

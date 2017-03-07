@@ -56,21 +56,21 @@ extern void FitSchedule( void );
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 
 /* Critical section management. */
-extern void FitEnterCritical( void );
-extern void FitExitCritical( void );
-extern uOS32_t FitSetInterruptMask( void );
-extern void FitClearInterruptMask( uOS32_t ulNewMask );
+extern void FitIntLock( void );
+extern void FitIntUnlock( void );
+extern uOS32_t FiIntMask( void );
+extern void FiIntUnmask( uOS32_t ulNewMask );
 
-#define FitDISABLE_INTERRUPTS()					FitSetInterruptMask()
-#define FitENABLE_INTERRUPTS()					FitClearInterruptMask( 0 )
-#define FitENTER_CRITICAL()						FitEnterCritical()
-#define FitEXIT_CRITICAL()						FitExitCritical()
-#define FitSET_INTERRUPT_MASK_FROM_ISR()		FitSetInterruptMask()
-#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FitClearInterruptMask( x )
+#define FitDISABLE_INTERRUPTS()					FiIntMask()
+#define FitENABLE_INTERRUPTS()					FiIntUnmask( 0 )
+#define FitENTER_CRITICAL()						FitIntLock()
+#define FitEXIT_CRITICAL()						FitIntUnlock()
+#define FitSET_INTERRUPT_MASK_FROM_ISR()		FiIntMask()
+#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FiIntUnmask( x )
 /*-----------------------------------------------------------*/
 
-#define OS_ENTER_CRITICAL()						FitEnterCritical()
-#define OS_EXIT_CRITICAL()						FitExitCritical()
+#define OS_ENTER_CRITICAL()						FitIntLock()
+#define OS_EXIT_CRITICAL()						FitIntUnlock()
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );

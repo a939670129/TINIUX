@@ -44,20 +44,20 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-extern uOS32_t FitSetInterruptMask( void );
-extern void FitClearInterruptMask( uOS32_t ulNewMask );
-extern void FitEnterCritical( void );
-extern void FitExitCritical( void );
+extern uOS32_t FiIntMask( void );
+extern void FiIntUnmask( uOS32_t ulNewMask );
+extern void FitIntLock( void );
+extern void FitIntUnlock( void );
 extern void FitSchedule( void );
 
 #define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
-#define FitDISABLE_INTERRUPTS()					FitSetInterruptMask()
-#define FitENABLE_INTERRUPTS()					FitClearInterruptMask( 0 )
-#define FitSET_INTERRUPT_MASK_FROM_ISR()		FitSetInterruptMask()
-#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FitClearInterruptMask(x)
+#define FitDISABLE_INTERRUPTS()					FiIntMask()
+#define FitENABLE_INTERRUPTS()					FiIntUnmask( 0 )
+#define FitSET_INTERRUPT_MASK_FROM_ISR()		FiIntMask()
+#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FiIntUnmask(x)
 	
 /* Generic helper function. */
 __attribute__( ( always_inline ) ) static inline uint8_t ucFitCountLeadingZeros( uint32_t ulBitmap )
@@ -71,8 +71,8 @@ __attribute__( ( always_inline ) ) static inline uint8_t ucFitCountLeadingZeros(
 #define FIT_QUICK_GET_PRIORITY	1
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - ucFitCountLeadingZeros( ( guxReadyPriorities ) ) )
 
-#define OS_ENTER_CRITICAL()			FitEnterCritical()
-#define OS_EXIT_CRITICAL()			FitExitCritical()
+#define OS_ENTER_CRITICAL()			FitIntLock()
+#define OS_EXIT_CRITICAL()			FitIntUnlock()
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 uOSBase_t FitStartScheduler( void );

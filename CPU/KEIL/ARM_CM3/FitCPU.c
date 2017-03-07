@@ -202,13 +202,13 @@ void FitSchedule( void )
 }
 
 
-void FitEnterCritical( void )
+void FitIntLock( void )
 {
 	FitDISABLE_INTERRUPTS();
 	uxCriticalNesting++;
 }
 
-void FitExitCritical( void )
+void FitIntUnlock( void )
 {
 	uxCriticalNesting--;
 	if( uxCriticalNesting == 0 )
@@ -259,7 +259,7 @@ void FitOSTickISR()
 {
 	// Increment the RTOS tick count, then look for the highest priority
 	// task that is ready to run. 
-	( void ) OSIntLockFromISR();
+	( void ) OSIntMaskFromISR();
 	{
 		/* Increment the RTOS tick. */
 		if( OSTaskIncrementTick() != OS_FALSE )
@@ -269,7 +269,7 @@ void FitOSTickISR()
 			FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;
 		}
 	}
-	OSIntUnlockFromISR( 0 );
+	OSIntUnmaskFromISR( 0 );
 }
 
 static void FitSetupTimerInterrupt( void )
@@ -279,7 +279,7 @@ static void FitSetupTimerInterrupt( void )
 	FitNVIC_SYSTICK_CTRL_REG = ( FitNVIC_SYSTICK_CLK_BIT | FitNVIC_SYSTICK_INT_BIT | FitNVIC_SYSTICK_ENABLE_BIT );
 }
 
-__asm uOS32_t FitSetInterruptMask( void )
+__asm uOS32_t FiIntMask( void )
 {
 	PRESERVE8
 
@@ -290,7 +290,7 @@ __asm uOS32_t FitSetInterruptMask( void )
 }
 /*-----------------------------------------------------------*/
 
-__asm void FitClearInterruptMask( uOS32_t ulNewMask )
+__asm void FiIntUnmask( uOS32_t ulNewMask )
 {
 	PRESERVE8
 

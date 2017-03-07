@@ -172,7 +172,7 @@ void FitSchedule( void )
 }
 /*-----------------------------------------------------------*/
 
-void FitEnterCritical( void )
+void FitIntLock( void )
 {
 	FitDISABLE_INTERRUPTS();
 	uxCriticalNesting++;
@@ -181,7 +181,7 @@ void FitEnterCritical( void )
 }
 /*-----------------------------------------------------------*/
 
-void FitExitCritical( void )
+void FitIntUnlock( void )
 {
 	uxCriticalNesting--;
 	if( uxCriticalNesting == 0 )
