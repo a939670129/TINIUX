@@ -51,8 +51,8 @@ typedef struct tOSMutex
 	char						pcMutexName[ OSNAME_MAX_LEN ];
 	sOS8_t *					pxMutexHolder;
 	
-	tOSList_t 					tSendTaskList;
-	tOSList_t 					tRecvTaskList;
+	tOSList_t 					tMutexVTaskList;		// Mutex Unlock TaskList;
+	tOSList_t 					tMutexPTaskList;		// Mutex Lock TaskList;
 
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;

@@ -114,9 +114,9 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 		
 		while( xTxLock > MUTEX_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptMutex->tRecvTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptMutex->tMutexPTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptMutex->tRecvTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptMutex->tMutexPTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -140,9 +140,9 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 		
 		while( xRxLock > MUTEX_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptMutex->tSendTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptMutex->tMutexVTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptMutex->tSendTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptMutex->tMutexVTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -178,8 +178,8 @@ OSMutexHandle_t OSMutexCreate( void )
 		ptNewMutex->xTxLock = MUTEX_STATUS_UNLOCKED;
 
 		/* Ensure the event queues start with the correct state. */
-		OSListInitialise( &( ptNewMutex->tSendTaskList ) );
-		OSListInitialise( &( ptNewMutex->tRecvTaskList ) );
+		OSListInitialise( &( ptNewMutex->tMutexVTaskList ) );
+		OSListInitialise( &( ptNewMutex->tMutexPTaskList ) );
 	}
 	return (OSMutexHandle_t)ptNewMutex;
 }
@@ -237,9 +237,9 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 				ptMutex->uxCurNum = uxCurNum - 1;
 				ptMutex->pxMutexHolder = ( sOS8_t * ) OSTaskGetMutexHolder();
 				
-				if( OSListIsEmpty( &( ptMutex->tSendTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMutex->tMutexVTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMutex->tSendTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMutex->tMutexVTaskList ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -278,7 +278,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 				}
 				OSIntUnlock();
 				
-				OSTaskListOfEventAdd( &( ptMutex->tRecvTaskList ), uxTicksToWait );
+				OSTaskListOfEventAdd( &( ptMutex->tMutexPTaskList ), uxTicksToWait );
 				OSMutexStatusUnlock( ptMutex );
 				if( OSScheduleUnlock() == OS_FALSE )
 				{
@@ -327,9 +327,9 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 				ptMutex->pxMutexHolder = OS_NULL;
 				ptMutex->uxCurNum = uxCurNum + 1;
 
-				if( OSListIsEmpty( &( ptMutex->tRecvTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMutex->tMutexPTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMutex->tRecvTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMutex->tMutexPTaskList ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -366,7 +366,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 		{
 			if( OSMutexIsFull( ptMutex ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptMutex->tSendTaskList ), uxTicksToWait );
+				OSTaskListOfEventAdd( &( ptMutex->tMutexVTaskList ), uxTicksToWait );
 
 				OSMutexStatusUnlock( ptMutex );
 

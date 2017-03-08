@@ -35,8 +35,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __OS_MSGQ_H_
-#define __OS_MSGQ_H_
+#ifndef __FIT_CPU_H_
+#define __FIT_CPU_H_
 
 #include "OSType.h"
 
@@ -44,60 +44,38 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-typedef struct tOSMsgQ
-{
-	char						pcMsgQName[ OSNAME_MAX_LEN ];
+/* Scheduler utilities. */
+extern void FitSchedule( void );
+#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04UL ) )
+#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+/*-----------------------------------------------------------*/
 
-	sOS8_t *					pcHead;	
-	sOS8_t *					pcTail;	
-	sOS8_t *					pcWriteTo;
-	sOS8_t *					pcReadFrom;
-	
-	tOSList_t 					tMsgQVTaskList;		//MsgQ Send TaskList;
-	tOSList_t 					tMsgQPTaskList;		//MsgQ Recv TaskList;
+#include <intrinsics.h>
+#define FIT_QUICK_GET_PRIORITY		1
+#define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 
-	volatile uOSBase_t 			uxCurNum;	
-	uOSBase_t 					uxMaxNum;
-	uOSBase_t 					uxItemSize;
+/* Critical section management. */
+extern void FitIntLock( void );
+extern void FitIntUnlock( void );
+extern uOS32_t FitIntMask( void );
+extern void FitIntUnmask( uOS32_t ulNewMask );
 
-	volatile sOSBase_t 			xRxLock;
-	volatile sOSBase_t 			xTxLock;
+/*-----------------------------------------------------------*/
 
-	sOSBase_t					xID;
-} tOSMsgQ_t;
+#define FitIntMaskFromISR()			FitIntMask()
+#define FitIntUnmaskFromISR( x )	FitIntUnmask( x )
 
-typedef tOSMsgQ_t* 	OSMsgQHandle_t;
 
-OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) AIOS_FUNCTION;
-void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
+sOSBase_t FitStartScheduler( void );
 
-sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) AIOS_FUNCTION;
-
-uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
-
-uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
-
-uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-
-uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) AIOS_FUNCTION;
-
-uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
-uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
-
-sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) AIOS_FUNCTION;
-
-#if (OS_TIMER_ON==1)
-void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) AIOS_FUNCTION;
-#endif /* (OS_TIMER_ON==1) */
+void FitPendSVHandler( void );
+void FitOSTickISR( void );
+void FitSVCHandler( void );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __OS_MSGQ_H_ */
-
+#endif //__FIT_CPU_H_

@@ -66,13 +66,24 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SETOS_MSGQ_MAX_MSGNUM                   ( 10 )  //定义消息队列中消息的门限值
 #define SETOS_PEND_FOREVER_VALUE                ( 0xFFFFFFFF ) //定义信号量及消息队列中永久等待的数值
 
-/* !!!! SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!*/
-#define SETOS_MAX_SYSCALL_INTERRUPT_PRIORITY 	191 /* equivalent to 0xb0, or priority 11. */
+/* Cortex-M specific definitions. */
+#ifdef __NVIC_PRIO_BITS
+	/* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
+	#define SETHW_PRIO_BITS       		__NVIC_PRIO_BITS
+#else
+	#define SETHW_PRIO_BITS       		4        /* 15 priority levels */
+#endif
 
+/* The highest interrupt priority that can be used by any interrupt service
+routine that makes calls to interrupt safe AIOS API functions.  DO NOT CALL
+INTERRUPT SAFE AIOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+/* !!!! SETOS_MAX_HWINT_PRI must not be set to zero !!!!*/
+#define SETOS_MAX_HWINT_PRI				( 0x1 << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x10, or priority 1. */
 /* This is the value being used as per the ST library which permits 16
-priority values, 0 to 15.  This must correspond to the FitKERNEL_INTERRUPT_PRIORITY 
+priority values, 0 to 15.  This must correspond to the SETOS_MIN_HWINT_PRI 
 setting.  Here 15 corresponds to the lowest NVIC value of 255. */
-#define SETOS_LIBRARY_KERNEL_INTERRUPT_PRIORITY	15
+#define SETOS_MIN_HWINT_PRI				( 0xF << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
 
 #define FitSVCHandler           SVC_Handler
 #define FitPendSVHandler        PendSV_Handler

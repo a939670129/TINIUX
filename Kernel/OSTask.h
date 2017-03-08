@@ -61,11 +61,11 @@ typedef enum
 #define OSIntLock()                         FitIntLock()
 #define OSIntUnlock()                       FitIntUnlock()
 
-#define OSIntMaskFromISR()                  FiIntMask()
-#define OSIntUnmaskFromISR( x )             FiIntUnmask( x )
+#define OSIntMaskFromISR()                  FitIntMaskFromISR()
+#define OSIntUnmaskFromISR( x )             FitIntUnmaskFromISR( x )
 
-#define OSIntMask()                         FiIntMask()
-#define OSIntUnmask()                       FiIntUnmask( 0 )
+#define OSIntMask()                         FitIntMask()
+#define OSIntUnmask( x )                    FitIntUnmask( x )
 
 #define OSSchedule()                        FitSchedule()
 #define OSScheduleFromISR( b )              FitScheduleFromISR( b )

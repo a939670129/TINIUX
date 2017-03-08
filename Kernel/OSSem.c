@@ -118,9 +118,9 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 		
 		while( xTxLock > SEM_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -144,9 +144,9 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 		
 		while( xRxLock > SEM_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -176,9 +176,9 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 
 		if( bNewQueue == OS_FALSE )
 		{
-			if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+				if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
 				{
 					OSSchedule();
 				}
@@ -186,8 +186,8 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 		}
 		else
 		{
-			OSListInitialise( &( ptSem->tSendTaskList ) );
-			OSListInitialise( &( ptSem->tRecvTaskList ) );
+			OSListInitialise( &( ptSem->tSemVTaskList ) );
+			OSListInitialise( &( ptSem->tSemPTaskList ) );
 		}
 	}
 	OSIntUnlock();
@@ -278,9 +278,9 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
 			{
 				ptSem->uxCurNum = uxCurNum - 1;
 
-				if( OSListIsEmpty( &( ptSem->tSendTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tSendTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -313,7 +313,7 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
 		{
 			if( OSSemIsEmpty( ptSem ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptSem->tRecvTaskList ), uxTicksToWait );
+				OSTaskListOfEventAdd( &( ptSem->tSemPTaskList ), uxTicksToWait );
 				OSSemStateUnlock( ptSem );
 				if( OSScheduleUnlock() == OS_FALSE )
 				{
@@ -359,9 +359,9 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 			{
 				ptSem->uxCurNum = uxCurNum + 1;
 
-				if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -394,7 +394,7 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 		{
 			if( OSSemIsFull( ptSem ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptSem->tSendTaskList ), uxTicksToWait );
+				OSTaskListOfEventAdd( &( ptSem->tSemVTaskList ), uxTicksToWait );
 
 				OSSemStateUnlock( ptSem );
 
@@ -441,9 +441,9 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 
 			if( xTxLock == SEM_STATUS_UNLOCKED )
 			{
-				if( OSListIsEmpty( &( ptSem->tRecvTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tRecvTaskList ) ) != OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
 					{
 						bNeedSchedule = OS_TRUE;
 					}

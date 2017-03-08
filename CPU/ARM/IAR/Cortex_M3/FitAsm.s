@@ -35,69 +35,94 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __OS_MSGQ_H_
-#define __OS_MSGQ_H_
+#include <AIOSPreset.h>
 
-#include "OSType.h"
+	RSEG    CODE:CODE(2)
+	thumb
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	EXTERN gptCurrentTCB
+	EXTERN OSTaskSwitchContext
 
-typedef struct tOSMsgQ
-{
-	char						pcMsgQName[ OSNAME_MAX_LEN ];
+	PUBLIC FitPendSVHandler
+	PUBLIC FitIntMask
+	PUBLIC FitIntUnmask        
+	PUBLIC FitSVCHandler
+	PUBLIC FitStartFirstTask
 
-	sOS8_t *					pcHead;	
-	sOS8_t *					pcTail;	
-	sOS8_t *					pcWriteTo;
-	sOS8_t *					pcReadFrom;
-	
-	tOSList_t 					tMsgQVTaskList;		//MsgQ Send TaskList;
-	tOSList_t 					tMsgQPTaskList;		//MsgQ Recv TaskList;
 
-	volatile uOSBase_t 			uxCurNum;	
-	uOSBase_t 					uxMaxNum;
-	uOSBase_t 					uxItemSize;
 
-	volatile sOSBase_t 			xRxLock;
-	volatile sOSBase_t 			xTxLock;
+/*-----------------------------------------------------------*/
 
-	sOSBase_t					xID;
-} tOSMsgQ_t;
+FitPendSVHandler:
+	mrs r0, psp
+	isb
+	ldr	r3, =gptCurrentTCB			/* Get the location of the current TCB. */
+	ldr	r2, [r3]
 
-typedef tOSMsgQ_t* 	OSMsgQHandle_t;
+	stmdb r0!, {r4-r11}				/* Save the remaining registers. */
+	str r0, [r2]					/* Save the new top of stack into the first member of the TCB. */
 
-OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) AIOS_FUNCTION;
-void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+	stmdb sp!, {r3, r14}
+	mov r0, #OSMAX_HWINT_PRI
+	msr basepri, r0
+	dsb
+	isb	
+	bl OSTaskSwitchContext
+	mov r0, #0
+	msr basepri, r0
+	ldmia sp!, {r3, r14}
 
-sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) AIOS_FUNCTION;
+	ldr r1, [r3]
+	ldr r0, [r1]					/* The first item in gptCurrentTCB is the task top of stack. */
+	ldmia r0!, {r4-r11}				/* Pop the registers. */
+	msr psp, r0
+	isb
+	bx r14
 
-uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+/*-----------------------------------------------------------*/
 
-uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+FitIntMask:
+	mrs r0, basepri
+	mov r1, #OSMAX_HWINT_PRI
+	msr basepri, r1
+	bx r14
 
-uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+/*-----------------------------------------------------------*/
 
-uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) AIOS_FUNCTION;
+FitIntUnmask:
+	msr basepri, r0
+	bx r14
+        
+/*-----------------------------------------------------------*/
 
-uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
-uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+FitSVCHandler:
+	/* Get the location of the current TCB. */
+	ldr	r3, =gptCurrentTCB
+	ldr r1, [r3]
+	ldr r0, [r1]
+	/* Pop the core registers. */
+	ldmia r0!, {r4-r11}
+	msr psp, r0
+	isb
+	mov r0, #0
+	msr	basepri, r0
+	orr r14, r14, #13
+	bx r14
 
-sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) AIOS_FUNCTION;
+/*-----------------------------------------------------------*/
 
-#if (OS_TIMER_ON==1)
-void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) AIOS_FUNCTION;
-#endif /* (OS_TIMER_ON==1) */
+FitStartFirstTask
+	/* Use the NVIC offset register to locate the stack. */
+	ldr r0, =0xE000ED08
+	ldr r0, [r0]
+	ldr r0, [r0]
+	/* Set the msp back to the start of the stack. */
+	msr msp, r0
+	/* Call SVC to start the first task, ensuring interrupts are enabled. */
+	cpsie i
+	cpsie f
+	dsb
+	isb
+	svc 0
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __OS_MSGQ_H_ */
-
+	END
