@@ -78,12 +78,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 routine that makes calls to interrupt safe AIOS API functions.  DO NOT CALL
 INTERRUPT SAFE AIOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
 PRIORITY THAN THIS! (higher priorities are lower numeric values. */
-/* !!!! SETOS_MAX_HWINT_PRI must not be set to zero !!!!*/
-#define SETOS_MAX_HWINT_PRI				( 0x1 << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x10, or priority 1. */
+/* !!!! OSMAX_HWINT_PRI must not be set to zero !!!!*/
+#define OSMAX_HWINT_PRI				( 0x1 << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x10, or priority 1. */
 /* This is the value being used as per the ST library which permits 16
-priority values, 0 to 15.  This must correspond to the SETOS_MIN_HWINT_PRI 
+priority values, 0 to 15.  This must correspond to the OSMIN_HWINT_PRI 
 setting.  Here 15 corresponds to the lowest NVIC value of 255. */
-#define SETOS_MIN_HWINT_PRI				( 0xF << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
+#define OSMIN_HWINT_PRI				( 0xF << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
 
 #define FitSVCHandler           SVC_Handler
 #define FitPendSVHandler        PendSV_Handler
