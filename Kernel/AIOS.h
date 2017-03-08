@@ -53,9 +53,9 @@ extern "C" {
 #include "OSMutex.h"
 #include "OSTimer.h"
 
-#define MAJOR_VERSION        0
-#define MINOR_VERSION        9
-#define REVISION_NUM         3
+#define MAJOR_VERSION        1
+#define MINOR_VERSION        0
+#define REVISION_NUM         0
 
 //MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
 
