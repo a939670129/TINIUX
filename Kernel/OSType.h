@@ -80,13 +80,13 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define 	OSTICKS_PER_MS			( ( uOSTick_t ) OSTICK_RATE_HZ/1000 )
 
 #ifndef SETOS_MAX_HWINT_PRI
-  #error Missing definition: SETOS_MAX_HWINT_PRI  The highest interrupt priority that can be used by AIOS
+  #error Missing definition: SETOS_MAX_HWINT_PRI  The highest hardware interrupt priority that can be used by AIOS
 #else
   #define	OSMAX_HWINT_PRI			( SETOS_MAX_HWINT_PRI )
 #endif
 
 #ifndef SETOS_MIN_HWINT_PRI
-  #error Missing definition: SETOS_MIN_HWINT_PRI The lowest interrupt priority that can be used by AIOS
+  #error Missing definition: SETOS_MIN_HWINT_PRI The lowest hardware interrupt priority that can be used by AIOS
 #else
   #define	OSMIN_HWINT_PRI			( SETOS_MIN_HWINT_PRI )
 #endif
