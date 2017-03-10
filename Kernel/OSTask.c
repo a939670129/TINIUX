@@ -1387,7 +1387,7 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
 		/* Output the current signal value. */
 		xSigValue = gptCurrentTCB->xSigValue;
 
-		/* If ucNotifyValue is set then either the task never entered the
+		/* If xSigValue is set then either the task never entered the
 		blocked state (because a signal was already pending) or the
 		task unblocked because of a signal.  Otherwise the task
 		unblocked because of a timeout. */
