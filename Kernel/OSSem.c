@@ -306,6 +306,8 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can post to or pend from the semaphore
+		To avoid confusion, we lock the scheduler and the semaphore. */
 		OSScheduleLock();
 		OSSemStateLock( ptSem );
 
@@ -387,6 +389,8 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can post to or pend from the semaphore
+		To avoid confusion, we lock the scheduler and the semaphore. */
 		OSScheduleLock();
 		OSSemStateLock( ptSem );
 

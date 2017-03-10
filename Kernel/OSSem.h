@@ -56,8 +56,8 @@ typedef struct tOSSem
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
 
-	volatile sOSBase_t 			xSemPLock;
-	volatile sOSBase_t 			xSemVLock;
+	volatile sOSBase_t 			xSemPLock;			// Record the number of task which pend from the semaphore while it was locked.
+	volatile sOSBase_t 			xSemVLock;			// Record the number of task which post to the semaphore while it was locked.
 
 	sOSBase_t					xID;
 } tOSSem_t;

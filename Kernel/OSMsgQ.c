@@ -356,6 +356,8 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can send to or receive from the MsgQ
+		To avoid confusion, we lock the scheduler and the MsgQ. */
 		OSScheduleLock();
 		OSMsgQLock( ptMsgQ );
 
@@ -537,6 +539,8 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can send to or receive from the MsgQ
+		To avoid confusion, we lock the scheduler and the MsgQ. */
 		OSScheduleLock();
 		OSMsgQLock( ptMsgQ );
 

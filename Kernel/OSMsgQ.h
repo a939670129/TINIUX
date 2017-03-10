@@ -53,15 +53,15 @@ typedef struct tOSMsgQ
 	sOS8_t *					pcWriteTo;
 	sOS8_t *					pcReadFrom;
 	
-	tOSList_t 					tMsgQVTaskList;		//MsgQ Send TaskList;
-	tOSList_t 					tMsgQPTaskList;		//MsgQ Recv TaskList;
+	tOSList_t 					tMsgQVTaskList;		// MsgQ Send TaskList;
+	tOSList_t 					tMsgQPTaskList;		// MsgQ Recv TaskList;
 
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
 	uOSBase_t 					uxItemSize;
 
-	volatile sOSBase_t 			xMsgQPLock;
-	volatile sOSBase_t 			xMsgQVLock;
+	volatile sOSBase_t 			xMsgQPLock;			// Record the number of task which received msg from the MsgQ while it was locked.
+	volatile sOSBase_t 			xMsgQVLock;			// Record the number of task which send msg to the MsgQ while it was locked.
 
 	sOSBase_t					xID;
 } tOSMsgQ_t;

@@ -265,6 +265,8 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can unlock or lock from the mutex
+		To avoid confusion, we lock the scheduler and the mutex. */
 		OSScheduleLock();
 		OSMutexStatusLock( ptMutex );
 
@@ -359,6 +361,8 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 		}
 		OSIntUnlock();
 
+		/* Interrupts and other tasks can unlock or lock from the mutex
+		To avoid confusion, we lock the scheduler and the mutex. */
 		OSScheduleLock();
 		OSMutexStatusLock( ptMutex );
 
