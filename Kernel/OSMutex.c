@@ -92,13 +92,13 @@ static uOSBool_t OSMutexIsFull( OSMutexHandle_t MutexHandle )
 #define OSMutexStatusLock( ptMutex )                         \
 	OSIntLock();											\
 	{														\
-		if( ( ptMutex )->xRxLock == MUTEX_STATUS_UNLOCKED )	\
+		if( ( ptMutex )->xMutexPLock == MUTEX_STATUS_UNLOCKED )	\
 		{													\
-			( ptMutex )->xRxLock = MUTEX_STATUS_LOCKED;		\
+			( ptMutex )->xMutexPLock = MUTEX_STATUS_LOCKED;		\
 		}													\
-		if( ( ptMutex )->xTxLock == MUTEX_STATUS_UNLOCKED )	\
+		if( ( ptMutex )->xMutexVLock == MUTEX_STATUS_UNLOCKED )	\
 		{													\
-			( ptMutex )->xTxLock = MUTEX_STATUS_LOCKED;		\
+			( ptMutex )->xMutexVLock = MUTEX_STATUS_LOCKED;		\
 		}													\
 	}														\
 	OSIntUnlock()
@@ -110,9 +110,9 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 
 	OSIntLock();
 	{
-		sOSBase_t xTxLock = ptMutex->xTxLock;
+		sOSBase_t xMutexVLock = ptMutex->xMutexVLock;
 		
-		while( xTxLock > MUTEX_STATUS_LOCKED )
+		while( xMutexVLock > MUTEX_STATUS_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptMutex->tMutexPTaskList ) ) == OS_FALSE )
 			{
@@ -126,19 +126,19 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 				break;
 			}
 
-			--xTxLock;
+			--xMutexVLock;
 		}
 
-		ptMutex->xTxLock = MUTEX_STATUS_UNLOCKED;
+		ptMutex->xMutexVLock = MUTEX_STATUS_UNLOCKED;
 	}
 	OSIntUnlock();
 
 	/* Do the same for the Rx lock. */
 	OSIntLock();
 	{
-		sOSBase_t xRxLock = ptMutex->xRxLock;
+		sOSBase_t xMutexPLock = ptMutex->xMutexPLock;
 		
-		while( xRxLock > MUTEX_STATUS_LOCKED )
+		while( xMutexPLock > MUTEX_STATUS_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptMutex->tMutexVTaskList ) ) == OS_FALSE )
 			{
@@ -147,7 +147,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 					OSTaskNeedSchedule();
 				}
 
-				--xRxLock;
+				--xMutexPLock;
 			}
 			else
 			{
@@ -155,7 +155,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 			}
 		}
 
-		ptMutex->xRxLock = MUTEX_STATUS_UNLOCKED;
+		ptMutex->xMutexPLock = MUTEX_STATUS_UNLOCKED;
 	}
 	OSIntUnlock();
 }
@@ -174,8 +174,8 @@ OSMutexHandle_t OSMutexCreate( void )
 
 		ptNewMutex->uxCurNum = ( uOSBase_t ) 1U;
 		ptNewMutex->uxMaxNum = ( uOSBase_t ) 1U;
-		ptNewMutex->xRxLock = MUTEX_STATUS_UNLOCKED;
-		ptNewMutex->xTxLock = MUTEX_STATUS_UNLOCKED;
+		ptNewMutex->xMutexPLock = MUTEX_STATUS_UNLOCKED;
+		ptNewMutex->xMutexVLock = MUTEX_STATUS_UNLOCKED;
 
 		/* Ensure the event queues start with the correct state. */
 		OSListInitialise( &( ptNewMutex->tMutexVTaskList ) );

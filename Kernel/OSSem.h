@@ -56,8 +56,8 @@ typedef struct tOSSem
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
 
-	volatile sOSBase_t 			xRxLock;
-	volatile sOSBase_t 			xTxLock;
+	volatile sOSBase_t 			xSemPLock;
+	volatile sOSBase_t 			xSemVLock;
 
 	sOSBase_t					xID;
 } tOSSem_t;

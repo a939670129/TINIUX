@@ -41,7 +41,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "AIOS.h"
 #include "OSTask.h"
 
-/* Constants used with the xRxLock and xTxLock structure members. */
+/* Constants used with the xMsgQPLock and xMsgQVLock structure members. */
 AIOS_DATA static sOSBase_t const OSMSGQ_UNLOCKED			= ( ( sOSBase_t ) -1 );
 AIOS_DATA static sOSBase_t const OSMSGQ_LOCKED				= ( ( sOSBase_t ) 0 );
 
@@ -93,13 +93,13 @@ static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
 #define OSMsgQLock( ptMsgQ )								\
 	OSIntLock();											\
 	{														\
-		if( ( ptMsgQ )->xRxLock == OSMSGQ_UNLOCKED )		\
+		if( ( ptMsgQ )->xMsgQPLock == OSMSGQ_UNLOCKED )		\
 		{													\
-			( ptMsgQ )->xRxLock = OSMSGQ_LOCKED;			\
+			( ptMsgQ )->xMsgQPLock = OSMSGQ_LOCKED;			\
 		}													\
-		if( ( ptMsgQ )->xTxLock == OSMSGQ_UNLOCKED )		\
+		if( ( ptMsgQ )->xMsgQVLock == OSMSGQ_UNLOCKED )		\
 		{													\
-			( ptMsgQ )->xTxLock = OSMSGQ_LOCKED;			\
+			( ptMsgQ )->xMsgQVLock = OSMSGQ_LOCKED;			\
 		}													\
 	}														\
 	OSIntUnlock()
@@ -111,9 +111,9 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 
 	OSIntLock();
 	{
-		sOSBase_t xTxLock = ptMsgQ->xTxLock;
+		sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
 		
-		while( xTxLock > OSMSGQ_LOCKED )
+		while( xMsgQVLock > OSMSGQ_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
 			{
@@ -127,19 +127,19 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 				break;
 			}
 
-			--xTxLock;
+			--xMsgQVLock;
 		}
 
-		ptMsgQ->xTxLock = OSMSGQ_UNLOCKED;
+		ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
 	}
 	OSIntUnlock();
 
 	/* Do the same for the Rx lock. */
 	OSIntLock();
 	{
-		sOSBase_t xRxLock = ptMsgQ->xRxLock;
+		sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
 		
-		while( xRxLock > OSMSGQ_LOCKED )
+		while( xMsgQPLock > OSMSGQ_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
 			{
@@ -148,7 +148,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 					OSTaskNeedSchedule();
 				}
 
-				--xRxLock;
+				--xMsgQPLock;
 			}
 			else
 			{
@@ -156,7 +156,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 			}
 		}
 
-		ptMsgQ->xRxLock = OSMSGQ_UNLOCKED;
+		ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
 	}
 	OSIntUnlock();
 }
@@ -219,8 +219,8 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 		ptMsgQ->uxCurNum = ( uOSBase_t ) 0U;
 		ptMsgQ->pcWriteTo = ptMsgQ->pcHead;
 		ptMsgQ->pcReadFrom = ptMsgQ->pcHead + ( ( ptMsgQ->uxMaxNum - ( uOSBase_t ) 1U ) * ptMsgQ->uxItemSize );
-		ptMsgQ->xRxLock = OSMSGQ_UNLOCKED;
-		ptMsgQ->xTxLock = OSMSGQ_UNLOCKED;
+		ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
+		ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
 
 		if( bNewQueue == OS_FALSE )
 		{
@@ -410,11 +410,11 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 	{
 		if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
 		{
-			const sOSBase_t xTxLock = ptMsgQ->xTxLock;
+			const sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
 	
 			( void ) OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
 
-			if( xTxLock == OSMSGQ_UNLOCKED )
+			if( xMsgQVLock == OSMSGQ_UNLOCKED )
 			{
 				if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
 				{
@@ -429,7 +429,7 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 			}
 			else
 			{
-				ptMsgQ->xTxLock = ( sOSBase_t )(xTxLock + 1);
+				ptMsgQ->xMsgQVLock = ( sOSBase_t )(xMsgQVLock + 1);
 			}
 
 			bReturn = OS_TRUE;
@@ -594,12 +594,12 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 		
 		if( uxCurNum > ( uOSBase_t ) 0 )
 		{
-			const sOSBase_t xRxLock = ptMsgQ->xRxLock;
+			const sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
 			
 			OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
 			ptMsgQ->uxCurNum = uxCurNum - 1;
 
-			if( xRxLock == OSMSGQ_UNLOCKED )
+			if( xMsgQPLock == OSMSGQ_UNLOCKED )
 			{
 				if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
 				{
@@ -611,7 +611,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 			}
 			else
 			{
-				ptMsgQ->xRxLock = ( sOSBase_t )(xRxLock + 1);
+				ptMsgQ->xMsgQPLock = ( sOSBase_t )(xMsgQPLock + 1);
 			}
 			bReturn = OS_TRUE;
 		}

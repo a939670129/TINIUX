@@ -57,8 +57,8 @@ typedef struct tOSMutex
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
 
-	volatile sOSBase_t 			xRxLock;
-	volatile sOSBase_t 			xTxLock;
+	volatile sOSBase_t 			xMutexPLock;
+	volatile sOSBase_t 			xMutexVLock;
 
 	sOSBase_t					xID;
 } tOSMutex_t;

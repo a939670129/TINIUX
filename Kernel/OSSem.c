@@ -96,13 +96,13 @@ static uOSBool_t OSSemIsFull( OSSemHandle_t SemHandle )
 #define OSSemStateLock( ptSem )								\
 	OSIntLock();											\
 	{														\
-		if( ( ptSem )->xRxLock == SEM_STATUS_UNLOCKED )		\
+		if( ( ptSem )->xSemPLock == SEM_STATUS_UNLOCKED )		\
 		{													\
-			( ptSem )->xRxLock = SEM_STATUS_LOCKED;			\
+			( ptSem )->xSemPLock = SEM_STATUS_LOCKED;			\
 		}													\
-		if( ( ptSem )->xTxLock == SEM_STATUS_UNLOCKED )		\
+		if( ( ptSem )->xSemVLock == SEM_STATUS_UNLOCKED )		\
 		{													\
-			( ptSem )->xTxLock = SEM_STATUS_LOCKED;			\
+			( ptSem )->xSemVLock = SEM_STATUS_LOCKED;			\
 		}													\
 	}														\
 	OSIntUnlock()
@@ -114,9 +114,9 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 
 	OSIntLock();
 	{
-		sOSBase_t xTxLock = ptSem->xTxLock;
+		sOSBase_t xSemVLock = ptSem->xSemVLock;
 		
-		while( xTxLock > SEM_STATUS_LOCKED )
+		while( xSemVLock > SEM_STATUS_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
 			{
@@ -130,19 +130,19 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 				break;
 			}
 
-			--xTxLock;
+			--xSemVLock;
 		}
 
-		ptSem->xTxLock = SEM_STATUS_UNLOCKED;
+		ptSem->xSemVLock = SEM_STATUS_UNLOCKED;
 	}
 	OSIntUnlock();
 
 	/* Do the same for the Rx lock. */
 	OSIntLock();
 	{
-		sOSBase_t xRxLock = ptSem->xRxLock;
+		sOSBase_t xSemPLock = ptSem->xSemPLock;
 		
-		while( xRxLock > SEM_STATUS_LOCKED )
+		while( xSemPLock > SEM_STATUS_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
 			{
@@ -151,7 +151,7 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 					OSTaskNeedSchedule();
 				}
 
-				--xRxLock;
+				--xSemPLock;
 			}
 			else
 			{
@@ -159,7 +159,7 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 			}
 		}
 
-		ptSem->xRxLock = SEM_STATUS_UNLOCKED;
+		ptSem->xSemPLock = SEM_STATUS_UNLOCKED;
 	}
 	OSIntUnlock();
 }
@@ -171,8 +171,8 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 	OSIntLock();
 	{
 		ptSem->uxCurNum = ( uOSBase_t ) 0U;
-		ptSem->xRxLock = SEM_STATUS_UNLOCKED;
-		ptSem->xTxLock = SEM_STATUS_UNLOCKED;
+		ptSem->xSemPLock = SEM_STATUS_UNLOCKED;
+		ptSem->xSemVLock = SEM_STATUS_UNLOCKED;
 
 		if( bNewQueue == OS_FALSE )
 		{
@@ -435,11 +435,11 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 		
 		if( uxCurNum < ptSem->uxMaxNum )
 		{
-			const sOSBase_t xTxLock = ptSem->xTxLock;
+			const sOSBase_t xSemVLock = ptSem->xSemVLock;
 	
 			ptSem->uxCurNum = uxCurNum + 1;
 
-			if( xTxLock == SEM_STATUS_UNLOCKED )
+			if( xSemVLock == SEM_STATUS_UNLOCKED )
 			{
 				if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
 				{
@@ -451,7 +451,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 			}
 			else
 			{
-				ptSem->xTxLock = ( sOSBase_t )(xTxLock + 1);
+				ptSem->xSemVLock = ( sOSBase_t )(xSemVLock + 1);
 			}
 
 			bReturn = OS_TRUE;

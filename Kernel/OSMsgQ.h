@@ -60,8 +60,8 @@ typedef struct tOSMsgQ
 	uOSBase_t 					uxMaxNum;
 	uOSBase_t 					uxItemSize;
 
-	volatile sOSBase_t 			xRxLock;
-	volatile sOSBase_t 			xTxLock;
+	volatile sOSBase_t 			xMsgQPLock;
+	volatile sOSBase_t 			xMsgQVLock;
 
 	sOSBase_t					xID;
 } tOSMsgQ_t;
