@@ -80,6 +80,9 @@ static void OSTaskRecordReadyPriority(uOSBase_t uxPriority)
 #if ( FIT_QUICK_GET_PRIORITY == 1 )
 	guxTopReadyPriority |= ( 1UL << ( uxPriority ) ) ;
 #endif
+
+	/* Just to avoid compiler warnings. */
+	( void ) uxPriority;
 }
 
 static void OSTaskResetReadyPriority(uOSBase_t uxPriority)
@@ -90,6 +93,9 @@ static void OSTaskResetReadyPriority(uOSBase_t uxPriority)
 		guxTopReadyPriority &= ~( 1UL << ( uxPriority ) );
 	}
 #endif
+
+	/* Just to avoid compiler warnings. */
+	( void ) uxPriority;
 }
 
 static uOSBase_t OSTaskFindHighestReadyPriority()
