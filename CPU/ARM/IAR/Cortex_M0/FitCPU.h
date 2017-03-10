@@ -38,7 +38,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __FIT_CPU_H_
 #define __FIT_CPU_H_
 
-#include "FitType.h"
+#include "OSType.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,8 +46,8 @@ extern "C" {
 
 /* Scheduler utilities. */
 extern void FitSchedule( void );
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+#define FitNVIC_INT_CTRL			( ( volatile uOS32_t *) 0xe000ed04 )
+#define FitNVIC_PENDSVSET			0x10000000
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
 extern void FitIntLock( void );
