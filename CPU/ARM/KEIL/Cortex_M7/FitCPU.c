@@ -91,7 +91,7 @@ calculations. */
 
 /* Each task maintains its own interrupt status in the critical nesting
 variable. */
-static uOSBase_t uxCriticalNesting = 0xaaaaaaaa;
+static uOSBase_t guxIntLocked = 0xaaaaaaaa;
 
 static void FitSetupTimerInterrupt( void );
 static void FitStartFirstTask( void );
@@ -214,7 +214,7 @@ uOSBase_t FitStartScheduler( void )
 	FitSetupTimerInterrupt();
 
 	/* Initialise the critical nesting count ready for the first task. */
-	uxCriticalNesting = 0;
+	guxIntLocked = 0;
 
 	/* Ensure the VFP is enabled - it should be anyway. */
 	FitEnableVFP();
@@ -238,15 +238,15 @@ void FitEndScheduler( void )
 void FitIntLock( void )
 {
 	FitIntMask();
-	uxCriticalNesting++;
+	guxIntLocked++;
 
 }
 /*-----------------------------------------------------------*/
 
 void FitIntUnlock( void )
 {
-	uxCriticalNesting--;
-	if( uxCriticalNesting == 0 )
+	guxIntLocked--;
+	if( guxIntLocked == 0 )
 	{
 		FitIntUnmask( 0 );
 	}
@@ -255,7 +255,7 @@ void FitIntUnlock( void )
 
 __asm void FitPendSVHandler( void )
 {
-	extern uxCriticalNesting;
+	extern guxIntLocked;
 	extern gptCurrentTCB;
 	extern OSTaskSwitchContext;
 
