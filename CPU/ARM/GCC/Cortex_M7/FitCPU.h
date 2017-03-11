@@ -1,4 +1,4 @@
-/**********************************************************************************************************
+﻿/**********************************************************************************************************
 AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
 http://www.aios.io -- Documentation, latest information, license and contact details.
@@ -57,14 +57,33 @@ extern "C" {
 																				\
 	/* Barriers are normally not required but do ensure the code is completely	\
 	within the specified behaviour for the architecture. */						\
-	__dsb( FitSY_FULL_READ_WRITE );											\
-	__isb( FitSY_FULL_READ_WRITE );											\
+	__asm volatile( "dsb" );													\
+	__asm volatile( "isb" );													\
 }
 /*-----------------------------------------------------------*/
 
 #define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 				if( b ) FitSchedule()
+#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+/*-----------------------------------------------------------*/
+
+/* Critical section management. */
+/*
+extern void FitIntLock( void );
+extern void FitIntUnlock( void );
+
+#define FitIntMask()					FitRaiseBasePRI()
+#define FitENABLE_INTERRUPTS()					FitSetBasePRI( 0 )
+#define FitENTER_CRITICAL()						FitIntLock()
+#define FitEXIT_CRITICAL()						FitIntUnlock()
+#define FitSET_INTERRUPT_MASK_FROM_ISR()		FitRaiseBasePRIFromISR()
+#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FitSetBasePRI(x)
+
+#define FitYield()								FitYIELD()
+
+#define OS_ENTER_CRITICAL()						FitIntLock()
+#define OS_EXIT_CRITICAL()						FitIntUnlock()
+*/
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
@@ -76,53 +95,78 @@ extern void FitIntUnlock( void );
 #define FitIntUnmaskFromISR( x )				FitIntUnmask( x )
 
 #define FIT_QUICK_GET_PRIORITY	1
-#define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( uxReadyPriorities ) ) )
+/* Generic helper function. */
+__attribute__( ( always_inline ) ) static inline uint8_t FitCountLeadingZeros( uint32_t ulBitmap )
+{
+	uOS8_t ucReturn;
+
+	__asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) );
+	return ucReturn;
+}
+#define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - FitCountLeadingZeros( ( uxReadyPriorities ) ) )
 
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE __forceinline
+	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
 #endif
 
+FIT_FORCE_INLINE static uOSBase_t FitIsInsideInterrupt( void )
+{
+	uOS32_t ulCurrentInterrupt;
+	uOSBase_t xReturn;
+
+	/* Obtain the number of the currently executing interrupt. */
+	__asm volatile( "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) );
+
+	if( ulCurrentInterrupt == 0 )
+	{
+		xReturn = OS_FALSE;
+	}
+	else
+	{
+		xReturn = OS_TRUE;
+	}
+
+	return xReturn;
+}
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE void FitSetBasePRI( uOS32_t ulBASEPRI )
 {
-	__asm
-	{
-		/* Barrier instructions are not used as this function is only used to
-		lower the BASEPRI value. */
-		msr basepri, ulBASEPRI
-	}
+	__asm volatile
+	(
+		"	msr basepri, %0	" :: "r" ( ulBASEPRI )
+	);	
 }
-
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE uOS32_t FitRaiseBasePRI( void )
 {
-uOS32_t ulReturn, ulNewBASEPRI = OSMAX_HWINT_PRI;
+	uOS32_t ulOriginalBASEPRI, ulNewBASEPRI;
 
-	__asm
-	{
-		/* Set BASEPRI to the max syscall priority to effect a lock
-		section. */
-		mrs ulReturn, basepri
-		cpsid i
-		msr basepri, ulNewBASEPRI
-		dsb
-		isb
-		cpsie i
-	}
+	__asm volatile
+	(
+		"	mrs %0, basepri											\n" \
+		"	mov %1, %2												\n"	\
+		"	cpsid i													\n" \
+		"	msr basepri, %1											\n" \
+		"	isb														\n" \
+		"	dsb														\n" \
+		"	cpsie i													\n" \
+		:"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" ( OSMAX_HWINT_PRI )
+	);
 
-	return ulReturn;
+	/* This return will not be reached but is necessary to prevent compiler
+	warnings. */
+	return ulOriginalBASEPRI;	
 }
 
-uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack,
-		OSTaskFunction_t TaskFunction, void *pvParameters );
+uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 uOSBase_t FitStartScheduler( void );
 
-void FitPendSVHandler( void );
+void FitPendSVHandler( void ) __attribute__ (( naked ));
 void FitOSTickISR( void );
-void FitSVCHandler( void );
+void FitSVCHandler( void ) __attribute__ (( naked ));
 
 #ifdef __cplusplus
 }

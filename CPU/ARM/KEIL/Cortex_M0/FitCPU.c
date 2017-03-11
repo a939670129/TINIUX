@@ -61,7 +61,7 @@ extern "C" {
 /* Constants used with memory barrier intrinsics. */
 #define FitSY_FULL_READ_WRITE		( 15 )
 
-/* Each task maintains its own interrupt status in the critical nesting
+/* Each task maintains its own interrupt status in the lock nesting
 variable. */
 static volatile uOSBase_t guxIntLocked = 0xaaaaaaaa;
 
@@ -161,7 +161,7 @@ sOSBase_t FitStartScheduler( void )
 	here already. */
 	FitSetupTimerInterrupt();
 
-	/* Initialise the critical nesting count ready for the first task. */
+	/* Initialise the lock nesting count ready for the first task. */
 	guxIntLocked = 0;
 
 	/* Start the first task. */

@@ -1,4 +1,4 @@
-/**********************************************************************************************************
+﻿/**********************************************************************************************************
 AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
 http://www.aios.io -- Documentation, latest information, license and contact details.
@@ -43,6 +43,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define OSMIN_HWINT_PRI 255
 
 /* Constants required to manipulate the core.  Registers first... */
 #define FitNVIC_SYSTICK_CTRL_REG			( * ( ( volatile uOS32_t * ) 0xe000e010 ) )
@@ -93,9 +95,9 @@ calculations. */
 variable. */
 static uOSBase_t guxIntLocked = 0xaaaaaaaa;
 
-static void FitSetupTimerInterrupt( void );
-static void FitStartFirstTask( void );
-static void FitEnableVFP( void );
+void FitSetupTimerInterrupt( void );
+static void FitStartFirstTask( void ) __attribute__ (( naked ));
+static void FitEnableVFP( void ) __attribute__ (( naked ));
 static void FitTaskExitError( void );
 
 /*-----------------------------------------------------------*/
@@ -144,59 +146,53 @@ static void FitTaskExitError( void )
 }
 /*-----------------------------------------------------------*/
 
-__asm void FitSVCHandler( void )
+void FitSVCHandler( void )
 {
-	PRESERVE8
-
-	/* Get the location of the current TCB. */
-	ldr	r3, = gptCurrentTCB
-	ldr r1, [r3]
-	ldr r0, [r1]
-	/* Pop the core registers. */
-	ldmia r0!, {r4-r11, r14}
-	msr psp, r0
-	isb
-	mov r0, #0
-	msr	basepri, r0
-	bx r14
+	__asm volatile (
+					"	ldr	r3, ptCurrentTCBTemp1		\n" /* Restore the context. */
+					"	ldr r1, [r3]					\n" /* Use pxCurrentTCBConst to get the gptCurrentTCB address. */
+					"	ldr r0, [r1]					\n" /* The first item in gptCurrentTCB is the task top of stack. */
+					"	ldmia r0!, {r4-r11, r14}		\n" /* Pop the registers that are not automatically saved on exception entry and the lock nesting count. */
+					"	msr psp, r0						\n" /* Restore the task stack pointer. */
+					"	isb								\n"
+					"	mov r0, #0 						\n"
+					"	msr	basepri, r0					\n"
+					"	bx r14							\n"
+					"									\n"
+					"	.align 4						\n"
+					"ptCurrentTCBTemp1: .word gptCurrentTCB				\n"
+				);	
 }
 /*-----------------------------------------------------------*/
 
-__asm void FitStartFirstTask( void )
+void FitStartFirstTask( void )
 {
-	PRESERVE8
-
-	/* Use the NVIC offset register to locate the stack. */
-	ldr r0, =0xE000ED08
-	ldr r0, [r0]
-	ldr r0, [r0]
-	/* Set the msp back to the start of the stack. */
-	msr msp, r0
-	/* Globally enable interrupts. */
-	cpsie i
-	cpsie f
-	dsb
-	isb
-	/* Call SVC to start the first task. */
-	svc 0
-	nop
-	nop
+	__asm volatile(
+					" ldr r0, =0xE000ED08 	\n" /* Use the NVIC offset register to locate the stack. */
+					" ldr r0, [r0] 			\n"
+					" ldr r0, [r0] 			\n"
+					" msr msp, r0			\n" /* Set the msp back to the start of the stack. */
+					" cpsie i				\n" /* Globally enable interrupts. */
+					" cpsie f				\n"
+					" dsb					\n"
+					" isb					\n"
+					" svc 0					\n" /* System call to start first task. */
+					" nop					\n"
+				);
 }
 /*-----------------------------------------------------------*/
 
-__asm void FitEnableVFP( void )
+void FitEnableVFP( void )
 {
-	PRESERVE8
-
-	/* The FPU enable bits are in the CPACR. */
-	ldr.w r0, =0xE000ED88
-	ldr	r1, [r0]
-
-	/* Enable CP10 and CP11 coprocessors, then save back. */
-	orr	r1, r1, #( 0xf << 20 )
-	str r1, [r0]
-	bx	r14
-	nop
+	__asm volatile
+	(
+		"	ldr.w r0, =0xE000ED88		\n" /* The FPU enable bits are in the CPACR. */
+		"	ldr r1, [r0]				\n"
+		"								\n"
+		"	orr r1, r1, #( 0xf << 20 )	\n" /* Enable CP10 and CP11 coprocessors, then save back. */
+		"	str r1, [r0]				\n"
+		"	bx r14						"
+	);
 }
 /*-----------------------------------------------------------*/
 
@@ -226,7 +222,9 @@ uOSBase_t FitStartScheduler( void )
 	FitStartFirstTask();
 
 	/* Should not get here! */
-	return 0;
+	FitTaskExitError();
+	
+	return 0;	
 }
 /*-----------------------------------------------------------*/
 
@@ -253,67 +251,63 @@ void FitIntUnlock( void )
 }
 /*-----------------------------------------------------------*/
 
-__asm void FitPendSVHandler( void )
+void FitPendSVHandler( void )
 {
-	extern guxIntLocked;
-	extern gptCurrentTCB;
-	extern OSTaskSwitchContext;
+	/* This is a naked function. */
 
-	PRESERVE8
-
-	mrs r0, psp
-	isb
-	/* Get the location of the current TCB. */
-	ldr	r3, =gptCurrentTCB
-	ldr	r2, [r3]
-
-	/* Is the task using the FPU context?  If so, push high vfp registers. */
-	tst r14, #0x10
-	it eq
-	vstmdbeq r0!, {s16-s31}
-
-	/* Save the core registers. */
-	stmdb r0!, {r4-r11, r14}
-
-	/* Save the new top of stack into the first member of the TCB. */
-	str r0, [r2]
-
-	stmdb sp!, {r3}
-	mov r0, #OSMAX_HWINT_PRI
-	cpsid i
-	msr basepri, r0
-	dsb
-	isb
-	cpsie i
-	bl OSTaskSwitchContext
-	mov r0, #0
-	msr basepri, r0
-	ldmia sp!, {r3}
-
-	/* The first item in pxCurrentTCB is the task top of stack. */
-	ldr r1, [r3]
-	ldr r0, [r1]
-
-	/* Pop the core registers. */
-	ldmia r0!, {r4-r11, r14}
-
-	/* Is the task using the FPU context?  If so, pop the high vfp registers
-	too. */
-	tst r14, #0x10
-	it eq
-	vldmiaeq r0!, {s16-s31}
-
-	msr psp, r0
-	isb
-	#ifdef WORKAROUND_PMU_CM001 /* XMC4000 specific errata */
+	__asm volatile
+	(
+	"	mrs r0, psp							\n"
+	"	isb									\n"
+	"										\n"
+	"	ldr	r3, ptCurrentTCBTemp2			\n" /* Get the location of the current TCB. */
+	"	ldr	r2, [r3]						\n"
+	"										\n"
+	"	tst r14, #0x10						\n" /* Is the task using the FPU context?  If so, push high vfp registers. */
+	"	it eq								\n"
+	"	vstmdbeq r0!, {s16-s31}				\n"
+	"										\n"
+	"	stmdb r0!, {r4-r11, r14}			\n" /* Save the core registers. */
+	"										\n"
+	"	str r0, [r2]						\n" /* Save the new top of stack into the first member of the TCB. */
+	"										\n"
+	"	stmdb sp!, {r3}						\n"
+	"	mov r0, %0 							\n"
+	"	cpsid i								\n" /* Errata workaround. */
+	"	msr basepri, r0						\n"
+	"	dsb									\n"
+	"	isb									\n"
+	"	cpsie i								\n" /* Errata workaround. */
+	"	bl OSTaskSwitchContext				\n"
+	"	mov r0, #0							\n"
+	"	msr basepri, r0						\n"
+	"	ldmia sp!, {r3}						\n"
+	"										\n"
+	"	ldr r1, [r3]						\n" /* The first item in gptCurrentTCB is the task top of stack. */
+	"	ldr r0, [r1]						\n"
+	"										\n"
+	"	ldmia r0!, {r4-r11, r14}			\n" /* Pop the core registers. */
+	"										\n"
+	"	tst r14, #0x10						\n" /* Is the task using the FPU context?  If so, pop the high vfp registers too. */
+	"	it eq								\n"
+	"	vldmiaeq r0!, {s16-s31}				\n"
+	"										\n"
+	"	msr psp, r0							\n"
+	"	isb									\n"
+	"										\n"
+	#ifdef WORKAROUND_PMU_CM001 /* XMC4000 specific errata workaround. */
 		#if WORKAROUND_PMU_CM001 == 1
-			push { r14 }
-			pop { pc }
-			nop
+	"			push { r14 }				\n"
+	"			pop { pc }					\n"
 		#endif
 	#endif
-
-	bx r14
+	"										\n"
+	"	bx r14								\n"
+	"										\n"
+	"	.align 4							\n"
+	"ptCurrentTCBTemp2: .word gptCurrentTCB	\n"
+	::"i"(OSMAX_HWINT_PRI)
+	);	
 }
 /*-----------------------------------------------------------*/
 
@@ -341,20 +335,25 @@ void FitOSTickISR( void )
  * Setup the SysTick timer to generate the tick interrupts at the required
  * frequency.
  */
-static void FitSetupTimerInterrupt( void )
+__attribute__(( weak ))  void FitSetupTimerInterrupt( void )
 {
 	/* Configure SysTick to interrupt at the requested rate. */
-	FitNVIC_SYSTICK_LOAD_REG = ( SETOS_CPU_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
+	FitNVIC_SYSTICK_LOAD_REG = ( OSCPU_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
 	FitNVIC_SYSTICK_CTRL_REG = ( FitNVIC_SYSTICK_CLK_BIT | FitNVIC_SYSTICK_INT_BIT | FitNVIC_SYSTICK_ENABLE_BIT );
 }
 /*-----------------------------------------------------------*/
 
-__asm uOS32_t FitGetIPSR( void )
+uOS32_t FitGetIPSR( void )
 {
-	PRESERVE8
+	uOS32_t ulCurrentInterrupt;
 
-	mrs r0, ipsr
-	bx r14
+		/* Obtain the number of the currently executing interrupt. */
+	__asm volatile
+	( 
+	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+	);
+	
+	return ulCurrentInterrupt;
 }
 
 #ifdef __cplusplus

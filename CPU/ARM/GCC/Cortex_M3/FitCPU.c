@@ -71,7 +71,7 @@ extern "C" {
 #define FitNVIC_INT_CTRL_REG				( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
 #define FitNVIC_PENDSVSET_BIT				( 1UL << 28UL )
 
-/* Constants required to handle critical sections. */
+/* Constants required to handle lock sections. */
 #define FitNO_CRITICAL_NESTING		( ( unsigned long ) 0 )
 static volatile uOSBase_t guxIntLocked = 9999UL;
 
@@ -127,7 +127,7 @@ void FitSVCHandler( void )
 					"	ldr	r3, ptCurrentTCBTemp1		\n" /* Restore the context. */
 					"	ldr r1, [r3]					\n" /* Use ptCurrentTCBTemp1 to get the gptCurrentTCB address. */
 					"	ldr r0, [r1]					\n" /* The first item in gptCurrentTCB is the task top of stack. */
-					"	ldmia r0!, {r4-r11}				\n" /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
+					"	ldmia r0!, {r4-r11}				\n" /* Pop the registers that are not automatically saved on exception entry and the lock nesting count. */
 					"	msr psp, r0						\n" /* Restore the task stack pointer. */
 					"	isb								\n"
 					"	mov r0, #0 						\n"
@@ -166,7 +166,7 @@ uOSBase_t FitStartScheduler( void )
 	here already. */
 	FitSetupTimerInterrupt();
         
-	/* Initialise the critical nesting count ready for the first task. */
+	/* Initialise the lock nesting count ready for the first task. */
 	guxIntLocked = 0;
 
 
@@ -242,7 +242,7 @@ void FitPendSVHandler( void )
 	"	mov r0, #0							\n"
 	"	msr basepri, r0						\n"
 	"	ldmia sp!, {r3, r14}				\n"
-	"										\n"	/* Restore the context, including the critical nesting count. */
+	"										\n"	/* Restore the context, including the lock nesting count. */
 	"	ldr r1, [r3]						\n"
 	"	ldr r0, [r1]						\n" /* The first item in gptCurrentTCB is the task top of stack. */
 	"	ldmia r0!, {r4-r11}					\n" /* Pop the registers. */

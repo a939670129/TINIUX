@@ -95,7 +95,7 @@ occurred while the SysTick counter is stopped during tickless idle
 calculations. */
 #define FitMISSED_COUNTS_FACTOR				( 45UL )
 
-/* Each task maintains its own interrupt status in the critical nesting
+/* Each task maintains its own interrupt status in the lock nesting
 variable. */
 static uOSBase_t guxIntLocked = 0xaaaaaaaa;
 
@@ -160,7 +160,7 @@ void FitSVCHandler( void )
 					"	ldr	r3, ptCurrentTCBTemp1		\n" /* Restore the context. */
 					"	ldr r1, [r3]					\n" /* Use pxCurrentTCBConst to get the gptCurrentTCB address. */
 					"	ldr r0, [r1]					\n" /* The first item in gptCurrentTCB is the task top of stack. */
-					"	ldmia r0!, {r4-r11, r14}		\n" /* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
+					"	ldmia r0!, {r4-r11, r14}		\n" /* Pop the registers that are not automatically saved on exception entry and the lock nesting count. */
 					"	msr psp, r0						\n" /* Restore the task stack pointer. */
 					"	isb								\n"
 					"	mov r0, #0 						\n"
@@ -211,7 +211,7 @@ uOSBase_t FitStartScheduler( void )
 	here already. */
 	FitSetupTimerInterrupt();
 
-	/* Initialise the critical nesting count ready for the first task. */
+	/* Initialise the lock nesting count ready for the first task. */
 	guxIntLocked = 0;
 
 	/* Ensure the VFP is enabled - it should be anyway. */

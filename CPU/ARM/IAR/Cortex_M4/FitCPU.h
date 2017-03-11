@@ -61,7 +61,6 @@ extern "C" {
 #define FIT_QUICK_GET_PRIORITY		1
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 
-/* Critical section management. */
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 

@@ -64,7 +64,6 @@ extern "C" {
 #define FitNVIC_PENDSVSET_BIT					( 1UL << 28UL )
 #define FitScheduleFromISR( b ) 				if( b ) FitSchedule()
 
-/* Critical section management. */
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 
@@ -114,7 +113,7 @@ uOS32_t ulReturn, ulNewBASEPRI = OSMAX_HWINT_PRI;
 
 	__asm
 	{
-		/* Set BASEPRI to the max syscall priority to effect a critical
+		/* Set BASEPRI to the max syscall priority to effect a lock
 		section. */
 		mrs ulReturn, basepri
 		msr basepri, ulNewBASEPRI
