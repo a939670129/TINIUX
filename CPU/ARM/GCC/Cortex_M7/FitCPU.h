@@ -67,24 +67,6 @@ extern "C" {
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 /*-----------------------------------------------------------*/
 
-/* Critical section management. */
-/*
-extern void FitIntLock( void );
-extern void FitIntUnlock( void );
-
-#define FitIntMask()					FitRaiseBasePRI()
-#define FitENABLE_INTERRUPTS()					FitSetBasePRI( 0 )
-#define FitENTER_CRITICAL()						FitIntLock()
-#define FitEXIT_CRITICAL()						FitIntUnlock()
-#define FitSET_INTERRUPT_MASK_FROM_ISR()		FitRaiseBasePRIFromISR()
-#define FitCLEAR_INTERRUPT_MASK_FROM_ISR(x)		FitSetBasePRI(x)
-
-#define FitYield()								FitYIELD()
-
-#define OS_ENTER_CRITICAL()						FitIntLock()
-#define OS_EXIT_CRITICAL()						FitIntUnlock()
-*/
-
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 
