@@ -47,7 +47,7 @@ AIOS_DATA static sOSBase_t const OSMSGQ_LOCKED				= ( ( sOSBase_t ) 0 );
 
 /* OSMsgQ send mode. */
 AIOS_DATA static sOSBase_t const OSMSGQ_SEND_TO_BACK		= ( ( sOSBase_t ) 0 );
-//AIOS_DATA static sOSBase_t const OSMSGQ_SEND_TO_FRONT		= ( ( sOSBase_t ) 1 );
+AIOS_DATA static sOSBase_t const OSMSGQ_SEND_TO_FRONT		= ( ( sOSBase_t ) 1 );
 AIOS_DATA static sOSBase_t const OSMSGQ_SEND_OVERWRITE		= ( ( sOSBase_t ) 2 );
 
 static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
@@ -134,7 +134,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 	}
 	OSIntUnlock();
 
-	/* Do the same for the Rx lock. */
+	/* Do the same for the MsgQP lock. */
 	OSIntLock();
 	{
 		sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
@@ -402,6 +402,11 @@ uOSBool_t OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemT
 	return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, ( uOSTick_t )0U, OSMSGQ_SEND_OVERWRITE);
 }
 
+uOSBool_t OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait)
+{
+	return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, uxTicksToWait, OSMSGQ_SEND_TO_FRONT);
+}
+
 static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSBool_t * const pbNeedSchedule, const sOSBase_t xCopyPosition )
 {
 	uOSBool_t bReturn;
@@ -473,6 +478,20 @@ uOSBool_t OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const 
 	}
 
 	return bRet;
+}
+
+uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
+{
+	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bNeedSchedule = OS_FALSE;
+	
+	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_FRONT );
+	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	{
+		OSScheduleFromISR( bNeedSchedule );
+	}
+
+	return bReturn;
 }
 
 static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait, const uOSBool_t bJustPeeking )

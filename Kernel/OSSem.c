@@ -137,7 +137,7 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 	}
 	OSIntUnlock();
 
-	/* Do the same for the Rx lock. */
+	/* Do the same for the SemP lock. */
 	OSIntLock();
 	{
 		sOSBase_t xSemPLock = ptSem->xSemPLock;

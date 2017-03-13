@@ -133,7 +133,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 	}
 	OSIntUnlock();
 
-	/* Do the same for the Rx lock. */
+	/* Do the same for the MutexP lock. */
 	OSIntLock();
 	{
 		sOSBase_t xMutexPLock = ptMutex->xMutexPLock;

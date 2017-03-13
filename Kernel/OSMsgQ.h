@@ -80,6 +80,9 @@ uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvIte
 uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
 uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
 
+uOSBool_t 		OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+
 uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
 uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
 
