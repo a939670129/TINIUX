@@ -575,7 +575,7 @@ uOSBool_t OSTaskIncrementTick( void )
 	return bNeedSchedule;
 }
 
-uOSTick_t OSGetSystemTicksCount( void )
+uOSTick_t OSGetTicksCount( void )
 {
 	uOSTick_t uxTicks;
 
@@ -690,7 +690,7 @@ uOSBool_t OSScheduleUnlock( void )
 	return bAlreadyScheduled;
 }
 
-sOSBase_t OSTaskGetSchedulerState( void )
+sOSBase_t OSGetScheduleState( void )
 {
 	sOSBase_t xReturn;
 
@@ -1182,7 +1182,7 @@ static void OSIdleTask( void *pvParameters)
 	}
 }
 
-uOS16_t OSStartScheduler( void )
+uOS16_t OSStart( void )
 {
 	uOS16_t ReturnValue = 0;
 	OSTaskHandle_t TaskHandle = OS_NULL;

@@ -70,8 +70,6 @@ typedef enum
 #define OSSchedule()                        FitSchedule()
 #define OSScheduleFromISR( b )              FitScheduleFromISR( b )
 
-#define OSStart()                           OSStartScheduler()
-
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,
  * and stores task state information, including a pointer to the task's context
@@ -108,9 +106,11 @@ typedef struct OSTaskControlBlock
 
 typedef	tOSTCB_t*		OSTaskHandle_t;
 
+uOS16_t 	OSStart( void ) AIOS_FUNCTION;
+uOSTick_t 	OSGetTicksCount( void ) AIOS_FUNCTION;
 void 		OSScheduleLock( void ) AIOS_FUNCTION;
 uOSBool_t 	OSScheduleUnlock( void ) AIOS_FUNCTION;
-uOSTick_t 	OSGetSystemTicksCount( void ) AIOS_FUNCTION;
+sOSBase_t 	OSGetScheduleState( void ) AIOS_FUNCTION;
 
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             void*				pvParameter,
@@ -118,7 +118,6 @@ OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             uOSBase_t			uxPriority,
                             sOS8_t*				pcTaskName) AIOS_FUNCTION;
 void 		OSTaskDelete( OSTaskHandle_t xTaskToDelete ) AIOS_FUNCTION;
-uOS16_t 	OSStartScheduler( void ) AIOS_FUNCTION;
 void 		OSTaskSleep( const uOSTick_t uxTicksToSleep ) AIOS_FUNCTION;
 sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) AIOS_FUNCTION;
 sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) AIOS_FUNCTION;
@@ -135,8 +134,6 @@ OSTaskHandle_t OSTaskGetCurrentTaskHandle( void ) AIOS_FUNCTION;
 void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
 void 		OSTaskResume( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
 sOSBase_t 	OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
-
-sOSBase_t 	OSTaskGetSchedulerState( void ) AIOS_FUNCTION;
 
 #if ( OS_MUTEX_ON == 1 )
 void *		OSTaskGetMutexHolder( void ) AIOS_FUNCTION;

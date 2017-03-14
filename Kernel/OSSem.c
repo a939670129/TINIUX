@@ -468,7 +468,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 	}
 	OSIntUnmaskFromISR( uxIntSave );
 
-	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}

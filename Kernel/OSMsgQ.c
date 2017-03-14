@@ -458,7 +458,7 @@ uOSBool_t OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvIte
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
 	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_BACK );
-	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}
@@ -472,7 +472,7 @@ uOSBool_t OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const 
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
 	bRet = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
-	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}
@@ -486,7 +486,7 @@ uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
 	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_FRONT );
-	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}
@@ -645,7 +645,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 	}
 	OSIntUnmaskFromISR( uxIntSave );
 
-	if(SCHEDULER_RUNNING == OSTaskGetSchedulerState())
+	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}
