@@ -1214,7 +1214,7 @@ uOS16_t OSStart( void )
 uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 {
 	sOSBase_t xTemp;
-	uOSBool_t bRet = OS_FALSE;
+	uOSBool_t bReturn = OS_FALSE;
 
 	OSIntLock();
 	{
@@ -1242,20 +1242,20 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 		{
 			gptCurrentTCB->xSigValue = xTemp - 1;
 			
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 
 		gptCurrentTCB->uxSigState = SIG_STATE_NOTWAITING;
 	}
 	OSIntUnlock();
 
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 {
 	tOSTCB_t * ptTCB;
-	uOSBool_t bRet = OS_FALSE;
-	uint8_t ucOldState;
+	uOSBool_t bReturn = OS_FALSE;
+	uOS8_t ucOldState;
 
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
@@ -1266,12 +1266,12 @@ uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 		ptTCB->uxSigState = SIG_STATE_RECEIVED;
 		if( ptTCB->xSigValue>0xF )
 		{
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 		else
 		{
 			ptTCB->xSigValue += 1;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 		/* If the task is in the blocked state specifically to wait for a
 		signal then unblock it now. */
@@ -1292,15 +1292,15 @@ uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 	}
 	OSIntUnlock();
 
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 {
 	tOSTCB_t * ptTCB;
-	uint8_t ucOldState;
+	uOS8_t ucOldState;
 	uOSBase_t uxIntSave;
 	uOSBool_t bNeedSchedule = OS_FALSE;
-	uOSBool_t bRet = OS_FALSE;
+	uOSBool_t bReturn = OS_FALSE;
 
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
@@ -1311,12 +1311,12 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 
 		if( ptTCB->xSigValue>0xF )
 		{
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 		else
 		{
 			ptTCB->xSigValue += 1;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
@@ -1350,11 +1350,11 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 	{
 		OSSchedule();
 	}
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWait)
 {
-	uOSBool_t bRet = OS_FALSE;
+	uOSBool_t bReturn = OS_FALSE;
 	( void )xSigValue;
 	
 	OSIntLock();
@@ -1394,27 +1394,27 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
 		if( gptCurrentTCB->uxSigState == SIG_STATE_WAITING )
 		{
 			/* A signal was not received. */
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 		else
 		{
 			/* A signal was already pending or a signal was
 			received while the task was waiting. */
 			gptCurrentTCB->xSigValue = 0;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 
 		gptCurrentTCB->uxSigState = SIG_STATE_NOTWAITING;
 	}
 	OSIntUnlock();
 
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite )
 {
 	tOSTCB_t * ptTCB;
-	uOSBool_t bRet = OS_FALSE;
-	uint8_t ucOldState;
+	uOSBool_t bReturn = OS_FALSE;
+	uOS8_t ucOldState;
 
 	ptTCB = ( tOSTCB_t * ) TaskHandle;
 
@@ -1426,12 +1426,12 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 		if( ucOldState != SIG_STATE_RECEIVED || bOverWrite == OS_TRUE )
 		{
 			ptTCB->xSigValue = xSigValue;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 		else
 		{
 			/* The value could not be written to the task. */
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
@@ -1453,13 +1453,13 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 	}
 	OSIntUnlock();
 
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite )
 {
 	tOSTCB_t * ptTCB;
-	uint8_t ucOldState;
-	uOSBool_t bRet = OS_TRUE;
+	uOS8_t ucOldState;
+	uOSBool_t bReturn = OS_TRUE;
 	uOSBase_t uxIntSave;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
@@ -1472,12 +1472,12 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 		if( ucOldState != SIG_STATE_RECEIVED || bOverWrite == OS_TRUE )
 		{
 			ptTCB->xSigValue = xSigValue;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 		else
 		{
 			/* The value could not be written to the task. */
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 
 		/* If the task is in the blocked state specifically to wait for a
@@ -1511,12 +1511,12 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 	{
 		OSSchedule();
 	}
-	return bRet;
+	return bReturn;
 }
 uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
 {
 	tOSTCB_t *ptTCB;
-	uOSBool_t bRet;
+	uOSBool_t bReturn;
 
 	/* If null is passed in here then it is the calling task that is having
 	its signal state cleared. */
@@ -1528,16 +1528,16 @@ uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
 		{
 			ptTCB->uxSigState = SIG_STATE_NOTWAITING;
 			ptTCB->xSigValue = 0;
-			bRet = OS_TRUE;
+			bReturn = OS_TRUE;
 		}
 		else
 		{
-			bRet = OS_FALSE;
+			bReturn = OS_FALSE;
 		}
 	}
 	OSIntUnlock();
 
-	return bRet;	
+	return bReturn;	
 }
 #endif
 

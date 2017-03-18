@@ -468,16 +468,16 @@ uOSBool_t OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvIte
 
 uOSBool_t OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
 {
-	uOSBool_t bRet = OS_FALSE;
+	uOSBool_t bReturn = OS_FALSE;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
-	bRet = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
+	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
 	if(SCHEDULER_RUNNING == OSGetScheduleState())
 	{
 		OSScheduleFromISR( bNeedSchedule );
 	}
 
-	return bRet;
+	return bReturn;
 }
 
 uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
