@@ -44,14 +44,23 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#ifndef FIT_FORCE_INLINE
+	#define FIT_FORCE_INLINE __forceinline
+#endif
+
 extern uOS32_t FitIntMask( void );
 extern void FitIntUnmask( uOS32_t ulNewMask );
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 extern void FitSchedule( void );
+extern uOS32_t FitGetIPSR( void );
 
 #define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitInISR()					( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
 #define FitIntMaskFromISR()			FitIntMask()

@@ -295,6 +295,15 @@ __asm void FitIntUnmask( uOS32_t ulNewMask )
 	msr basepri, r0
 	bx r14
 }
+
+__asm uOS32_t FitGetIPSR( void )
+{
+	PRESERVE8
+
+	mrs r0, ipsr
+	bx r14
+}
+
 #ifdef __cplusplus
 }
 #endif

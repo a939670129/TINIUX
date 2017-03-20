@@ -299,6 +299,14 @@ void FitSetupTimerInterrupt( void )
 }
 /*-----------------------------------------------------------*/
 
+__asm uOS32_t FitGetIPSR( void )
+{
+	PRESERVE8
+
+	mrs r0, ipsr
+	bx r14
+}
+
 #ifdef __cplusplus
 }
 #endif

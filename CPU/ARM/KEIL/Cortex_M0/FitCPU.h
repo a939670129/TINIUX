@@ -48,12 +48,17 @@ extern "C" {
 extern void FitSchedule( void );
 #define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitInISR()					( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 extern uOS32_t FitIntMask( void );
 extern void FitIntUnmask( uOS32_t ulMask );
+extern uOS32_t FitGetIPSR( void );
 
 #define FitIntMaskFromISR()			FitIntMask()
 #define FitIntUnmaskFromISR(x)		FitIntUnmask( x )

@@ -351,6 +351,7 @@ __asm uOS32_t FitGetIPSR( void )
 	mrs r0, ipsr
 	bx r14
 }
+
 #ifdef __cplusplus
 }
 #endif

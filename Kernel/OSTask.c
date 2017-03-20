@@ -579,8 +579,22 @@ uOSTick_t OSGetTicksCount( void )
 {
 	uOSTick_t uxTicks;
 
+	OSIntLock();
 	uxTicks = guxTickCount;
+	OSIntUnlock();
+	
+	return uxTicks;
+}
 
+uOSTick_t OSGetTicksCountFromISR( void )
+{
+	uOSTick_t uxTicks;
+	uOSBase_t uxIntSave;
+
+	uxIntSave = OSIntMaskFromISR();
+	uxTicks = guxTickCount;
+	OSIntUnmaskFromISR( uxIntSave );
+	
 	return uxTicks;
 }
 
@@ -842,14 +856,14 @@ uOSBase_t OSTaskGetPriority( OSTaskHandle_t TaskHandle )
 uOSBase_t OSTaskGetPriorityFromISR( OSTaskHandle_t TaskHandle )
 {
 	tOSTCB_t *ptTCB;
-	uOSBase_t uxReturn, uxSavedInterruptState;
+	uOSBase_t uxReturn, uxIntSave;
 
-	uxSavedInterruptState = OSIntMaskFromISR();
+	uxIntSave = OSIntMaskFromISR();
 	{
 		ptTCB = OSTaskGetTCBFromHandle( TaskHandle );
 		uxReturn = ptTCB->uxPriority;
 	}
-	OSIntUnmaskFromISR( uxSavedInterruptState );
+	OSIntUnmaskFromISR( uxIntSave );
 
 	return uxReturn;
 }

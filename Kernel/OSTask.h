@@ -70,6 +70,8 @@ typedef enum
 #define OSSchedule()                        FitSchedule()
 #define OSScheduleFromISR( b )              FitScheduleFromISR( b )
 
+#define OSInISR()							FitInISR()
+
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,
  * and stores task state information, including a pointer to the task's context
@@ -108,6 +110,7 @@ typedef	tOSTCB_t*		OSTaskHandle_t;
 
 uOS16_t 	OSStart( void ) AIOS_FUNCTION;
 uOSTick_t 	OSGetTicksCount( void ) AIOS_FUNCTION;
+uOSTick_t	OSGetTicksCountFromISR( void ) AIOS_FUNCTION;
 void 		OSScheduleLock( void ) AIOS_FUNCTION;
 uOSBool_t 	OSScheduleUnlock( void ) AIOS_FUNCTION;
 sOSBase_t 	OSGetScheduleState( void ) AIOS_FUNCTION;
