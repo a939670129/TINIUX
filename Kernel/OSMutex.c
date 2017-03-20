@@ -174,6 +174,9 @@ OSMutexHandle_t OSMutexCreate( void )
 
 		ptNewMutex->uxCurNum = ( uOSBase_t ) 1U;
 		ptNewMutex->uxMaxNum = ( uOSBase_t ) 1U;
+		
+		ptNewMutex->uxMutexLocked = ( uOSBase_t ) OS_FALSE;
+		
 		ptNewMutex->xMutexPLock = MUTEX_STATUS_UNLOCKED;
 		ptNewMutex->xMutexVLock = MUTEX_STATUS_UNLOCKED;
 
@@ -226,6 +229,13 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 	tOSTimeOut_t tTimeOut;
 	tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
 
+	//the mutex have been locked
+	if( ptMutex->pxMutexHolder == ( void * ) OSGetCurrentTaskHandle() ) 
+	{
+		( ptMutex->uxMutexLocked )++;
+		return OS_TRUE;
+	}
+	
 	for( ;; )
 	{
 		OSIntLock();
@@ -236,7 +246,9 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 			{
 				ptMutex->uxCurNum = uxCurNum - 1;
 				ptMutex->pxMutexHolder = ( sOS8_t * ) OSTaskGetMutexHolder();
-				
+				//mutex locked successfully
+				( ptMutex->uxMutexLocked )++;
+								
 				if( OSListIsEmpty( &( ptMutex->tMutexVTaskList ) ) == OS_FALSE )
 				{
 					if( OSTaskListOfEventRemove( &( ptMutex->tMutexVTaskList ) ) != OS_FALSE )
@@ -316,6 +328,21 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 
 	uOSTick_t uxTicksToWait = MUTEX_UNLOCK_BLOCK_TIME;
 
+	/* The calling task is not the holder, the mutex cannot be unlocked here. */
+	if( ptMutex->pxMutexHolder != ( void * ) OSGetCurrentTaskHandle() )
+	{
+		return OS_FALSE;
+	}
+	else
+	{
+		( ptMutex->uxMutexLocked )--;
+		if( ptMutex->uxMutexLocked != ( uOSBase_t ) OS_FALSE )
+		{
+			return OS_TRUE;
+		}
+	}
+
+	// now uxMutexLocked is OS_FALSE
 	for( ;; )
 	{
 		OSIntLock();

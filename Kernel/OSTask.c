@@ -584,7 +584,7 @@ uOSTick_t OSGetTicksCount( void )
 	return uxTicks;
 }
 
-OSTaskHandle_t OSTaskGetCurrentTaskHandle( void )
+OSTaskHandle_t OSGetCurrentTaskHandle( void )
 {
 	OSTaskHandle_t xReturn;
 

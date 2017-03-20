@@ -111,6 +111,7 @@ uOSTick_t 	OSGetTicksCount( void ) AIOS_FUNCTION;
 void 		OSScheduleLock( void ) AIOS_FUNCTION;
 uOSBool_t 	OSScheduleUnlock( void ) AIOS_FUNCTION;
 sOSBase_t 	OSGetScheduleState( void ) AIOS_FUNCTION;
+OSTaskHandle_t OSGetCurrentTaskHandle( void ) AIOS_FUNCTION;
 
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             void*				pvParameter,
@@ -129,7 +130,6 @@ void 		OSTaskNeedSchedule( void ) AIOS_FUNCTION;
 void 		OSTaskSwitchContext( void ) AIOS_FUNCTION;
 void 		OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) AIOS_FUNCTION;
 uOSBool_t 	OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) AIOS_FUNCTION;
-OSTaskHandle_t OSTaskGetCurrentTaskHandle( void ) AIOS_FUNCTION;
 
 void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
 void 		OSTaskResume( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;

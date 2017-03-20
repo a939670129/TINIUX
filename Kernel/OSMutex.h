@@ -56,7 +56,9 @@ typedef struct tOSMutex
 
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
-
+	
+	uOSBase_t					uxMutexLocked;			// Mutex lock count
+	
 	volatile sOSBase_t 			xMutexPLock;			// Record the number of task which lock from the mutex while it was locked.
 	volatile sOSBase_t 			xMutexVLock;			// Record the number of task which unlock to the mutex while it was locked.
 
