@@ -55,7 +55,7 @@ extern "C" {
 
 #define MAJOR_VERSION        1
 #define MINOR_VERSION        0
-#define REVISION_NUM         1
+#define REVISION_NUM         2
 
 //MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
 
