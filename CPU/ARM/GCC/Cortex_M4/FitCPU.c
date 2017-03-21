@@ -336,15 +336,6 @@ __attribute__(( weak )) void FitSetupTimerInterrupt( void )
 
 }
 
-uOS32_t FitGetIPSR( void )
-{
-	uOS32_t ulCurrentInterrupt;
-	__asm volatile
-	(
-	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt )
-	);
-	return ulCurrentInterrupt;
-}
 #ifdef __cplusplus
 }
 #endif

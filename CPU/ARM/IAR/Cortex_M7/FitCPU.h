@@ -74,6 +74,10 @@ extern "C" {
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
+extern uOS32_t FitGetIPSR( void );
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitIsInsideISR()						( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 #define FitIntMask()							__get_BASEPRI(); FitDISABLE_INTERRUPTS()
 #define FitIntUnmask( x )						__set_BASEPRI( x )

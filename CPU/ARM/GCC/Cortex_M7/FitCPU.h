@@ -69,6 +69,7 @@ extern "C" {
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
+extern uOS32_t FitGetIPSR( void );
 
 #define FitIntMask()							FitRaiseBasePRI()
 #define FitIntUnmask( x )						FitSetBasePRI( x )
@@ -76,9 +77,14 @@ extern void FitIntUnlock( void );
 #define FitIntMaskFromISR()						FitIntMask()
 #define FitIntUnmaskFromISR( x )				FitIntUnmask( x )
 
+
+#ifndef FIT_FORCE_INLINE
+	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
+#endif
+
 #define FIT_QUICK_GET_PRIORITY	1
 /* Generic helper function. */
-__attribute__( ( always_inline ) ) static inline uint8_t FitCountLeadingZeros( uint32_t ulBitmap )
+static FIT_FORCE_INLINE uOS8_t FitCountLeadingZeros( uint32_t ulBitmap )
 {
 	uOS8_t ucReturn;
 
@@ -88,29 +94,22 @@ __attribute__( ( always_inline ) ) static inline uint8_t FitCountLeadingZeros( u
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - FitCountLeadingZeros( ( uxReadyPriorities ) ) )
 
 
-#ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
-#endif
-
-FIT_FORCE_INLINE static uOSBase_t FitIsInsideInterrupt( void )
+FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
 {
 	uOS32_t ulCurrentInterrupt;
-	uOSBase_t xReturn;
 
 	/* Obtain the number of the currently executing interrupt. */
-	__asm volatile( "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) );
-
-	if( ulCurrentInterrupt == 0 )
-	{
-		xReturn = OS_FALSE;
-	}
-	else
-	{
-		xReturn = OS_TRUE;
-	}
-
-	return xReturn;
+	__asm volatile
+	( 
+	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+	);
+	
+	return ulCurrentInterrupt;
 }
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE void FitSetBasePRI( uOS32_t ulBASEPRI )

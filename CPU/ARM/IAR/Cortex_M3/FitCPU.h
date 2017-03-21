@@ -59,12 +59,15 @@ extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 extern uOS32_t FitIntMask( void );
 extern void FitIntUnmask( uOS32_t ulNewMask );
+extern uOS32_t FitGetIPSR( void );
 
 /*-----------------------------------------------------------*/
 
 #define FitIntMaskFromISR()			FitIntMask()
 #define FitIntUnmaskFromISR( x )	FitIntUnmask( x )
 
+/* Determine whether we are in thread mode or handler mode. */
+#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );

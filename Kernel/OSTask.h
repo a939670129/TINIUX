@@ -70,7 +70,7 @@ typedef enum
 #define OSSchedule()                        FitSchedule()
 #define OSScheduleFromISR( b )              FitScheduleFromISR( b )
 
-#define OSInISR()							FitInISR()
+#define OSIsInsideISR()						FitIsInsideISR()
 
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,

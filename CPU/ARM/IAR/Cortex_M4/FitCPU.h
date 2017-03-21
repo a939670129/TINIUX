@@ -63,6 +63,7 @@ extern "C" {
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
+extern uOS32_t FitGetIPSR( void );
 
 #define FitDISABLE_INTERRUPTS()								\
 {															\
@@ -76,6 +77,9 @@ extern void FitIntUnlock( void );
 
 #define FitIntMaskFromISR()						__get_BASEPRI(); FitDISABLE_INTERRUPTS()
 #define FitIntUnmaskFromISR( x )				__set_BASEPRI( x )
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitIsInsideISR()						( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );

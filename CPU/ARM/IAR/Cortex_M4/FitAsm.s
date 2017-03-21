@@ -47,7 +47,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	PUBLIC FitSVCHandler
 	PUBLIC FitStartFirstTask
 	PUBLIC FitEnableVFP
-
+	PUBLIC FitGetIPSR
 
 /*-----------------------------------------------------------*/
 
@@ -121,7 +121,7 @@ FitSVCHandler:
 
 /*-----------------------------------------------------------*/
 
-FitStartFirstTask
+FitStartFirstTask:
 	/* Use the NVIC offset register to locate the stack. */
 	ldr r0, =0xE000ED08
 	ldr r0, [r0]
@@ -147,7 +147,11 @@ FitEnableVFP:
 	str r1, [r0]
 	bx	r14
 
-
+FitGetIPSR:
+	/* Get IPSR value. */
+	mrs r0, IPSR
+	bx	r14
+	
 
 	END
 

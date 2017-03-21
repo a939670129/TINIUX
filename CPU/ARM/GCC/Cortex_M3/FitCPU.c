@@ -310,6 +310,7 @@ __attribute__(( naked )) void FitIntUnmask( uOS32_t ulNewMask )
 	/* Just to avoid compiler warnings. */
 	( void ) ulNewMask;
 }
+
 #ifdef __cplusplus
 }
 #endif

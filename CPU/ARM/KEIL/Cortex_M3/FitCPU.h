@@ -59,7 +59,7 @@ extern uOS32_t FitGetIPSR( void );
 #define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitInISR()					( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()					( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 #define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
 

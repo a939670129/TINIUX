@@ -50,10 +50,11 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	PUBLIC FitStartFirstTask
 	PUBLIC FitIntMask
 	PUBLIC FitIntUnmask
-
+	PUBLIC FitGetIPSR
+	
 /*-----------------------------------------------------------*/
 
-vSetMSP
+vSetMSP:
 	msr msp, r0
 	bx lr
 
@@ -105,7 +106,7 @@ FitSVCHandler;
 
 /*-----------------------------------------------------------*/
 
-FitStartFirstTask
+FitStartFirstTask:
 	/* The MSP stack is not reset as, unlike on M3/4 parts, there is no vector
 	table offset register that can be used to locate the initial stack value.
 	Not all M0 parts have the application vector table at address 0. */
@@ -125,15 +126,20 @@ FitStartFirstTask
 
 /*-----------------------------------------------------------*/
 
-FitIntMask
+FitIntMask:
 	mrs r0, PRIMASK
 	cpsid i
 	bx lr
 
 /*-----------------------------------------------------------*/
 
-FitIntUnmask
+FitIntUnmask:
 	msr PRIMASK, r0
 	bx lr
+
+FitGetIPSR:
+	/* Get IPSR value. */
+	mrs r0, IPSR
+	bx	lr
 
 	END

@@ -56,6 +56,26 @@ extern void FitIntUnlock( void );
 extern uOS32_t FitIntMask( void ) __attribute__((naked));
 extern void FitIntUnmask( uOS32_t ulMask ) __attribute__((naked));
 
+#ifndef FIT_FORCE_INLINE
+	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
+#endif
+
+FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
+{
+	uOS32_t ulCurrentInterrupt;
+
+	/* Obtain the number of the currently executing interrupt. */
+	__asm volatile
+	( 
+	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+	);
+	
+	return ulCurrentInterrupt;
+}
+
+/* Determine whether we are in thread mode or handler mode. */
+#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+
 #define FitIntMaskFromISR()			FitIntMask()
 #define FitIntUnmaskFromISR(x)		FitIntUnmask( x )
 
