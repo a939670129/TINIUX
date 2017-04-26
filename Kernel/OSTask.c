@@ -138,7 +138,7 @@ static void OSTaskListsInitialise( void )
 	gptOSOFTimerTaskList = &gtOSTimer2TaskList;
 }
 
-static void OSTaskSeletcToSchedule()
+static void OSTaskSelectToSchedule()
 {
 	uOSBase_t uxTopPriority;
 
@@ -638,7 +638,7 @@ void OSTaskSwitchContext( void )
 		gbNeedSchedule = OS_FALSE;
 
 		OSTaskCheckStackStatus();
-		OSTaskSeletcToSchedule();
+		OSTaskSelectToSchedule();
 	}
 }
 
