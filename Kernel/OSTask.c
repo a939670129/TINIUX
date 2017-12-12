@@ -46,10 +46,10 @@ AIOS_DATA tOSTCB_t * volatile gptCurrentTCB = OS_NULL;
 
 /* Lists for ready and blocked tasks. --------------------*/
 AIOS_DATA static tOSList_t gtOSReadyTaskList[ OSHIGHEAST_PRIORITY ];
-AIOS_DATA static tOSList_t gtOSTimer1TaskList;
-AIOS_DATA static tOSList_t gtOSTimer2TaskList;
-AIOS_DATA static tOSList_t * volatile gptOSTimerTaskList;
-AIOS_DATA static tOSList_t * volatile gptOSOFTimerTaskList;
+AIOS_DATA static tOSList_t gtOSWaiting1TaskList;
+AIOS_DATA static tOSList_t gtOSWaiting2TaskList;
+AIOS_DATA static tOSList_t * volatile gptOSWaitingTaskList;
+AIOS_DATA static tOSList_t * volatile gptOSLongTimeWaitingTaskList;
 AIOS_DATA static tOSList_t gtOSPendingReadyTaskList;
 //suspend task list
 AIOS_DATA static tOSList_t gtOSSuspendedTaskList;
@@ -128,14 +128,14 @@ static void OSTaskListsInitialise( void )
 		OSListInitialise( &( gtOSReadyTaskList[ uxPriority ] ) );
 	}
 
-	OSListInitialise( &gtOSTimer1TaskList );
-	OSListInitialise( &gtOSTimer2TaskList );
+	OSListInitialise( &gtOSWaiting1TaskList );
+	OSListInitialise( &gtOSWaiting2TaskList );
 	OSListInitialise( &gtOSPendingReadyTaskList );
 	OSListInitialise( &gtOSRecycleTaskList );
 	OSListInitialise( &gtOSSuspendedTaskList );
 
-	gptOSTimerTaskList = &gtOSTimer1TaskList;
-	gptOSOFTimerTaskList = &gtOSTimer2TaskList;
+	gptOSWaitingTaskList = &gtOSWaiting1TaskList;
+	gptOSLongTimeWaitingTaskList = &gtOSWaiting2TaskList;
 }
 
 static void OSTaskSelectToSchedule()
@@ -151,13 +151,13 @@ static void OSTaskUpdateUnblockTime( void )
 {
 	tOSTCB_t *ptTCB;
 
-	if( OSListIsEmpty( gptOSTimerTaskList ) != OS_FALSE )
+	if( OSListIsEmpty( gptOSWaitingTaskList ) != OS_FALSE )
 	{
 		guxNextTaskUnblockTime = OSPEND_FOREVER_VALUE;
 	}
 	else
 	{
-		( ptTCB ) = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSTimerTaskList );
+		( ptTCB ) = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSWaitingTaskList );
 		guxNextTaskUnblockTime = OSListItemGetValue( &( ( ptTCB )->tTimerListItem ) );
 	}
 }
@@ -166,9 +166,9 @@ static void OSTaskListOfTimerSwitch()
 {
 	tOSList_t *ptTempList;
 
-	ptTempList = gptOSTimerTaskList;
-	gptOSTimerTaskList = gptOSOFTimerTaskList;
-	gptOSOFTimerTaskList = ptTempList;
+	ptTempList = gptOSWaitingTaskList;
+	gptOSWaitingTaskList = gptOSLongTimeWaitingTaskList;
+	gptOSLongTimeWaitingTaskList = ptTempList;
 	gxNumOfOverflows++;
 	OSTaskUpdateUnblockTime();
 }
@@ -455,11 +455,11 @@ static void OSTaskListOfTimerAdd(tOSTCB_t* ptTCB, const uOSTick_t uxTicksToWait,
 
 		if( uxTimeToWake < uxTickCount )
 		{
-			OSListInsertItem( gptOSOFTimerTaskList, &( ptTCB->tTimerListItem ) );
+			OSListInsertItem( gptOSLongTimeWaitingTaskList, &( ptTCB->tTimerListItem ) );
 		}
 		else
 		{
-			OSListInsertItem( gptOSTimerTaskList, &( ptTCB->tTimerListItem ) );
+			OSListInsertItem( gptOSWaitingTaskList, &( ptTCB->tTimerListItem ) );
 
 			if( uxTimeToWake < guxNextTaskUnblockTime )
 			{
@@ -529,14 +529,14 @@ uOSBool_t OSTaskIncrementTick( void )
 		{
 			for( ;; )
 			{
-				if( OSListIsEmpty( gptOSTimerTaskList ) != OS_FALSE )
+				if( OSListIsEmpty( gptOSWaitingTaskList ) != OS_FALSE )
 				{
 					guxNextTaskUnblockTime = OSPEND_FOREVER_VALUE;
 					break;
 				}
 				else
 				{
-					ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSTimerTaskList );
+					ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSWaitingTaskList );
 					uxItemValue = OSListItemGetValue( &( ptTCB->tTimerListItem ) );
 
 					if( uxTickCount < uxItemValue )
@@ -807,7 +807,7 @@ eOSTaskState_t OSTaskGetState( OSTaskHandle_t TaskHandle )
 		}
 		OSIntUnlock();
 
-		if( ( ptStateList == gptOSTimerTaskList ) || ( ptStateList == gptOSOFTimerTaskList ) )
+		if( ( ptStateList == gptOSWaitingTaskList ) || ( ptStateList == gptOSLongTimeWaitingTaskList ) )
 		{
 			eReturn = eTaskStateBlocked;
 		}
