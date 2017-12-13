@@ -35,53 +35,59 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#ifndef __OS_MEMORY_H_
-#define __OS_MEMORY_H_
+#ifndef __TINIUX_PRESET_H_
+#define __TINIUX_PRESET_H_
 
-#include "OSType.h"
+/*-----------------------------------------------------------
+ * Application specific definitions.
+ *
+ * These definitions should be adjusted for your particular hardware and
+ * application requirements.
+ *
+ *----------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
+/* Ensure stdint is only used by the compiler, and not the assembler. */
+#if defined(__ICCARM__) || defined(__CC_ARM) || defined(__GNUC__)
+ #include <stdint.h>
+ extern uint32_t SystemCoreClock;
 #endif
 
-#define OSMEM_SIZE			OSTOTAL_HEAP_SIZE
 
-/** OSMEM_SIZE would have to be aligned, but using 64000 here instead of
- * 65535 leaves some room for alignment. */
-#if OSMEM_SIZE > 64000L
-typedef uOS32_t uOSMemSize_t;
+#define SETOS_CPU_CLOCK_HZ						( SystemCoreClock ) //定义CPU运行主频 (如72000000)
+#define SETOS_TICK_RATE_HZ						( 1000 )             //定义TINIUX系统中ticks频率
+
+#define SETOS_MINIMAL_STACK_SIZE				( 64 ) //定义任务占用的最小Stack空间
+#define SETOS_TOTAL_HEAP_SIZE					( 1024*2 ) //定义系统占用的Heap空间
+#define SETOS_MAX_NAME_LEN						( 10 )  //定义任务、信号量、消息队列等变量中的名称长度
+#define SETOS_MAX_PRIORITIES					( 8 )   //定义任务最大优先级
+#define SETOS_USE_SEMAPHORE                     ( 1 )   //是否启用系统信号量功能 0关闭 1启用
+#define SETOS_USE_MUTEX							( 1 )   //是否启用互斥信号量功能 0关闭 1启用
+#define SETOS_USE_MSGQ                          ( 1 )   //是否启用系统消息队列功能 0关闭 1启用
+#define SETOS_MSGQ_MAX_MSGNUM                   ( 10 )  //定义消息队列中消息的门限值
+#define SETOS_PEND_FOREVER_VALUE                ( 0xFFFFFFFF ) //定义信号量及消息队列中永久等待的数值
+
+/* Cortex-M specific definitions. */
+#ifdef __NVIC_PRIO_BITS
+	/* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
+	#define SETHW_PRIO_BITS       		__NVIC_PRIO_BITS
 #else
-typedef uOS16_t uOSMemSize_t;
-#endif /* OSMEM_SIZE > 64000 */
-
-void  OSMemInit(void);
-void *OSMemTrim(void *pMem, uOSMemSize_t size);
-void *OSMemMalloc(uOSMemSize_t size);
-void *OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size);
-void  OSMemFree(void *pMem);
-
-/** Calculate memory size for an aligned buffer - returns the next highest
- * multiple of OSMEM_ALIGNMENT (e.g. OSMEM_ALIGN_SIZE(3) and
- * OSMEM_ALIGN_SIZE(4) will both yield 4 for OSMEM_ALIGNMENT == 4). */
-#ifndef OSMEM_ALIGN_SIZE
-#define OSMEM_ALIGN_SIZE(size) (((size) + OSMEM_ALIGNMENT - 1) & ~(OSMEM_ALIGNMENT-1))
+	#define SETHW_PRIO_BITS       		4        /* 15 priority levels */
 #endif
 
-/** Calculate safe memory size for an aligned buffer when using an unaligned
- * type as storage. This includes a safety-margin on (OSMEM_ALIGNMENT - 1) at the
- * start (e.g. if buffer is UINT16[] and actual data will be UINT32*) */
-#ifndef OSMEM_ALIGN_BUFFER
-#define OSMEM_ALIGN_BUFFER(size) (((size) + OSMEM_ALIGNMENT - 1))
-#endif
+/* The highest interrupt priority that can be used by any interrupt service
+routine that makes calls to interrupt safe TINIUX API functions.  DO NOT CALL
+INTERRUPT SAFE TINIUX API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+/* !!!! OSMAX_HWINT_PRI must not be set to zero !!!!*/
+#define OSMAX_HWINT_PRI				( 0x5 << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x50, or priority 5. */
+/* This is the value being used as per the ST library which permits 16
+priority values, 0 to 15.  This must correspond to the OSMIN_HWINT_PRI 
+setting.  Here 15 corresponds to the lowest NVIC value of 255. */
+#define OSMIN_HWINT_PRI				( 0xF << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
 
-/** Align a memory pointer to the alignment defined by OSMEM_ALIGNMENT
- * so that ADDR % OSMEM_ALIGNMENT == 0 */
-#ifndef OSMEM_ALIGN_ADDR
-#define OSMEM_ALIGN_ADDR(addr) ((void *)(((uOS32_t)(addr) + OSMEM_ALIGNMENT - 1) & ~(uOS32_t)(OSMEM_ALIGNMENT-1)))
-#endif
+#define FitSVCHandler           SVC_Handler
+#define FitPendSVHandler        PendSV_Handler
+#define FitOSTickISR            SysTick_Handler
 
-#ifdef __cplusplus
-}
-#endif
+#endif /* __TINIUX_PRESET_H_ */
 
-#endif //__OS_MEMORY_H_

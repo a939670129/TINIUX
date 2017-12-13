@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,50 +29,50 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
 #include <string.h>
-#include "AIOS.h"
+#include "TINIUX.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-AIOS_DATA tOSTCB_t * volatile gptCurrentTCB = OS_NULL;
+TINIUX_DATA tOSTCB_t * volatile gptCurrentTCB = OS_NULL;
 
 /* Lists for ready and blocked tasks. --------------------*/
-AIOS_DATA static tOSList_t gtOSReadyTaskList[ OSHIGHEAST_PRIORITY ];
-AIOS_DATA static tOSList_t gtOSWaiting1TaskList;
-AIOS_DATA static tOSList_t gtOSWaiting2TaskList;
-AIOS_DATA static tOSList_t * volatile gptOSWaitingTaskList;
-AIOS_DATA static tOSList_t * volatile gptOSLongTimeWaitingTaskList;
-AIOS_DATA static tOSList_t gtOSPendingReadyTaskList;
+TINIUX_DATA static tOSList_t gtOSReadyTaskList[ OSHIGHEAST_PRIORITY ];
+TINIUX_DATA static tOSList_t gtOSWaiting1TaskList;
+TINIUX_DATA static tOSList_t gtOSWaiting2TaskList;
+TINIUX_DATA static tOSList_t * volatile gptOSWaitingTaskList;
+TINIUX_DATA static tOSList_t * volatile gptOSLongTimeWaitingTaskList;
+TINIUX_DATA static tOSList_t gtOSPendingReadyTaskList;
 //suspend task list
-AIOS_DATA static tOSList_t gtOSSuspendedTaskList;
+TINIUX_DATA static tOSList_t gtOSSuspendedTaskList;
 
 // delete task
-AIOS_DATA static tOSList_t gtOSRecycleTaskList;
-AIOS_DATA static volatile 	uOSBase_t guxTasksDeleted 			= ( uOSBase_t ) 0U;
+TINIUX_DATA static tOSList_t gtOSRecycleTaskList;
+TINIUX_DATA static volatile 	uOSBase_t guxTasksDeleted 			= ( uOSBase_t ) 0U;
 
 /* Other file private variables. --------------------------------*/
-AIOS_DATA static volatile 	uOSBase_t guxCurrentNumberOfTasks 	= ( uOSBase_t ) 0U;
-AIOS_DATA static volatile 	uOSTick_t guxTickCount 				= ( uOSTick_t ) 0U;
-AIOS_DATA static volatile 	uOSBase_t guxTopReadyPriority 		= OSLOWEAST_PRIORITY;
-AIOS_DATA static volatile 	uOSBool_t gbSchedulerRunning 		= OS_FALSE;
-AIOS_DATA static volatile 	uOSBase_t guxPendedTicks 			= ( uOSBase_t ) 0U;
-AIOS_DATA static volatile 	uOSBool_t gbNeedSchedule 			= OS_FALSE;
-AIOS_DATA static volatile 	sOSBase_t gxNumOfOverflows 			= ( sOSBase_t ) 0U;
-AIOS_DATA static volatile 	uOSTick_t guxNextTaskUnblockTime	= ( uOSTick_t ) 0U;
-AIOS_DATA static volatile 	uOSBase_t guxSchedulerLocked		= ( uOSBase_t ) OS_FALSE;
+TINIUX_DATA static volatile 	uOSBase_t guxCurrentNumberOfTasks 	= ( uOSBase_t ) 0U;
+TINIUX_DATA static volatile 	uOSTick_t guxTickCount 				= ( uOSTick_t ) 0U;
+TINIUX_DATA static volatile 	uOSBase_t guxTopReadyPriority 		= OSLOWEAST_PRIORITY;
+TINIUX_DATA static volatile 	uOSBool_t gbSchedulerRunning 		= OS_FALSE;
+TINIUX_DATA static volatile 	uOSBase_t guxPendedTicks 			= ( uOSBase_t ) 0U;
+TINIUX_DATA static volatile 	uOSBool_t gbNeedSchedule 			= OS_FALSE;
+TINIUX_DATA static volatile 	sOSBase_t gxNumOfOverflows 			= ( sOSBase_t ) 0U;
+TINIUX_DATA static volatile 	uOSTick_t guxNextTaskUnblockTime	= ( uOSTick_t ) 0U;
+TINIUX_DATA static volatile 	uOSBase_t guxSchedulerLocked		= ( uOSBase_t ) OS_FALSE;
 
 #if ( OS_TASK_SIGNAL_ON == 1 )
-AIOS_DATA static uOSBase_t const SIG_STATE_NOTWAITING		= ( ( uOSBase_t ) 0 );
-AIOS_DATA static uOSBase_t const SIG_STATE_WAITING			= ( ( uOSBase_t ) 1 );
-AIOS_DATA static uOSBase_t const SIG_STATE_RECEIVED			= ( ( uOSBase_t ) 2 );
+TINIUX_DATA static uOSBase_t const SIG_STATE_NOTWAITING		= ( ( uOSBase_t ) 0 );
+TINIUX_DATA static uOSBase_t const SIG_STATE_WAITING			= ( ( uOSBase_t ) 1 );
+TINIUX_DATA static uOSBase_t const SIG_STATE_RECEIVED			= ( ( uOSBase_t ) 2 );
 #endif
 
 static void OSTaskRecordReadyPriority(uOSBase_t uxPriority)

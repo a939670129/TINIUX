@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -67,22 +67,22 @@ typedef struct tTimerCmdMsg
 	tOSTimer_t *			ptTimer;			/*<< The timer to which the command will be applied. */
 } tOSTimerCmdMsg_t;
 
-OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) AIOS_FUNCTION;
-uOSBool_t 		OSTimerDelete(OSTimerHandle_t TimerHandle) AIOS_FUNCTION;
-uOSBool_t 		OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) AIOS_FUNCTION;
-sOSBase_t 		OSTimerSetID(OSTimerHandle_t const TimerHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 		OSTimerGetID(OSTimerHandle_t const TimerHandle) AIOS_FUNCTION;
+OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+sOSBase_t 		OSTimerSetID(OSTimerHandle_t const TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 		OSTimerGetID(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 
-uOSBool_t		OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) AIOS_FUNCTION;
-uOSBool_t		OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) AIOS_FUNCTION;
-uOSBool_t 		OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) AIOS_FUNCTION;
-uOSBool_t 		OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) AIOS_FUNCTION;
-uOSBool_t 		OSTimerStart(OSTimerHandle_t const TimerHandle) AIOS_FUNCTION;
-uOSBool_t 		OSTimerStartFromISR(OSTimerHandle_t const TimerHandle) AIOS_FUNCTION;
-uOSBool_t 		OSTimerStop(OSTimerHandle_t const TimerHandle) AIOS_FUNCTION;
-uOSBool_t 		OSTimerStopFromISR(OSTimerHandle_t const TimerHandle) AIOS_FUNCTION;
+uOSBool_t		OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
+uOSBool_t		OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerStart(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerStartFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerStop(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerStopFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSTimerCreateMoniteTask( void ) AIOS_FUNCTION;
+uOSBool_t 		OSTimerCreateMoniteTask( void ) TINIUX_FUNCTION;
 
 #endif //(OS_TIMER_ON==1)
 #endif//(OS_MSGQ_ON==1)

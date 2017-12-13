@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -67,13 +67,13 @@ typedef struct tOSMutex
 
 typedef	tOSMutex_t*		OSMutexHandle_t;
 
-OSMutexHandle_t OSMutexCreate( void ) AIOS_FUNCTION;
-void 			OSMutexDelete( OSMutexHandle_t MutexHandle ) AIOS_FUNCTION;
-sOSBase_t 		OSMutexSetID(OSMutexHandle_t const MutexHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 		OSMutexGetID(OSMutexHandle_t const MutexHandle) AIOS_FUNCTION;
+OSMutexHandle_t OSMutexCreate( void ) TINIUX_FUNCTION;
+void 			OSMutexDelete( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
+sOSBase_t 		OSMutexSetID(OSMutexHandle_t const MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 		OSMutexGetID(OSMutexHandle_t const MutexHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMutexUnlock( OSMutexHandle_t MutexHandle) AIOS_FUNCTION;
+uOSBool_t 		OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t 		OSMutexUnlock( OSMutexHandle_t MutexHandle) TINIUX_FUNCTION;
 
 #endif //(OS_MUTEX_ON==1)
 

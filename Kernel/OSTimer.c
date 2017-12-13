@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,13 +29,13 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#include "AIOS.h"
+#include "TINIUX.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,29 +44,29 @@ extern "C" {
 #if (OS_MSGQ_ON==1)
 #if (OS_TIMER_ON==1)
 
-AIOS_DATA static sOSBase_t const TMCMD_MSGQ_NO_DELAY			= ( ( sOSBase_t ) 0 );
-AIOS_DATA static sOSBase_t const TMCMD_MSGQ_LENGTH				= ( ( sOSBase_t ) 8 );
+TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_NO_DELAY			= ( ( sOSBase_t ) 0 );
+TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_LENGTH				= ( ( sOSBase_t ) 8 );
 
-AIOS_DATA static sOSBase_t const TMCMD_START					= ( ( sOSBase_t ) 1 );
-AIOS_DATA static sOSBase_t const TMCMD_RESET					= ( ( sOSBase_t ) 2 );
-AIOS_DATA static sOSBase_t const TMCMD_STOP						= ( ( sOSBase_t ) 3 );
-AIOS_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD			= ( ( sOSBase_t ) 4 );
-AIOS_DATA static sOSBase_t const TMCMD_DELETE					= ( ( sOSBase_t ) 5 );
+TINIUX_DATA static sOSBase_t const TMCMD_START					= ( ( sOSBase_t ) 1 );
+TINIUX_DATA static sOSBase_t const TMCMD_RESET					= ( ( sOSBase_t ) 2 );
+TINIUX_DATA static sOSBase_t const TMCMD_STOP						= ( ( sOSBase_t ) 3 );
+TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD			= ( ( sOSBase_t ) 4 );
+TINIUX_DATA static sOSBase_t const TMCMD_DELETE					= ( ( sOSBase_t ) 5 );
 
-AIOS_DATA static sOSBase_t const TMCMD_FIRST_FROM_ISR_TYPE		= ( ( sOSBase_t ) 6 );
-AIOS_DATA static sOSBase_t const TMCMD_START_FROM_ISR			= ( ( sOSBase_t ) 6 );
-AIOS_DATA static sOSBase_t const TMCMD_RESET_FROM_ISR			= ( ( sOSBase_t ) 7 );
-AIOS_DATA static sOSBase_t const TMCMD_STOP_FROM_ISR			= ( ( sOSBase_t ) 8 );
-AIOS_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD_FROM_ISR	= ( ( sOSBase_t ) 9 );
-AIOS_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR			= ( ( sOSBase_t ) 10 );
+TINIUX_DATA static sOSBase_t const TMCMD_FIRST_FROM_ISR_TYPE		= ( ( sOSBase_t ) 6 );
+TINIUX_DATA static sOSBase_t const TMCMD_START_FROM_ISR			= ( ( sOSBase_t ) 6 );
+TINIUX_DATA static sOSBase_t const TMCMD_RESET_FROM_ISR			= ( ( sOSBase_t ) 7 );
+TINIUX_DATA static sOSBase_t const TMCMD_STOP_FROM_ISR			= ( ( sOSBase_t ) 8 );
+TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD_FROM_ISR	= ( ( sOSBase_t ) 9 );
+TINIUX_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR			= ( ( sOSBase_t ) 10 );
 
-AIOS_DATA static tOSList_t 			gtOSTimer1List;
-AIOS_DATA static tOSList_t 			gtOSTimer2List;
-AIOS_DATA static tOSList_t *		gptOSTimerList 				= OS_NULL;
-AIOS_DATA static tOSList_t *		gptOSOFTimerList 			= OS_NULL;
+TINIUX_DATA static tOSList_t 			gtOSTimer1List;
+TINIUX_DATA static tOSList_t 			gtOSTimer2List;
+TINIUX_DATA static tOSList_t *		gptOSTimerList 				= OS_NULL;
+TINIUX_DATA static tOSList_t *		gptOSOFTimerList 			= OS_NULL;
 
-AIOS_DATA static OSMsgQHandle_t 	gOSTimerCmdMsgQHandle 		= OS_NULL;
-AIOS_DATA static OSTaskHandle_t		gOSTimerMoniteTaskHandle 	= OS_NULL;
+TINIUX_DATA static OSMsgQHandle_t 	gOSTimerCmdMsgQHandle 		= OS_NULL;
+TINIUX_DATA static OSTaskHandle_t		gOSTimerMoniteTaskHandle 	= OS_NULL;
 
 static void OSTimerInitListsAndCmdMsgQ( void )
 {
@@ -217,7 +217,7 @@ static void OSTimerSwitchLists( void )
 static uOSTick_t OSTimerGetCurTime( uOSBool_t * const pbTimerListsSwitched )
 {
 	uOSTick_t uxTimeNow;
-	AIOS_DATA static uOSTick_t uxLastTime = ( uOSTick_t ) 0U; 
+	TINIUX_DATA static uOSTick_t uxLastTime = ( uOSTick_t ) 0U; 
 
 	uxTimeNow = OSGetTicksCount();
 

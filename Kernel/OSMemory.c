@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,13 +29,13 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-#include "AIOS.h"
+#include "TINIUX.h"
 #include "OSMemory.h"
 #include <string.h>
 

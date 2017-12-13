@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -108,54 +108,54 @@ typedef struct OSTaskControlBlock
 
 typedef	tOSTCB_t*		OSTaskHandle_t;
 
-uOS16_t 	OSStart( void ) AIOS_FUNCTION;
-uOSTick_t 	OSGetTicksCount( void ) AIOS_FUNCTION;
-uOSTick_t	OSGetTicksCountFromISR( void ) AIOS_FUNCTION;
-void 		OSScheduleLock( void ) AIOS_FUNCTION;
-uOSBool_t 	OSScheduleUnlock( void ) AIOS_FUNCTION;
-sOSBase_t 	OSGetScheduleState( void ) AIOS_FUNCTION;
-OSTaskHandle_t OSGetCurrentTaskHandle( void ) AIOS_FUNCTION;
+uOS16_t 	OSStart( void ) TINIUX_FUNCTION;
+uOSTick_t 	OSGetTicksCount( void ) TINIUX_FUNCTION;
+uOSTick_t	OSGetTicksCountFromISR( void ) TINIUX_FUNCTION;
+void 		OSScheduleLock( void ) TINIUX_FUNCTION;
+uOSBool_t 	OSScheduleUnlock( void ) TINIUX_FUNCTION;
+sOSBase_t 	OSGetScheduleState( void ) TINIUX_FUNCTION;
+OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
 
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             void*				pvParameter,
                             const uOS16_t 		usStackDepth,
                             uOSBase_t			uxPriority,
-                            sOS8_t*				pcTaskName) AIOS_FUNCTION;
-void 		OSTaskDelete( OSTaskHandle_t xTaskToDelete ) AIOS_FUNCTION;
-void 		OSTaskSleep( const uOSTick_t uxTicksToSleep ) AIOS_FUNCTION;
-sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) AIOS_FUNCTION;
+                            sOS8_t*				pcTaskName) TINIUX_FUNCTION;
+void 		OSTaskDelete( OSTaskHandle_t xTaskToDelete ) TINIUX_FUNCTION;
+void 		OSTaskSleep( const uOSTick_t uxTicksToSleep ) TINIUX_FUNCTION;
+sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) TINIUX_FUNCTION;
 
-void 		OSTaskListOfEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskListOfEventRemove( const tOSList_t * const ptEventList ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskIncrementTick( void ) AIOS_FUNCTION;
-void 		OSTaskNeedSchedule( void ) AIOS_FUNCTION;
-void 		OSTaskSwitchContext( void ) AIOS_FUNCTION;
-void 		OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) AIOS_FUNCTION;
+void 		OSTaskListOfEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskListOfEventRemove( const tOSList_t * const ptEventList ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskIncrementTick( void ) TINIUX_FUNCTION;
+void 		OSTaskNeedSchedule( void ) TINIUX_FUNCTION;
+void 		OSTaskSwitchContext( void ) TINIUX_FUNCTION;
+void 		OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) TINIUX_FUNCTION;
 
-void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
-void 		OSTaskResume( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
-sOSBase_t 	OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) AIOS_FUNCTION;
+void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
+void 		OSTaskResume( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
+sOSBase_t 	OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 
 #if ( OS_MUTEX_ON == 1 )
-void *		OSTaskGetMutexHolder( void ) AIOS_FUNCTION;
-void 		OSTaskPriorityInherit( OSTaskHandle_t const pxMutexHolder ) AIOS_FUNCTION;
-uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const pxMutexHolder ) AIOS_FUNCTION;
+void *		OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;
+void 		OSTaskPriorityInherit( OSTaskHandle_t const pxMutexHolder ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const pxMutexHolder ) TINIUX_FUNCTION;
 #endif /* OS_MUTEX_ON */
 
 #if (OS_TIMER_ON==1)
-void 		OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) AIOS_FUNCTION;
+void 		OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* (OS_TIMER_ON==1) */
 
 #if ( OS_TASK_SIGNAL_ON == 1 )
-uOSBool_t	OSTaskSignalWait( uOSTick_t const uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalEmit( OSTaskHandle_t const TaskHandle ) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle ) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) AIOS_FUNCTION;
-uOSBool_t	OSTaskSignalClear( OSTaskHandle_t const TaskHandle ) AIOS_FUNCTION;
+uOSBool_t	OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalEmit( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
+uOSBool_t	OSTaskSignalClear( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 #endif
 
 #ifdef __cplusplus

@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -68,34 +68,34 @@ typedef struct tOSMsgQ
 
 typedef tOSMsgQ_t* 	OSMsgQHandle_t;
 
-OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) AIOS_FUNCTION;
-void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) TINIUX_FUNCTION;
+void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 
-sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) AIOS_FUNCTION;
-sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) AIOS_FUNCTION;
+sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
+uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t 		OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) AIOS_FUNCTION;
-uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) AIOS_FUNCTION;
+uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) TINIUX_FUNCTION;
+uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) TINIUX_FUNCTION;
 
-uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
-uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) AIOS_FUNCTION;
+uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 
-sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) AIOS_FUNCTION;
+sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) TINIUX_FUNCTION;
 
 #if (OS_TIMER_ON==1)
-void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) AIOS_FUNCTION;
+void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* (OS_TIMER_ON==1) */
 
 #ifdef __cplusplus

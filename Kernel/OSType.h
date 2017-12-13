@@ -1,7 +1,7 @@
 /**********************************************************************************************************
-AIOS(Advanced Input Output System) - An Embedded Real Time Operating System (RTOS)
+TINIUX - An Embedded Real Time Operating System (RTOS)
 Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
-http://www.aios.io -- Documentation, latest information, license and contact details.
+http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate AIOS may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate AIOS of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate AIOS in any manner by you shall be in compliance with such 
+ SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -39,14 +39,14 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __OS_TYPE_H_
 
 #include "FitType.h"
-#include "AIOSPreset.h"
+#include "TINIUXPreset.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define AIOS_DATA
-#define AIOS_FUNCTION
+#define TINIUX_DATA
+#define TINIUX_FUNCTION
 
 typedef void (*OSTaskFunction_t)( void * );
 typedef void (*OSTimerFunction_t)(void * );
@@ -92,7 +92,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 #define 	OSMEM_ALIGNMENT_MASK	( OSMEM_ALIGNMENT-1 )
 
-// Priority range of the AIOS 0~31
+// Priority range of the TINIUX 0~31
 #ifndef SETOS_MAX_PRIORITIES
   #define	OSTASK_MAX_PRIORITY		( 8 )
 #else
@@ -106,7 +106,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define 	OSLOWEAST_PRIORITY		( 0 )
 #define		OSHIGHEAST_PRIORITY		( OSTASK_MAX_PRIORITY )
 
-// The total heap size of the AIOS
+// The total heap size of the TINIUX
 #ifndef SETOS_TOTAL_HEAP_SIZE
   #define	OSTOTAL_HEAP_SIZE		( 512 )
 #else
