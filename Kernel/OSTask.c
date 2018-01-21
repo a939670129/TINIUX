@@ -158,7 +158,7 @@ static void OSTaskUpdateUnblockTime( void )
 	else
 	{
 		( ptTCB ) = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSWaitingTaskList );
-		guxNextTaskUnblockTime = OSListItemGetValue( &( ( ptTCB )->tTimerListItem ) );
+		guxNextTaskUnblockTime = OSListItemGetValue( &( ( ptTCB )->tWaitingListItem ) );
 	}
 }
 
@@ -176,7 +176,7 @@ static void OSTaskListOfTimerSwitch()
 static void OSTaskListOfReadyAdd(tOSTCB_t* ptTCB)
 {
 	OSTaskRecordReadyPriority( ( ptTCB )->uxPriority );
-	OSListInsertItemToEnd( &( gtOSReadyTaskList[ ( ptTCB )->uxPriority ] ), &( ( ptTCB )->tTimerListItem ) );
+	OSListInsertItemToEnd( &( gtOSReadyTaskList[ ( ptTCB )->uxPriority ] ), &( ( ptTCB )->tWaitingListItem ) );
 }
 
 static OSTaskHandle_t OSAllocateTCBAndStack( const uOS16_t usStackDepth, uOSStack_t *puxStackBuffer )
@@ -241,10 +241,10 @@ static void OSTaskInitTCB( tOSTCB_t * const ptTCB, const char * const pcName, uO
 	}
 	#endif // OS_TASK_SIGNAL_ON == 1
 		
-	OSListItemInitialise( &( ptTCB->tTimerListItem ) );
+	OSListItemInitialise( &( ptTCB->tWaitingListItem ) );
 	OSListItemInitialise( &( ptTCB->tEventListItem ) );
 
-	OSListItemSetHolder( &( ptTCB->tTimerListItem ), ptTCB );
+	OSListItemSetHolder( &( ptTCB->tWaitingListItem ), ptTCB );
 
 	/* Event lists are always in priority order. */
 	OSListItemSetValue( &( ptTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) uxPriority );
@@ -337,7 +337,7 @@ void OSTaskDelete( OSTaskHandle_t xTaskToDelete )
 	{
 		ptTCB = OSTaskGetTCBFromHandle( xTaskToDelete );
 
-		if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+		if( OSListRemoveItem( &( ptTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 		{
 			OSTaskResetReadyPriority( ptTCB->uxPriority );
 		}
@@ -349,7 +349,7 @@ void OSTaskDelete( OSTaskHandle_t xTaskToDelete )
 
 		if( ptTCB == gptCurrentTCB )
 		{
-			OSListInsertItemToEnd( &gtOSRecycleTaskList, &( ptTCB->tTimerListItem ) );
+			OSListInsertItemToEnd( &gtOSRecycleTaskList, &( ptTCB->tWaitingListItem ) );
 			++guxTasksDeleted;
 		}
 		else
@@ -408,7 +408,7 @@ static void OSTaskListOfRecycleRemove( void )
 		OSIntLock();
 		{
 			ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( ( &gtOSRecycleTaskList ) );
-			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+			( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 			--guxCurrentNumberOfTasks;
 			--guxTasksDeleted;
 		}
@@ -429,27 +429,27 @@ static void OSTaskListOfTimerAdd(tOSTCB_t* ptTCB, const uOSTick_t uxTicksToWait,
 		ptTCB = gptCurrentTCB;
 	}
 	
-	if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+	if( OSListRemoveItem( &( ptTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 	{
 		OSTaskResetReadyPriority(ptTCB->uxPriority);
 	}
 
 	if( (uxTicksToWait==OSPEND_FOREVER_VALUE) && (bNeedSuspend==OS_TRUE) )
 	{
-		OSListInsertItemToEnd( &gtOSSuspendedTaskList, &( ptTCB->tTimerListItem ) );
+		OSListInsertItemToEnd( &gtOSSuspendedTaskList, &( ptTCB->tWaitingListItem ) );
 	}
 	else
 	{
 		uxTimeToWake = uxTickCount + uxTicksToWait;
-		OSListItemSetValue( &( ptTCB->tTimerListItem ), uxTimeToWake );
+		OSListItemSetValue( &( ptTCB->tWaitingListItem ), uxTimeToWake );
 
 		if( uxTimeToWake < uxTickCount )
 		{
-			OSListInsertItem( gptOSLongTimeWaitingTaskList, &( ptTCB->tTimerListItem ) );
+			OSListInsertItem( gptOSLongTimeWaitingTaskList, &( ptTCB->tWaitingListItem ) );
 		}
 		else
 		{
-			OSListInsertItem( gptOSWaitingTaskList, &( ptTCB->tTimerListItem ) );
+			OSListInsertItem( gptOSWaitingTaskList, &( ptTCB->tWaitingListItem ) );
 
 			if( uxTimeToWake < guxNextTaskUnblockTime )
 			{
@@ -477,7 +477,7 @@ uOSBool_t OSTaskListOfEventRemove( const tOSList_t * const ptEventList )
 
 	if( guxSchedulerLocked == ( uOSBase_t ) OS_FALSE )
 	{
-		( void ) OSListRemoveItem( &( pxUnblockedTCB->tTimerListItem ) );
+		( void ) OSListRemoveItem( &( pxUnblockedTCB->tWaitingListItem ) );
 		OSTaskListOfReadyAdd( pxUnblockedTCB );
 	}
 	else
@@ -527,7 +527,7 @@ uOSBool_t OSTaskIncrementTick( void )
 				else
 				{
 					ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( gptOSWaitingTaskList );
-					uxItemValue = OSListItemGetValue( &( ptTCB->tTimerListItem ) );
+					uxItemValue = OSListItemGetValue( &( ptTCB->tWaitingListItem ) );
 
 					if( uxTickCount < uxItemValue )
 					{
@@ -535,7 +535,7 @@ uOSBool_t OSTaskIncrementTick( void )
 						break;
 					}
 
-					( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+					( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 
 					if( OSListItemGetList( &( ptTCB->tEventListItem ) ) != OS_NULL )
 					{
@@ -655,7 +655,7 @@ uOSBool_t OSScheduleUnlock( void )
 				{
 					ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( ( &gtOSPendingReadyTaskList ) );
 					( void ) OSListRemoveItem( &( ptTCB->tEventListItem ) );
-					( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+					( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 					OSTaskListOfReadyAdd( ptTCB );
 
 					if( ptTCB->uxPriority >= gptCurrentTCB->uxPriority )
@@ -795,7 +795,7 @@ eOSTaskState_t OSTaskGetState( OSTaskHandle_t TaskHandle )
 	{
 		OSIntLock();
 		{
-			ptStateList = ( tOSList_t * ) OSListItemGetList( &( ptTCB->tTimerListItem ) );
+			ptStateList = ( tOSList_t * ) OSListItemGetList( &( ptTCB->tWaitingListItem ) );
 		}
 		OSIntUnlock();
 
@@ -921,9 +921,9 @@ void OSTaskSetPriority( OSTaskHandle_t TaskHandle, uOSBase_t uxNewPriority )
 
 			OSListItemSetValue( &( ptTCB->tEventListItem ), ( ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) uxNewPriority ) );
 
-			if( OSListContainListItem( &( gtOSReadyTaskList[ uxPriorityUsedOnEntry ] ), &( ptTCB->tTimerListItem ) ) != OS_FALSE )
+			if( OSListContainListItem( &( gtOSReadyTaskList[ uxPriorityUsedOnEntry ] ), &( ptTCB->tWaitingListItem ) ) != OS_FALSE )
 			{
-				if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+				if( OSListRemoveItem( &( ptTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 				{
 					OSTaskResetReadyPriority( uxPriorityUsedOnEntry );
 				}
@@ -961,9 +961,9 @@ uOSBool_t OSTaskPriorityInherit( OSTaskHandle_t const MutexHolderTaskHandle )
 		{
 			OSListItemSetValue( &( ptMutexHolderTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) gptCurrentTCB->uxPriority );
 
-			if( OSListContainListItem( &( gtOSReadyTaskList[ ptMutexHolderTCB->uxPriority ] ), &( ptMutexHolderTCB->tTimerListItem ) ) != OS_FALSE )
+			if( OSListContainListItem( &( gtOSReadyTaskList[ ptMutexHolderTCB->uxPriority ] ), &( ptMutexHolderTCB->tWaitingListItem ) ) != OS_FALSE )
 			{
-				if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+				if( OSListRemoveItem( &( ptMutexHolderTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 				{
 					OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
 				}
@@ -1012,7 +1012,7 @@ uOSBool_t OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle )
 		{
 			if( ptMutexHolderTCB->uxMutexHoldNum == ( uOSBase_t ) 0 )
 			{
-				if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+				if( OSListRemoveItem( &( ptMutexHolderTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 				{
 					OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
 				}
@@ -1076,9 +1076,9 @@ void OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskH
 				from its current state list if it is in the Ready state as
 				the task's priority is going to change and there is one
 				Ready list per priority. */
-				if( OSListContainListItem( &( gtOSReadyTaskList[ uxPriorityUsedOnEntry ] ), &( ptMutexHolderTCB->tTimerListItem ) ) != OS_FALSE )
+				if( OSListContainListItem( &( gtOSReadyTaskList[ uxPriorityUsedOnEntry ] ), &( ptMutexHolderTCB->tWaitingListItem ) ) != OS_FALSE )
 				{
-					if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+					if( OSListRemoveItem( &( ptMutexHolderTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 					{
 						OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
 					}
@@ -1105,7 +1105,7 @@ void OSTaskSuspend( OSTaskHandle_t TaskHandle )
 		ptTCB = OSTaskGetTCBFromHandle( TaskHandle );
 
 		/* Remove task from the ready/timer list */
-		if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+		if( OSListRemoveItem( &( ptTCB->tWaitingListItem ) ) == ( uOSBase_t ) 0 )
 		{
 			OSTaskResetReadyPriority( ptTCB->uxPriority );
 		}
@@ -1117,7 +1117,7 @@ void OSTaskSuspend( OSTaskHandle_t TaskHandle )
 		}
 
 		/* place the task in the suspended list. */
-		OSListInsertItemToEnd( &gtOSSuspendedTaskList, &( ptTCB->tTimerListItem ) );
+		OSListInsertItemToEnd( &gtOSSuspendedTaskList, &( ptTCB->tWaitingListItem ) );
 
 		#if( OS_TASK_SIGNAL_ON == 1 )
 		{
@@ -1168,7 +1168,7 @@ static uOSBool_t OSTaskIsSuspended( const OSTaskHandle_t TaskHandle )
 	const tOSTCB_t * const ptTCB = ( tOSTCB_t * ) TaskHandle;
 
 	/* Is the task being resumed actually in the suspended list? */
-	if( OSListContainListItem( &gtOSSuspendedTaskList, &( ptTCB->tTimerListItem ) ) != OS_FALSE )
+	if( OSListContainListItem( &gtOSSuspendedTaskList, &( ptTCB->tWaitingListItem ) ) != OS_FALSE )
 	{
 		/* Has the task already been resumed from within an ISR? */
 		if( OSListContainListItem( &gtOSPendingReadyTaskList, &( ptTCB->tEventListItem ) ) == OS_FALSE )
@@ -1196,7 +1196,7 @@ void OSTaskResume( OSTaskHandle_t TaskHandle )
 			if( OSTaskIsSuspended( ptTCB ) != OS_FALSE )
 			{
 				/* In a critical section we can access the ready lists. */
-				( void ) OSListRemoveItem(  &( ptTCB->tTimerListItem ) );
+				( void ) OSListRemoveItem(  &( ptTCB->tWaitingListItem ) );
 				OSTaskListOfReadyAdd( ptTCB );
 
 				if( ptTCB->uxPriority >= gptCurrentTCB->uxPriority )
@@ -1230,7 +1230,7 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 					bNeedSchedule = OS_TRUE;
 				}
 
-				( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+				( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 				OSTaskListOfReadyAdd( ptTCB );
 			}
 			else
@@ -1375,7 +1375,7 @@ uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
-			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+			( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 			OSTaskListOfReadyAdd( ptTCB );
 
 			OSTaskUpdateUnblockTime();
@@ -1424,7 +1424,7 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 			/* The task should not have been on an event list. */
 			if( guxSchedulerLocked == ( uOSBase_t ) OS_FALSE )
 			{
-				( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+				( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 				OSTaskListOfReadyAdd( ptTCB );
 			}
 			else
@@ -1536,7 +1536,7 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 		signal then unblock it now. */
 		if( ucOldState == SIG_STATE_WAITING )
 		{
-			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+			( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 			OSTaskListOfReadyAdd( ptTCB );
 
 			OSTaskUpdateUnblockTime();
@@ -1584,7 +1584,7 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 		{
 			if( guxSchedulerLocked == ( uOSBase_t ) OS_FALSE )
 			{
-				( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+				( void ) OSListRemoveItem( &( ptTCB->tWaitingListItem ) );
 				OSTaskListOfReadyAdd( ptTCB );
 			}
 			else

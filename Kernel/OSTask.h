@@ -81,7 +81,7 @@ typedef struct OSTaskControlBlock
 {
 	volatile uOSStack_t*	puxTopOfStack;		/*< Points to the location of the last item placed on the task stack. THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
-	tOSListItem_t			tTimerListItem;		/*< Used to reference a task from an Ready/Timer/Suspended/Recycle list. */
+	tOSListItem_t			tWaitingListItem;		/*< Used to reference a task from an Ready/Timer/Suspended/Recycle list. */
 	tOSListItem_t			tEventListItem;		/*< Used to reference a task from an PendingReady/Event list. */
 	uOSBase_t				uxPriority;			/*< The priority of the task.  0 is the lowest priority. */
 	uOSStack_t*				puxStartStack;		/*< Points to the start of the stack. */
