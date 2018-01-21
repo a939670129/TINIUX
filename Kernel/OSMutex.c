@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -170,7 +170,7 @@ OSMutexHandle_t OSMutexCreate( void )
 	if( ptNewMutex != OS_NULL )
 	{
 		/* Information required for priority inheritance. */
-		ptNewMutex->pxMutexHolder = OS_NULL;
+		ptNewMutex->MutexHolderHandle = OS_NULL;
 
 		ptNewMutex->uxCurNum = ( uOSBase_t ) 1U;
 		ptNewMutex->uxMaxNum = ( uOSBase_t ) 1U;
@@ -223,14 +223,37 @@ sOSBase_t OSMutexGetID(OSMutexHandle_t const MutexHandle)
 	return xID;	
 }
 
+static uOSBase_t OSMutexGetDisinheritPriorityAfterTimeout( OSMutexHandle_t const MutexHandle )
+{
+	uOSBase_t uxHighestPriorityOfWaitingTasks;
+
+	/* If a task waiting for a mutex causes the mutex holder to inherit a
+	priority, but the waiting task times out, then the holder should
+	disinherit the priority - but only down to the highest priority of any
+	other tasks that are waiting for the same mutex.  For this purpose,
+	return the priority of the highest priority task that is waiting for the
+	mutex. */
+	if( OSListGetLength( &( MutexHandle->tMutexPTaskList ) ) > 0 )
+	{
+		uxHighestPriorityOfWaitingTasks = OSHIGHEAST_PRIORITY - OSlistGetHeadItemValue( &( MutexHandle->tMutexPTaskList ) );
+	}
+	else
+	{
+		uxHighestPriorityOfWaitingTasks = OSLOWEAST_PRIORITY;
+	}
+
+	return uxHighestPriorityOfWaitingTasks;
+}
+	
 uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 {
 	uOSBool_t bEntryTimeSet = OS_FALSE;
 	tOSTimeOut_t tTimeOut;
 	tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
+	uOSBool_t bInheritanceOccurred = OS_FALSE;
 
 	//the mutex have been locked
-	if( ptMutex->pxMutexHolder == ( void * ) OSGetCurrentTaskHandle() ) 
+	if( ptMutex->MutexHolderHandle == ( void * ) OSGetCurrentTaskHandle() ) 
 	{
 		( ptMutex->uxMutexLocked )++;
 		return OS_TRUE;
@@ -245,7 +268,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 			if( uxCurNum > ( uOSBase_t ) 0 )
 			{
 				ptMutex->uxCurNum = uxCurNum - 1;
-				ptMutex->pxMutexHolder = ( sOS8_t * ) OSTaskGetMutexHolder();
+				ptMutex->MutexHolderHandle = ( sOS8_t * ) OSTaskGetMutexHolder();
 				//mutex locked successfully
 				( ptMutex->uxMutexLocked )++;
 								
@@ -288,7 +311,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 			{
 				OSIntLock();
 				{
-					OSTaskPriorityInherit( ( void * ) ptMutex->pxMutexHolder );
+					bInheritanceOccurred = OSTaskPriorityInherit( ( void * ) ptMutex->MutexHolderHandle );
 				}
 				OSIntUnlock();
 				
@@ -313,6 +336,23 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
 			
 			if( OSMutexIsEmpty( ptMutex ) != OS_FALSE )
 			{
+				if( bInheritanceOccurred != OS_FALSE )
+				{
+					OSIntLock();
+					{
+						uOSBase_t uxHighestWaitingPriority;
+
+						/* This task blocking on the mutex caused another
+						task to inherit this task's priority.  Now this task
+						has timed out the priority should be disinherited
+						again, but only as low as the next highest priority
+						task that is waiting for the same mutex. */
+						uxHighestWaitingPriority = OSMutexGetDisinheritPriorityAfterTimeout( ptMutex );
+						OSTaskPriorityDisinheritAfterTimeout( ( void * ) ptMutex->MutexHolderHandle, uxHighestWaitingPriority );
+					}
+					OSIntUnlock();
+				}
+					
 				//the Mutex is empty
 				return OS_FALSE;
 			}
@@ -329,7 +369,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 	uOSTick_t uxTicksToWait = MUTEX_UNLOCK_BLOCK_TIME;
 
 	/* The calling task is not the holder, the mutex cannot be unlocked here. */
-	if( ptMutex->pxMutexHolder != ( void * ) OSGetCurrentTaskHandle() )
+	if( ptMutex->MutexHolderHandle != ( void * ) OSGetCurrentTaskHandle() )
 	{
 		return OS_FALSE;
 	}
@@ -352,8 +392,8 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 			if( uxCurNum < ptMutex->uxMaxNum )
 			{
 				/* The mutex is no longer being held. */
-				bNeedSchedule = OSTaskPriorityDisinherit( ( void * ) ptMutex->pxMutexHolder );
-				ptMutex->pxMutexHolder = OS_NULL;
+				bNeedSchedule = OSTaskPriorityDisinherit( ( void * ) ptMutex->MutexHolderHandle );
+				ptMutex->MutexHolderHandle = OS_NULL;
 				ptMutex->uxCurNum = uxCurNum + 1;
 
 				if( OSListIsEmpty( &( ptMutex->tMutexPTaskList ) ) == OS_FALSE )

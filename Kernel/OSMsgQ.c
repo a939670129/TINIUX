@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -193,7 +193,7 @@ static uOSBool_t OSMsgQCopyDataIn( tOSMsgQ_t * const ptMsgQ, const void *pvItemT
 		}
 	}
 
-	ptMsgQ->uxCurNum = uxCurNum + 1;
+	ptMsgQ->uxCurNum = uxCurNum + ( uOSBase_t ) 1U;
 
 	return bReturn;
 }
@@ -494,11 +494,10 @@ uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const
 	return bReturn;
 }
 
-static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait, const uOSBool_t bJustPeeking )
+uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait)
 {
 	uOSBool_t bEntryTimeSet = OS_FALSE;
 	tOSTimeOut_t tTimeOut;
-	sOS8_t *pcOriginalReadPosition;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
 	for( ;; )
@@ -509,32 +508,15 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 			
 			if( uxCurNum > ( uOSBase_t ) 0 )
 			{
-				pcOriginalReadPosition = ptMsgQ->pcReadFrom;
-
 				OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
 
-				if( bJustPeeking == OS_FALSE )
-				{
-					ptMsgQ->uxCurNum = uxCurNum - 1;
+				ptMsgQ->uxCurNum = uxCurNum - ( uOSBase_t ) 1U;
 
-					if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
-					{
-						if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
-						{
-							OSSchedule();
-						}
-					}
-				}
-				else
+				if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
 				{
-					ptMsgQ->pcReadFrom = pcOriginalReadPosition;
-
-					if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
 					{
-						if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
-						{
-							OSSchedule();
-						}
+						OSSchedule();
 					}
 				}
 
@@ -597,11 +579,89 @@ static uOSBool_t OSMsgQReceiveGeneral( OSMsgQHandle_t MsgQHandle, void * const p
 
 uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait)
 {
-	return OSMsgQReceiveGeneral( ( OSMsgQHandle_t )MsgQHandle, pvBuffer, uxTicksToWait, OS_TRUE );
-}
-uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait)
-{
-	return OSMsgQReceiveGeneral( ( OSMsgQHandle_t )MsgQHandle, pvBuffer, uxTicksToWait, OS_FALSE );
+	uOSBool_t bEntryTimeSet = OS_FALSE;
+	tOSTimeOut_t tTimeOut;
+	sOS8_t *pcOriginalReadPosition;
+	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+
+	for( ;; )
+	{
+		OSIntLock();
+		{
+			const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
+			
+			if( uxCurNum > ( uOSBase_t ) 0 )
+			{
+				pcOriginalReadPosition = ptMsgQ->pcReadFrom;
+
+				OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
+
+				/* The data is not being removed, so reset the read pointer. */
+				ptMsgQ->pcReadFrom = pcOriginalReadPosition;
+
+				if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+				{
+					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
+					{
+						OSSchedule();
+					}
+				}
+
+				OSIntUnlock();
+				return OS_TRUE;
+			}
+			else
+			{
+				if( uxTicksToWait == ( uOSTick_t ) 0 )
+				{
+					OSIntUnlock();
+					//the MsgQ is empty
+					return OS_FALSE;
+				}
+				else if( bEntryTimeSet == OS_FALSE )
+				{
+					OSTaskSetTimeOutState( &tTimeOut );
+					bEntryTimeSet = OS_TRUE;
+				}
+			}
+		}
+		OSIntUnlock();
+
+		/* Interrupts and other tasks can send to or receive from the MsgQ
+		To avoid confusion, we lock the scheduler and the MsgQ. */
+		OSScheduleLock();
+		OSMsgQLock( ptMsgQ );
+
+		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+		{
+			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+			{
+				OSTaskListOfEventAdd( &( ptMsgQ->tMsgQPTaskList ), uxTicksToWait );
+				OSMsgQUnlock( ptMsgQ );
+				if( OSScheduleUnlock() == OS_FALSE )
+				{
+					OSSchedule();
+				}
+			}
+			else
+			{
+				/* Try again. */
+				OSMsgQUnlock( ptMsgQ );
+				( void ) OSScheduleUnlock();
+			}
+		}
+		else
+		{
+			OSMsgQUnlock( ptMsgQ );
+			( void ) OSScheduleUnlock();
+			
+			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+			{
+				//the MsgQ is empty
+				return OS_FALSE;
+			}
+		}
+	}
 }
 
 uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer )
@@ -620,7 +680,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 			const sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
 			
 			OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
-			ptMsgQ->uxCurNum = uxCurNum - 1;
+			ptMsgQ->uxCurNum = uxCurNum - (uOSBase_t) 1U;
 
 			if( xMsgQPLock == OSMSGQ_UNLOCKED )
 			{

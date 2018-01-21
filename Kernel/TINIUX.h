@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -53,7 +53,7 @@ extern "C" {
 #include "OSMutex.h"
 #include "OSTimer.h"
 
-#define MAJOR_VERSION        1
+#define MAJOR_VERSION        2
 #define MINOR_VERSION        0
 #define REVISION_NUM         0
 

@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -39,7 +39,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __OS_TYPE_H_
 
 #include "FitType.h"
-#include "TINIUXPreset.h"
+#include "OSPreset.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,8 +96,8 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #ifndef SETOS_MAX_PRIORITIES
   #define	OSTASK_MAX_PRIORITY		( 8 )
 #else
-  #if (SETOS_MAX_PRIORITIES>31)
-    #define 	OSTASK_MAX_PRIORITY	( 31 )
+  #if (SETOS_MAX_PRIORITIES>32)
+    #define 	OSTASK_MAX_PRIORITY	( 32 )
   #else
     #define	OSTASK_MAX_PRIORITY		( SETOS_MAX_PRIORITIES )
   #endif

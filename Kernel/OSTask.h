@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -140,8 +140,9 @@ sOSBase_t 	OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 
 #if ( OS_MUTEX_ON == 1 )
 void *		OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;
-void 		OSTaskPriorityInherit( OSTaskHandle_t const pxMutexHolder ) TINIUX_FUNCTION;
-uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const pxMutexHolder ) TINIUX_FUNCTION;
+uOSBool_t	OSTaskPriorityInherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
+void 		OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskHandle, uOSBase_t uxHighestPriorityWaitingTask ) TINIUX_FUNCTION;
 #endif /* OS_MUTEX_ON */
 
 #if (OS_TIMER_ON==1)

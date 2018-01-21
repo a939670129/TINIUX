@@ -1,8 +1,8 @@
 /**********************************************************************************************************
 TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2017 SenseRate.Com All rights reserved.
+Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
-http://www.SenseRate.com -- Commercial support, development, porting, licensing and training services.
+http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -401,30 +401,20 @@ sOSBase_t OSTaskGetID(OSTaskHandle_t const TaskHandle)
 
 static void OSTaskListOfRecycleRemove( void )
 {
-	uOSBool_t bListIsEmpty;
-
+	tOSTCB_t *ptTCB;
+		
 	while( guxTasksDeleted > ( uOSBase_t ) 0U )
 	{
-		( void ) OSScheduleLock();
+		OSIntLock();
 		{
-			bListIsEmpty = OSListIsEmpty( &gtOSRecycleTaskList );
+			ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( ( &gtOSRecycleTaskList ) );
+			( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
+			--guxCurrentNumberOfTasks;
+			--guxTasksDeleted;
 		}
-		( void ) OSScheduleUnlock();
+		OSIntUnlock();
 
-		if( bListIsEmpty == OS_FALSE )
-		{
-			tOSTCB_t *ptTCB;
-			OSIntLock();
-			{
-				ptTCB = ( tOSTCB_t * ) OSListGetHeadItemHolder( ( &gtOSRecycleTaskList ) );
-				( void ) OSListRemoveItem( &( ptTCB->tTimerListItem ) );
-				--guxCurrentNumberOfTasks;
-				--guxTasksDeleted;
-			}
-			OSIntUnlock();
-
-			OSMemFree(ptTCB->puxStartStack);
-		}
+		OSMemFree(ptTCB->puxStartStack);
 	}
 
 }
@@ -517,7 +507,7 @@ uOSBool_t OSTaskIncrementTick( void )
 
 	if( guxSchedulerLocked == ( uOSBase_t ) OS_FALSE )
 	{
-		const uOSTick_t uxTickCount = guxTickCount + 1;
+		const uOSTick_t uxTickCount = guxTickCount + (uOSTick_t)1;
 		guxTickCount = uxTickCount;
 
 		if( uxTickCount == ( uOSTick_t ) 0U )
@@ -759,6 +749,7 @@ uOSBool_t OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * con
 	OSIntLock();
 	{
 		const uOSTick_t uxTickCount = guxTickCount;
+		const uOSTick_t uxElapsedTime = uxTickCount - ptTimeOut->uxTimeOnEntering;
 
 		if( *puxTicksToWait == OSPEND_FOREVER_VALUE )
 		{
@@ -768,14 +759,15 @@ uOSBool_t OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * con
 		{
 			bReturn = OS_TRUE;
 		}
-		else if( ( uxTickCount - ptTimeOut->uxTimeOnEntering ) < *puxTicksToWait )
+		else if( uxElapsedTime < *puxTicksToWait )
 		{
-			*puxTicksToWait -= ( uxTickCount -  ptTimeOut->uxTimeOnEntering );
+			*puxTicksToWait -= uxElapsedTime;
 			OSTaskSetTimeOutState( ptTimeOut );
 			bReturn = OS_FALSE;
 		}
 		else
 		{
+			*puxTicksToWait = 0;
 			bReturn = OS_TRUE;
 		}
 	}
@@ -958,57 +950,77 @@ void *OSTaskGetMutexHolder( void )
 	return gptCurrentTCB;
 }
 
-void OSTaskPriorityInherit( OSTaskHandle_t const pxMutexHolder )
+uOSBool_t OSTaskPriorityInherit( OSTaskHandle_t const MutexHolderTaskHandle )
 {
-	tOSTCB_t * const ptTCB = ( tOSTCB_t * ) pxMutexHolder;
-
-	if( pxMutexHolder != OS_NULL )
+	tOSTCB_t * const ptMutexHolderTCB = ( tOSTCB_t * ) MutexHolderTaskHandle;
+	uOSBool_t bReturn = OS_FALSE;
+	
+	if( MutexHolderTaskHandle != OS_NULL )
 	{
-		if( ptTCB->uxPriority < gptCurrentTCB->uxPriority )
+		if( ptMutexHolderTCB->uxPriority < gptCurrentTCB->uxPriority )
 		{
-			OSListItemSetValue( &( ptTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) gptCurrentTCB->uxPriority );
+			OSListItemSetValue( &( ptMutexHolderTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) gptCurrentTCB->uxPriority );
 
-			if( OSListContainListItem( &( gtOSReadyTaskList[ ptTCB->uxPriority ] ), &( ptTCB->tTimerListItem ) ) != OS_FALSE )
+			if( OSListContainListItem( &( gtOSReadyTaskList[ ptMutexHolderTCB->uxPriority ] ), &( ptMutexHolderTCB->tTimerListItem ) ) != OS_FALSE )
 			{
-				if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+				if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
 				{
-					OSTaskResetReadyPriority( ptTCB->uxPriority );
+					OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
 				}
 
-				ptTCB->uxPriority = gptCurrentTCB->uxPriority;
-				OSTaskListOfReadyAdd( ptTCB );
+				ptMutexHolderTCB->uxPriority = gptCurrentTCB->uxPriority;
+				OSTaskListOfReadyAdd( ptMutexHolderTCB );
 			}
 			else
 			{
 				/* Just inherit the priority. */
-				ptTCB->uxPriority = gptCurrentTCB->uxPriority;
+				ptMutexHolderTCB->uxPriority = gptCurrentTCB->uxPriority;
+			}
+			
+			/* Inheritance occurred. */
+			bReturn = OS_TRUE;
+			
+		}
+		else
+		{
+			if( ptMutexHolderTCB->uxBasePriority < gptCurrentTCB->uxPriority )
+			{
+				/* The base priority of the mutex holder is lower than the
+				priority of the task attempting to take the mutex, but the
+				current priority of the mutex holder is not lower than the
+				priority of the task attempting to take the mutex.
+				Therefore the mutex holder must have already inherited a
+				priority, but inheritance would have occurred if that had
+				not been the case. */
+				bReturn = OS_TRUE;
 			}
 		}
 	}
+	return bReturn;
 }
 
-uOSBool_t OSTaskPriorityDisinherit( OSTaskHandle_t const pxMutexHolder )
+uOSBool_t OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle )
 {
-	tOSTCB_t * const ptTCB = ( tOSTCB_t * ) pxMutexHolder;
+	tOSTCB_t * const ptMutexHolderTCB = ( tOSTCB_t * ) MutexHolderTaskHandle;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 
-	if( pxMutexHolder != OS_NULL )
+	if( MutexHolderTaskHandle != OS_NULL )
 	{
-		( ptTCB->uxMutexHoldNum )--;
+		( ptMutexHolderTCB->uxMutexHoldNum )--;
 
-		if( ptTCB->uxPriority != ptTCB->uxBasePriority )
+		if( ptMutexHolderTCB->uxPriority != ptMutexHolderTCB->uxBasePriority )
 		{
-			if( ptTCB->uxMutexHoldNum == ( uOSBase_t ) 0 )
+			if( ptMutexHolderTCB->uxMutexHoldNum == ( uOSBase_t ) 0 )
 			{
-				if( OSListRemoveItem( &( ptTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+				if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
 				{
-					OSTaskResetReadyPriority( ptTCB->uxPriority );
+					OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
 				}
 
-				ptTCB->uxPriority = ptTCB->uxBasePriority;
+				ptMutexHolderTCB->uxPriority = ptMutexHolderTCB->uxBasePriority;
 
-				OSListItemSetValue( &( ptTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) ptTCB->uxPriority );
-				OSTaskListOfReadyAdd( ptTCB );
+				OSListItemSetValue( &( ptMutexHolderTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) ptMutexHolderTCB->uxPriority );
+				OSTaskListOfReadyAdd( ptMutexHolderTCB );
 
 				bNeedSchedule = OS_TRUE;
 			}
@@ -1017,6 +1029,67 @@ uOSBool_t OSTaskPriorityDisinherit( OSTaskHandle_t const pxMutexHolder )
 
 	return bNeedSchedule;
 }
+
+void OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskHandle, uOSBase_t uxHighestPriorityWaitingTask )
+{
+	tOSTCB_t * const ptMutexHolderTCB = ( tOSTCB_t * ) MutexHolderTaskHandle;
+	uOSBase_t uxPriorityUsedOnEntry, uxPriorityToUse;
+	const uOSBase_t uxOnlyOneMutexHeld = ( uOSBase_t ) 1;
+
+	if( MutexHolderTaskHandle != NULL )
+	{
+		/* Determine the priority to which the priority of the task that
+		holds the mutex should be set.  This will be the greater of the
+		holding task's base priority and the priority of the highest
+		priority task that is waiting to obtain the mutex. */
+		if( ptMutexHolderTCB->uxBasePriority < uxHighestPriorityWaitingTask )
+		{
+			uxPriorityToUse = uxHighestPriorityWaitingTask;
+		}
+		else
+		{
+			uxPriorityToUse = ptMutexHolderTCB->uxBasePriority;
+		}
+
+		/* Does the priority need to change? */
+		if( ptMutexHolderTCB->uxPriority != uxPriorityToUse )
+		{
+			/* Only disinherit if no other mutexes are held.  This is a
+			simplification in the priority inheritance implementation.  If
+			the task that holds the mutex is also holding other mutexes then
+			the other mutexes may have caused the priority inheritance. */
+			if( ptMutexHolderTCB->uxMutexHoldNum == uxOnlyOneMutexHeld )
+			{
+				uxPriorityUsedOnEntry = ptMutexHolderTCB->uxPriority;
+				ptMutexHolderTCB->uxPriority = uxPriorityToUse;
+
+				/* Only reset the event list item value if the value is not
+				being used for anything else. */
+				if( OSListItemGetValue( &( ptMutexHolderTCB->tEventListItem ) ) == 0UL )
+				{
+					OSListItemSetValue( &( ptMutexHolderTCB->tEventListItem ), ( uOSTick_t ) OSHIGHEAST_PRIORITY - ( uOSTick_t ) uxPriorityToUse ); 
+				}
+
+				/* If the running task is not the task that holds the mutex
+				then the task that holds the mutex could be in either the
+				Ready, Blocked or Suspended states.  Only remove the task
+				from its current state list if it is in the Ready state as
+				the task's priority is going to change and there is one
+				Ready list per priority. */
+				if( OSListContainListItem( &( gtOSReadyTaskList[ uxPriorityUsedOnEntry ] ), &( ptMutexHolderTCB->tTimerListItem ) ) != OS_FALSE )
+				{
+					if( OSListRemoveItem( &( ptMutexHolderTCB->tTimerListItem ) ) == ( uOSBase_t ) 0 )
+					{
+						OSTaskResetReadyPriority( ptMutexHolderTCB->uxPriority );
+					}
+
+					OSTaskListOfReadyAdd( ptMutexHolderTCB );
+				}
+			}
+		}
+	}
+}
+
 #endif /* ( OS_MUTEX_ON == 1 ) */
 
 
@@ -1045,6 +1118,17 @@ void OSTaskSuspend( OSTaskHandle_t TaskHandle )
 
 		/* place the task in the suspended list. */
 		OSListInsertItemToEnd( &gtOSSuspendedTaskList, &( ptTCB->tTimerListItem ) );
+
+		#if( OS_TASK_SIGNAL_ON == 1 )
+		{
+			if( ptTCB->uxSigState == SIG_STATE_WAITING )
+			{
+				/* The task was blocked to wait for a signal, but is
+				now suspended, so no signal was received. */
+				ptTCB->uxSigState = SIG_STATE_NOTWAITING;
+			}
+		}
+		#endif
 	}
 	OSIntUnlock();
 
@@ -1254,7 +1338,7 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 
 		if( (uOS32_t)xTemp > 0UL )
 		{
-			gptCurrentTCB->xSigValue = xTemp - 1;
+			gptCurrentTCB->xSigValue = xTemp - (uOSBase_t)1;
 			
 			bReturn = OS_TRUE;
 		}
@@ -1405,7 +1489,7 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
 		blocked state (because a signal was already pending) or the
 		task unblocked because of a signal.  Otherwise the task
 		unblocked because of a timeout. */
-		if( gptCurrentTCB->uxSigState == SIG_STATE_WAITING )
+		if( gptCurrentTCB->uxSigState != SIG_STATE_RECEIVED )
 		{
 			/* A signal was not received. */
 			bReturn = OS_FALSE;
