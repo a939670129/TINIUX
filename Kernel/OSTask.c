@@ -65,7 +65,7 @@ TINIUX_DATA static volatile 	uOSBase_t guxTopReadyPriority 		= OSLOWEAST_PRIORIT
 TINIUX_DATA static volatile 	uOSBool_t gbSchedulerRunning 		= OS_FALSE;
 TINIUX_DATA static volatile 	uOSBase_t guxPendedTicks 			= ( uOSBase_t ) 0U;
 TINIUX_DATA static volatile 	uOSBool_t gbNeedSchedule 			= OS_FALSE;
-TINIUX_DATA static volatile 	sOSBase_t gxNumOfOverflows 			= ( sOSBase_t ) 0U;
+TINIUX_DATA static volatile 	sOSBase_t gxOverflowCount 			= ( sOSBase_t ) 0U;
 TINIUX_DATA static volatile 	uOSTick_t guxNextTaskUnblockTime	= ( uOSTick_t ) 0U;
 TINIUX_DATA static volatile 	uOSBase_t guxSchedulerLocked		= ( uOSBase_t ) OS_FALSE;
 
@@ -169,7 +169,7 @@ static void OSTaskListPendSwitch()
 	ptTempList = gptOSTaskListPend;
 	gptOSTaskListPend = gptOSTaskListLongPeriodPend;
 	gptOSTaskListLongPeriodPend = ptTempList;
-	gxNumOfOverflows++;
+	gxOverflowCount++;
 	OSTaskUpdateUnblockTime();
 }
 
@@ -738,7 +738,7 @@ void OSTaskSleep( const uOSTick_t uxTicksToSleep )
 
 void OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut )
 {
-	ptTimeOut->xOverflowCount = gxNumOfOverflows;
+	ptTimeOut->xOverflowCount = gxOverflowCount;
 	ptTimeOut->uxTimeOnEntering = guxTickCount;
 }
 
@@ -755,7 +755,7 @@ uOSBool_t OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * con
 		{
 			bReturn = OS_FALSE;
 		}
-		else if( ( gxNumOfOverflows != ptTimeOut->xOverflowCount ) && ( uxTickCount >= ptTimeOut->uxTimeOnEntering ) )
+		else if( ( gxOverflowCount != ptTimeOut->xOverflowCount ) && ( uxTickCount >= ptTimeOut->uxTimeOnEntering ) )
 		{
 			bReturn = OS_TRUE;
 		}
