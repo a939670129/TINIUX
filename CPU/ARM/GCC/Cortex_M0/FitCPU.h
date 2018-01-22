@@ -1,6 +1,6 @@
 ﻿/**********************************************************************************************************
 TINIUX - A tiny and efficient embedded real time operating system (RTOS)
-Copyright (C) 2012~2018 SenseRate.com All rights reserved.
+Copyright (C) SenseRate.com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
