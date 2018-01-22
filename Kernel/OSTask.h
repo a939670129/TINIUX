@@ -1,6 +1,6 @@
 /**********************************************************************************************************
-TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
+TINIUX - A tiny and efficient embedded real time operating system (RTOS)
+Copyright (C) 2012~2018 TINIUX.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
+ TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -46,11 +46,11 @@ extern "C" {
 
 typedef enum
 {
-	eTaskStateRuning	,
+	eTaskStateRuning = 0,
 	eTaskStateReady 	,
 	eTaskStateSuspended	,
 	eTaskStateBlocked	,
-	eTaskStateDeath		,
+	eTaskStateRecycle	,
 	eTaskStateNum
 }eOSTaskState_t;
 
@@ -81,7 +81,7 @@ typedef struct OSTaskControlBlock
 {
 	volatile uOSStack_t*	puxTopOfStack;		/*< Points to the location of the last item placed on the task stack. THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
-	tOSListItem_t			tStandbyListItem;		/*< Used to reference a task from an Ready/Timer/Suspended/Recycle list. */
+	tOSListItem_t			tTaskListItem;		/*< Used to reference a task from an Ready/Timer/Suspended/Recycle list. */
 	tOSListItem_t			tEventListItem;		/*< Used to reference a task from an PendingReady/Event list. */
 	uOSBase_t				uxPriority;			/*< The priority of the task.  0 is the lowest priority. */
 	uOSStack_t*				puxStartStack;		/*< Points to the start of the stack. */
@@ -126,8 +126,8 @@ void 		OSTaskSleep( const uOSTick_t uxTicksToSleep ) TINIUX_FUNCTION;
 sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) TINIUX_FUNCTION;
 
-void 		OSTaskListOfEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) TINIUX_FUNCTION;
-uOSBool_t 	OSTaskListOfEventRemove( const tOSList_t * const ptEventList ) TINIUX_FUNCTION;
+void 		OSTaskListEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) TINIUX_FUNCTION;
+uOSBool_t 	OSTaskListEventRemove( const tOSList_t * const ptEventList ) TINIUX_FUNCTION;
 uOSBool_t 	OSTaskIncrementTick( void ) TINIUX_FUNCTION;
 void 		OSTaskNeedSchedule( void ) TINIUX_FUNCTION;
 void 		OSTaskSwitchContext( void ) TINIUX_FUNCTION;

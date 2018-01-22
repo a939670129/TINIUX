@@ -1,6 +1,6 @@
 /**********************************************************************************************************
-TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
+TINIUX - A tiny and efficient embedded real time operating system (RTOS)
+Copyright (C) 2012~2018 TINIUX.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
+ TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -118,9 +118,9 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 		
 		while( xSemVLock > SEM_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tTaskListEventSemP ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemP ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -144,9 +144,9 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
 		
 		while( xSemPLock > SEM_STATUS_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tTaskListEventSemV ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemV ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -176,9 +176,9 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 
 		if( bNewQueue == OS_FALSE )
 		{
-			if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptSem->tTaskListEventSemV ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemV ) ) != OS_FALSE )
 				{
 					OSSchedule();
 				}
@@ -186,8 +186,8 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 		}
 		else
 		{
-			OSListInitialise( &( ptSem->tSemVTaskList ) );
-			OSListInitialise( &( ptSem->tSemPTaskList ) );
+			OSListInitialise( &( ptSem->tTaskListEventSemV ) );
+			OSListInitialise( &( ptSem->tTaskListEventSemP ) );
 		}
 	}
 	OSIntUnlock();
@@ -278,9 +278,9 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
 			{
 				ptSem->uxCurNum = uxCurNum - 1;
 
-				if( OSListIsEmpty( &( ptSem->tSemVTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tTaskListEventSemV ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tSemVTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemV ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -315,7 +315,7 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
 		{
 			if( OSSemIsEmpty( ptSem ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptSem->tSemPTaskList ), uxTicksToWait );
+				OSTaskListEventAdd( &( ptSem->tTaskListEventSemP ), uxTicksToWait );
 				OSSemStateUnlock( ptSem );
 				if( OSScheduleUnlock() == OS_FALSE )
 				{
@@ -361,9 +361,9 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 			{
 				ptSem->uxCurNum = uxCurNum + 1;
 
-				if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tTaskListEventSemP ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemP ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -398,7 +398,7 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 		{
 			if( OSSemIsFull( ptSem ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptSem->tSemVTaskList ), uxTicksToWait );
+				OSTaskListEventAdd( &( ptSem->tTaskListEventSemV ), uxTicksToWait );
 
 				OSSemStateUnlock( ptSem );
 
@@ -445,9 +445,9 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 
 			if( xSemVLock == SEM_STATUS_UNLOCKED )
 			{
-				if( OSListIsEmpty( &( ptSem->tSemPTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptSem->tTaskListEventSemP ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptSem->tSemPTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemP ) ) != OS_FALSE )
 					{
 						bNeedSchedule = OS_TRUE;
 					}

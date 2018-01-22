@@ -1,6 +1,6 @@
 /**********************************************************************************************************
-TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
+TINIUX - A tiny and efficient embedded real time operating system (RTOS)
+Copyright (C) 2012~2018 TINIUX.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
+ TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -115,9 +115,9 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 		
 		while( xMsgQVLock > OSMSGQ_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -141,9 +141,9 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 		
 		while( xMsgQPLock > OSMSGQ_LOCKED )
 		{
-			if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
 				{
 					OSTaskNeedSchedule();
 				}
@@ -224,9 +224,9 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 
 		if( bNewQueue == OS_FALSE )
 		{
-			if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
+			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
 			{
-				if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
+				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
 				{
 					OSSchedule();
 				}
@@ -234,8 +234,8 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 		}
 		else
 		{
-			OSListInitialise( &( ptMsgQ->tMsgQVTaskList ) );
-			OSListInitialise( &( ptMsgQ->tMsgQPTaskList ) );
+			OSListInitialise( &( ptMsgQ->tTaskListEventMsgQV ) );
+			OSListInitialise( &( ptMsgQ->tTaskListEventMsgQP ) );
 		}
 	}
 	OSIntUnlock();
@@ -324,9 +324,9 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
 			{
 				bNeedSchedule = OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
 
-				if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -365,7 +365,7 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
 		{
 			if( OSMsgQIsFull( ptMsgQ ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptMsgQ->tMsgQVTaskList ), uxTicksToWait );
+				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQV ), uxTicksToWait );
 
 				OSMsgQUnlock( ptMsgQ );
 
@@ -423,9 +423,9 @@ static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void
 
 			if( xMsgQVLock == OSMSGQ_UNLOCKED )
 			{
-				if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
 					{
 						if( pbNeedSchedule != OS_NULL )
 						{
@@ -512,9 +512,9 @@ uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTi
 
 				ptMsgQ->uxCurNum = uxCurNum - ( uOSBase_t ) 1U;
 
-				if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -549,7 +549,7 @@ uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTi
 		{
 			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptMsgQ->tMsgQPTaskList ), uxTicksToWait );
+				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
 				OSMsgQUnlock( ptMsgQ );
 				if( OSScheduleUnlock() == OS_FALSE )
 				{
@@ -599,9 +599,9 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
 				/* The data is not being removed, so reset the read pointer. */
 				ptMsgQ->pcReadFrom = pcOriginalReadPosition;
 
-				if( OSListIsEmpty( &( ptMsgQ->tMsgQPTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQPTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
 					{
 						OSSchedule();
 					}
@@ -636,7 +636,7 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
 		{
 			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
 			{
-				OSTaskListOfEventAdd( &( ptMsgQ->tMsgQPTaskList ), uxTicksToWait );
+				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
 				OSMsgQUnlock( ptMsgQ );
 				if( OSScheduleUnlock() == OS_FALSE )
 				{
@@ -684,9 +684,9 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 
 			if( xMsgQPLock == OSMSGQ_UNLOCKED )
 			{
-				if( OSListIsEmpty( &( ptMsgQ->tMsgQVTaskList ) ) == OS_FALSE )
+				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
 				{
-					if( OSTaskListOfEventRemove( &( ptMsgQ->tMsgQVTaskList ) ) != OS_FALSE )
+					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
 					{
 						bNeedSchedule = OS_TRUE;
 					}
@@ -753,7 +753,7 @@ void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t b
 	if( ptMsgQ->uxCurNum == ( uOSBase_t ) 0U )
 	{
 		/* There is nothing in the MsgQ, block for the specified period. */
-		OSTaskBlockAndDelay( &( ptMsgQ->tMsgQPTaskList ), uxTicksToWait, bNeedSuspend );
+		OSTaskBlockAndDelay( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait, bNeedSuspend );
 	}
 	OSMsgQUnlock( ptMsgQ );
 }

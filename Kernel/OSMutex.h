@@ -1,6 +1,6 @@
 /**********************************************************************************************************
-TINIUX - An Embedded Real Time Operating System (RTOS)
-Copyright (C) 2012~2018 SenseRate.Com All rights reserved.
+TINIUX - A tiny and efficient embedded real time operating system (RTOS)
+Copyright (C) 2012~2018 TINIUX.Com All rights reserved.
 http://www.tiniux.org -- Documentation, latest information, license and contact details.
 http://www.tiniux.com -- Commercial support, development, porting, licensing and training services.
 --------------------------------------------------------------------------------------------------------
@@ -29,9 +29,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------------------------------
  Notice of Export Control Law 
 --------------------------------------------------------------------------------------------------------
- SenseRate TINIUX may be subject to applicable export control laws and regulations, which might 
- include those applicable to SenseRate TINIUX of U.S. and the country in which you are located. 
- Import, export and usage of SenseRate TINIUX in any manner by you shall be in compliance with such 
+ TINIUX may be subject to applicable export control laws and regulations, which might 
+ include those applicable to TINIUX of U.S. and the country in which you are located. 
+ Import, export and usage of TINIUX in any manner by you shall be in compliance with such 
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
@@ -51,8 +51,8 @@ typedef struct tOSMutex
 	char						pcMutexName[ OSNAME_MAX_LEN ];
 	sOS8_t *					MutexHolderHandle;
 	
-	tOSList_t 					tMutexVTaskList;		// Mutex Unlock TaskList;
-	tOSList_t 					tMutexPTaskList;		// Mutex Lock TaskList;
+	tOSList_t 					tTaskListEventMutexV;		// Mutex Unlock TaskList;
+	tOSList_t 					tTaskListEventMutexP;		// Mutex Lock TaskList;
 
 	volatile uOSBase_t 			uxCurNum;	
 	uOSBase_t 					uxMaxNum;
