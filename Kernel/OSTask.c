@@ -667,7 +667,7 @@ uOSBool_t OSScheduleUnlock( void )
 				{
 					OSTaskUpdateUnblockTime();
 				}
-				if( guxPendedTicks > ( uOSBase_t ) 0U )
+
 				{
 					uOSBase_t uxPendedTicks = guxPendedTicks;
 					while( uxPendedTicks > ( uOSBase_t ) 0U )
