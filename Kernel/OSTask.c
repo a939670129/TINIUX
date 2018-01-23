@@ -1256,6 +1256,41 @@ void OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait
 }
 #endif /* (OS_TIMER_ON==1) */
 
+#if ( OS_LOWPOWER_ON == 1 )
+void OSTaskFixTickCount( const uOSTick_t uxTicksToFix )
+{
+	/* Correct the tick count value after a period during which the tick
+	was suppressed. */
+	if( ( guxTickCount + uxTicksToFix ) <= guxNextTaskUnblockTime )
+	{
+		guxTickCount += uxTicksToFix;
+	}
+}
+	
+static uOSTick_t OSTaskGetBlockTickCount( void )
+{
+	uOSTick_t xReturn;
+
+	if( gptCurrentTCB->uxPriority > OSLOWEAST_PRIORITY )
+	{
+		xReturn = 0;
+	}
+	else if( OSListGetLength( &( gtOSTaskListReady[ OSLOWEAST_PRIORITY ] ) ) > 1 )
+	{
+		/* There are other idle priority tasks in the ready state.  If
+		time slicing is used then the very next tick interrupt must be
+		processed. */
+		xReturn = 0;
+	}
+	else
+	{
+		xReturn = guxNextTaskUnblockTime - guxTickCount;
+	}
+
+	return xReturn;
+}
+#endif //OS_LOWPOWER_ON
+
 static void OSIdleTask( void *pvParameters)
 {
 	int i = 0;
@@ -1277,6 +1312,29 @@ static void OSIdleTask( void *pvParameters)
 		{
 			OSTaskListRecycleRemove();
 		}
+		
+		#if ( OS_LOWPOWER_ON == 1 )
+		{
+			uOSTick_t uxLowPowerTicks = OSTaskGetBlockTickCount();
+
+			if( uxLowPowerTicks >= OS_LOWPOWER_MINI_TICKS )
+			{
+				OSScheduleLock();
+				{
+					/* Now the scheduler is suspended, the expected idle
+					time can be sampled again, and this time its value can
+					be used. */
+					uxLowPowerTicks = OSTaskGetBlockTickCount();
+
+					if( uxLowPowerTicks >= OS_LOWPOWER_MINI_TICKS )
+					{
+						FitSetLowPower( uxLowPowerTicks );
+					}
+				}
+				( void ) OSScheduleUnlock();
+			}
+		}
+		#endif /* OS_LOWPOWER_ON */		
 	}
 }
 

@@ -127,6 +127,26 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
   #define	OSNAME_MAX_LEN			( SETOS_MAX_NAME_LEN )
 #endif
 
+// Use low-power mode or not
+#ifndef SETOS_LOWPOWER_MODE
+  #define	OS_LOWPOWER_ON			( 1 )
+#else
+  #define	OS_LOWPOWER_ON			( SETOS_LOWPOWER_MODE )
+#endif
+
+//define mini ticks could use in low-power mode 
+#if ( OS_LOWPOWER_ON !=0 )
+	#ifndef SETOS_LOWPOWER_MINI_TICKS
+		#define		OS_LOWPOWER_MINI_TICKS	( 2 )
+	#else
+		#if (SETOS_LOWPOWER_MINI_TICKS<2)
+			#define	OS_LOWPOWER_MINI_TICKS	( 2 )
+		#else
+			#define	OS_LOWPOWER_MINI_TICKS	( SETOS_LOWPOWER_MINI_TICKS )
+		#endif
+	#endif
+#endif
+
 // The value used as pend forever
 #ifndef SETOS_PEND_FOREVER_VALUE
   #define	OSPEND_FOREVER_VALUE	( ( uOSTick_t ) 0xFFFFFFFFUL )
