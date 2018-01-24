@@ -219,7 +219,7 @@ static uOSTick_t OSTimerGetCurTime( uOSBool_t * const pbTimerListsSwitched )
 	uOSTick_t uxTimeNow;
 	TINIUX_DATA static uOSTick_t uxLastTime = ( uOSTick_t ) 0U; 
 
-	uxTimeNow = OSGetTicksCount();
+	uxTimeNow = OSGetTickCount();
 
 	if( uxTimeNow < uxLastTime )
 	{
@@ -497,11 +497,11 @@ uOSBool_t OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSTi
 
 uOSBool_t OSTimerStart(OSTimerHandle_t const TimerHandle)
 {
-	return OSTimerSendCmdMsg( TimerHandle, TMCMD_START, ( OSGetTicksCount() ), OSPEND_FOREVER_VALUE );
+	return OSTimerSendCmdMsg( TimerHandle, TMCMD_START, ( OSGetTickCount() ), OSPEND_FOREVER_VALUE );
 }
 uOSBool_t OSTimerStartFromISR(OSTimerHandle_t const TimerHandle)
 {
-	return OSTimerSendCmdMsg( TimerHandle, TMCMD_START_FROM_ISR, ( OSGetTicksCount() ), 0U );
+	return OSTimerSendCmdMsg( TimerHandle, TMCMD_START_FROM_ISR, ( OSGetTickCount() ), 0U );
 }
 
 uOSBool_t OSTimerStop(OSTimerHandle_t const TimerHandle)
