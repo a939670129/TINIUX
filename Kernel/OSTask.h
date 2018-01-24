@@ -145,9 +145,13 @@ uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle 
 void 		OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskHandle, uOSBase_t uxHighestPriorityWaitingTask ) TINIUX_FUNCTION;
 #endif /* OS_MUTEX_ON */
 
-#if (OS_TIMER_ON==1)
+#if ( OS_TIMER_ON == 1 )
 void 		OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* (OS_TIMER_ON==1) */
+
+#if ( OS_LOWPOWER_ON == 1 )
+void 		OSTaskFixTickCount( const uOSTick_t uxTicksToFix );
+#endif //OS_LOWPOWER_ON
 
 #if ( OS_TASK_SIGNAL_ON == 1 )
 uOSBool_t	OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;

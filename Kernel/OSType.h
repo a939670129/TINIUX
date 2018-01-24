@@ -129,7 +129,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
 // Use low-power mode or not
 #ifndef SETOS_LOWPOWER_MODE
-  #define	OS_LOWPOWER_ON			( 1 )
+  #define	OS_LOWPOWER_ON			( 0 )
 #else
   #define	OS_LOWPOWER_ON			( SETOS_LOWPOWER_MODE )
 #endif
