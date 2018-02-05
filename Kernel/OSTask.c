@@ -1257,7 +1257,7 @@ void OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait
 #endif /* (OS_TIMER_ON==1) */
 
 #if ( OS_LOWPOWER_ON == 1 )
-void OSTaskFixTickCount( const uOSTick_t uxTicksToFix )
+void OSFixTickCount( const uOSTick_t uxTicksToFix )
 {
 	/* Correct the tick count value after a period during which the tick
 	was suppressed. */
@@ -1288,6 +1288,25 @@ static uOSTick_t OSTaskGetBlockTickCount( void )
 	}
 
 	return xReturn;
+}
+
+uOSBool_t OSEnableLowPowerIdle( void )
+{
+	/* The idle task exists in addition to the application tasks. */
+	uOSBool_t bReturn = OS_TRUE;
+
+	if( OSListGetLength( &gtOSTaskListReadyPool ) != 0 )
+	{
+		/* A task was made ready while the scheduler was suspended. */
+		bReturn = OS_FALSE;
+	}
+	else if( gbNeedSchedule != OS_FALSE )
+	{
+		/* A schedule was pended while the scheduler was suspended. */
+		bReturn = OS_FALSE;
+	}
+
+	return bReturn;
 }
 #endif //OS_LOWPOWER_ON
 
@@ -1328,7 +1347,7 @@ static void OSIdleTask( void *pvParameters)
 
 					if( uxLowPowerTicks >= OS_LOWPOWER_MINI_TICKS )
 					{
-						FitSetLowPower( uxLowPowerTicks );
+						FitLowPowerIdle( uxLowPowerTicks );
 					}
 				}
 				( void ) OSScheduleUnlock();

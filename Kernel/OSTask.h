@@ -116,6 +116,11 @@ uOSBool_t 	OSScheduleUnlock( void ) TINIUX_FUNCTION;
 sOSBase_t 	OSGetScheduleState( void ) TINIUX_FUNCTION;
 OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
 
+#if ( OS_LOWPOWER_ON == 1 )
+void 		OSFixTickCount( const uOSTick_t uxTicksToFix ) TINIUX_FUNCTION;
+uOSBool_t	OSEnableLowPowerIdle( void ) TINIUX_FUNCTION;
+#endif //OS_LOWPOWER_ON
+
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             void*				pvParameter,
                             const uOS16_t 		usStackDepth,
@@ -148,10 +153,6 @@ void 		OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTas
 #if ( OS_TIMER_ON == 1 )
 void 		OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* (OS_TIMER_ON==1) */
-
-#if ( OS_LOWPOWER_ON == 1 )
-void 		OSTaskFixTickCount( const uOSTick_t uxTicksToFix );
-#endif //OS_LOWPOWER_ON
 
 #if ( OS_TASK_SIGNAL_ON == 1 )
 uOSBool_t	OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
