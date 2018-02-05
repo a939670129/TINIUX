@@ -77,8 +77,6 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
   #define	OSTICK_RATE_HZ			( ( uOSBase_t ) SETOS_TICK_RATE_HZ )
 #endif
 
-#define 	OSTICKS_PER_MS			( ( uOSTick_t ) OSTICK_RATE_HZ/1000 )
-
 #ifndef FITSTACK_GROWTH
   #define	OSSTACK_GROWTH			( -1 )
 #else
