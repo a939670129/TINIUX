@@ -151,7 +151,7 @@ void 		OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTas
 #endif /* OS_MUTEX_ON */
 
 #if ( OS_TIMER_ON == 1 )
-void 		OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
+void 		OSTaskBlockAndPend( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* (OS_TIMER_ON==1) */
 
 #if ( OS_TASK_SIGNAL_ON == 1 )

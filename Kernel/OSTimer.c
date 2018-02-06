@@ -60,8 +60,8 @@ TINIUX_DATA static sOSBase_t const TMCMD_STOP_FROM_ISR			= ( ( sOSBase_t ) 8 );
 TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD_FROM_ISR	= ( ( sOSBase_t ) 9 );
 TINIUX_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR			= ( ( sOSBase_t ) 10 );
 
-TINIUX_DATA static tOSList_t 			gtOSTimer1List;
-TINIUX_DATA static tOSList_t 			gtOSTimer2List;
+TINIUX_DATA static tOSList_t 			gtOSTimerList1;
+TINIUX_DATA static tOSList_t 			gtOSTimerList2;
 TINIUX_DATA static tOSList_t *		gptOSTimerList 				= OS_NULL;
 TINIUX_DATA static tOSList_t *		gptOSOFTimerList 			= OS_NULL;
 
@@ -74,10 +74,10 @@ static void OSTimerInitListsAndCmdMsgQ( void )
 	{
 		if( gOSTimerCmdMsgQHandle == OS_NULL )
 		{
-			OSListInitialise( &gtOSTimer1List );
-			OSListInitialise( &gtOSTimer2List );
-			gptOSTimerList = &gtOSTimer1List;
-			gptOSOFTimerList = &gtOSTimer2List;
+			OSListInitialise( &gtOSTimerList1 );
+			OSListInitialise( &gtOSTimerList2 );
+			gptOSTimerList = &gtOSTimerList1;
+			gptOSOFTimerList = &gtOSTimerList2;
 
 			gOSTimerCmdMsgQHandle = OSMsgQCreate(TMCMD_MSGQ_LENGTH, sizeof(tOSTimerCmdMsg_t));
 		}
@@ -176,7 +176,7 @@ uOSBool_t OSTimerSendCmdMsg( OSTimerHandle_t xTimer, const sOSBase_t xCmdMsgType
 	return bReturn;
 }
 
-static void OSTimerSwitchLists( void )
+static void OSTimerListSwitch( void )
 {
 	uOSTick_t uxNextExpireTime, xReloadTime;
 	tOSList_t *pxTempList;
@@ -223,7 +223,7 @@ static uOSTick_t OSTimerGetCurTime( uOSBool_t * const pbTimerListsSwitched )
 
 	if( uxTimeNow < uxLastTime )
 	{
-		OSTimerSwitchLists();
+		OSTimerListSwitch();
 		*pbTimerListsSwitched = OS_TRUE;
 	}
 	else
@@ -236,9 +236,9 @@ static uOSTick_t OSTimerGetCurTime( uOSBool_t * const pbTimerListsSwitched )
 	return uxTimeNow;
 }
 
-static sOSBase_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t uxNextExpiryTime, const uOSTick_t uxTimeNow, const uOSTick_t uxCommandTime )
+static uOSBool_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t uxNextExpiryTime, const uOSTick_t uxTimeNow, const uOSTick_t uxCommandTime )
 {
-	sOSBase_t xProcessTimerNow = OS_FALSE;
+	uOSBool_t bProcessTimerNow = OS_FALSE;
 
 	OSListItemSetValue( &( ptTimer->tTimerListItem ), uxNextExpiryTime );
 	OSListItemSetHolder( &( ptTimer->tTimerListItem ), ptTimer );
@@ -247,7 +247,7 @@ static sOSBase_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t u
 	{
 		if( ( ( uOSTick_t ) ( uxTimeNow - uxCommandTime ) ) >= ptTimer->uxTimerTicks ) 
 		{
-			xProcessTimerNow = OS_TRUE;
+			bProcessTimerNow = OS_TRUE;
 		}
 		else
 		{
@@ -258,7 +258,7 @@ static sOSBase_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t u
 	{
 		if( ( uxTimeNow < uxCommandTime ) && ( uxNextExpiryTime >= uxCommandTime ) )
 		{
-			xProcessTimerNow = OS_TRUE;
+			bProcessTimerNow = OS_TRUE;
 		}
 		else
 		{
@@ -266,7 +266,7 @@ static sOSBase_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t u
 		}
 	}
 
-	return xProcessTimerNow;
+	return bProcessTimerNow;
 }
 
 static void OSTimerExpiredProcess( const uOSTick_t uxNextExpireTime, const uOSTick_t uxTimeNow )

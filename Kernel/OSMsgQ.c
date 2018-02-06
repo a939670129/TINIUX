@@ -753,7 +753,7 @@ void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t b
 	if( ptMsgQ->uxCurNum == ( uOSBase_t ) 0U )
 	{
 		/* There is nothing in the MsgQ, block for the specified period. */
-		OSTaskBlockAndDelay( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait, bNeedSuspend );
+		OSTaskBlockAndPend( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait, bNeedSuspend );
 	}
 	OSMsgQUnlock( ptMsgQ );
 }

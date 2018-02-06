@@ -1248,7 +1248,7 @@ sOSBase_t OSTaskResumeFromISR( OSTaskHandle_t TaskHandle )
 }
 
 #if (OS_TIMER_ON==1)
-void OSTaskBlockAndDelay( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend )
+void OSTaskBlockAndPend( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend )
 {
 	OSListInsertItemToEnd( ptEventList, &( gptCurrentTCB->tEventListItem ) );
 
