@@ -55,10 +55,14 @@ typedef uOS16_t uOSMemSize_t;
 #endif /* OSMEM_SIZE > 64000 */
 
 void  OSMemInit(void);
-void *OSMemTrim(void *pMem, uOSMemSize_t size);
 void *OSMemMalloc(uOSMemSize_t size);
 void *OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size);
+
+#if ( OS_MEMFREE_ON != 0 )
+void *OSMemTrim(void *pMem, uOSMemSize_t size);
 void  OSMemFree(void *pMem);
+#endif /* OS_MEMFREE_ON */
+
 
 /** Calculate memory size for an aligned buffer - returns the next highest
  * multiple of OSMEM_ALIGNMENT (e.g. OSMEM_ALIGN_SIZE(3) and

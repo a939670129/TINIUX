@@ -82,7 +82,6 @@ static tOSMem_t *gpOSMemEnd = OS_NULL;
 /** pointer to the lowest free block, this is Used for faster search */
 static tOSMem_t *gpOSMemLFree = OS_NULL;
 
-
 /***************************************************************************** 
 Function    : OSMemCombine 
 Description : "OSMemCombine" by combining adjacent empty struct mems.
@@ -95,6 +94,7 @@ Input       : ptOSMem -- the point to a tOSMem_t which just has been freed.
 Output      : None 
 Return      : None 
 *****************************************************************************/
+#if ( OS_MEMFREE_ON != 0 )
 static void OSMemCombine(tOSMem_t *ptOSMem)
 {
 	tOSMem_t *ptNextOSMem;
@@ -132,6 +132,7 @@ static void OSMemCombine(tOSMem_t *ptOSMem)
 	}
 	return;
 }
+#endif /* OS_MEMFREE_ON */
 
 /***************************************************************************** 
 Function    : OSMemInit 
@@ -173,6 +174,7 @@ Input       : pMem -- the data portion of a tOSMem_t as returned by a previous
 Output      : None 
 Return      : None 
 *****************************************************************************/ 
+#if ( OS_MEMFREE_ON != 0 )
 void OSMemFree(void *pMem)
 {
 	tOSMem_t *ptOSMemTemp;
@@ -211,6 +213,7 @@ void OSMemFree(void *pMem)
 	
 	return;
 }
+#endif /* OS_MEMFREE_ON */
 
 /***************************************************************************** 
 Function    : OSMemTrim 
@@ -223,6 +226,7 @@ Return      : for compatibility reasons: is always == pMem, at the moment
               or OS_NULL if newsize is > old size, in which case pMem is NOT touched
               or freed!
 *****************************************************************************/ 
+#if ( OS_MEMFREE_ON != 0 )
 void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 {
 	uOSMemSize_t size;
@@ -330,6 +334,7 @@ void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
   OSIntUnlock();
   return pMem;
 }
+#endif /* OS_MEMFREE_ON */
 
 /***************************************************************************** 
 Function    : OSMemMalloc 

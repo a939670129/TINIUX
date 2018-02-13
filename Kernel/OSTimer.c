@@ -41,8 +41,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_MSGQ_ON==1)
-#if (OS_TIMER_ON==1)
+#if ( OS_MSGQ_ON!=0 )
+#if ( OS_TIMER_ON!=0 )
 
 TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_NO_DELAY			= ( ( sOSBase_t ) 0 );
 TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_LENGTH				= ( ( sOSBase_t ) 8 );
@@ -51,14 +51,20 @@ TINIUX_DATA static sOSBase_t const TMCMD_START					= ( ( sOSBase_t ) 1 );
 TINIUX_DATA static sOSBase_t const TMCMD_RESET					= ( ( sOSBase_t ) 2 );
 TINIUX_DATA static sOSBase_t const TMCMD_STOP						= ( ( sOSBase_t ) 3 );
 TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD			= ( ( sOSBase_t ) 4 );
+
+#if ( OS_MEMFREE_ON != 0 )
 TINIUX_DATA static sOSBase_t const TMCMD_DELETE					= ( ( sOSBase_t ) 5 );
+#endif /* OS_MEMFREE_ON */
 
 TINIUX_DATA static sOSBase_t const TMCMD_FIRST_FROM_ISR_TYPE		= ( ( sOSBase_t ) 6 );
 TINIUX_DATA static sOSBase_t const TMCMD_START_FROM_ISR			= ( ( sOSBase_t ) 6 );
 TINIUX_DATA static sOSBase_t const TMCMD_RESET_FROM_ISR			= ( ( sOSBase_t ) 7 );
 TINIUX_DATA static sOSBase_t const TMCMD_STOP_FROM_ISR			= ( ( sOSBase_t ) 8 );
 TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD_FROM_ISR	= ( ( sOSBase_t ) 9 );
+
+#if ( OS_MEMFREE_ON != 0 )
 TINIUX_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR			= ( ( sOSBase_t ) 10 );
+#endif /* OS_MEMFREE_ON */
 
 TINIUX_DATA static tOSList_t 			gtOSTimerList1;
 TINIUX_DATA static tOSList_t 			gtOSTimerList2;
@@ -128,7 +134,7 @@ static void OSTimerInitTCB(	OSTimerHandle_t NewTimerHandle,
 	}
 }
 
-OSTimerHandle_t OSTimerCreate(const uOSBase_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName)
+OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName)
 {
 	OSTimerHandle_t TimerHandle;
 
@@ -387,10 +393,12 @@ static void	OSTimerReceiveCmdMsg( void )
 
 				( void ) OSTimerAddToList( ptTimer, ( uxTimeNow + ptTimer->uxTimerTicks ), uxTimeNow, uxTimeNow );					
 			}
+			#if ( OS_MEMFREE_ON != 0 )
 			else if( tCmdMsg.xCmdMsgType==TMCMD_DELETE || tCmdMsg.xCmdMsgType==TMCMD_DELETE_FROM_ISR)
 			{/* The timer has already been removed from the active list. */
 				OSMemFree(ptTimer);				
 			}
+			#endif /* OS_MEMFREE_ON */
 		}
 	}
 }
@@ -440,6 +448,7 @@ uOSBool_t OSTimerCreateMoniteTask( void )
 	return bReturn;
 }
 
+#if ( OS_MEMFREE_ON != 0 )
 uOSBool_t OSTimerDelete(OSTimerHandle_t TimerHandle)
 {
 	return OSTimerSendCmdMsg( TimerHandle, TMCMD_DELETE, 0U, OSPEND_FOREVER_VALUE );
@@ -448,6 +457,7 @@ uOSBool_t OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle)
 {
 	return OSTimerSendCmdMsg( TimerHandle, TMCMD_DELETE_FROM_ISR, 0U, 0U );
 }
+#endif /* OS_MEMFREE_ON */
 
 uOSBool_t OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks)
 {
@@ -513,7 +523,7 @@ uOSBool_t OSTimerStopFromISR(OSTimerHandle_t const TimerHandle)
 	return OSTimerSendCmdMsg( TimerHandle, TMCMD_STOP_FROM_ISR, 0U, 0U );
 }
 
-sOSBase_t OSTimerSetID(OSTimerHandle_t const TimerHandle, sOSBase_t xID)
+sOSBase_t OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID)
 {
 	if(TimerHandle == OS_NULL)
 	{
@@ -541,8 +551,8 @@ sOSBase_t OSTimerGetID(OSTimerHandle_t const TimerHandle)
 	return xID;
 }
 
-#endif //(OS_TIMER_ON==1)
-#endif//(OS_MSGQ_ON==1)
+#endif //( OS_TIMER_ON!=0 )
+#endif//( OS_MSGQ_ON!=0 )
 	
 #ifdef __cplusplus
 }

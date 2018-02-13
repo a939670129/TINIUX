@@ -44,6 +44,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+#if ( OS_MSGQ_ON!=0 )
+
 typedef struct tOSMsgQ
 {
 	char						pcMsgQName[ OSNAME_MAX_LEN ];
@@ -69,9 +71,11 @@ typedef struct tOSMsgQ
 typedef tOSMsgQ_t* 	OSMsgQHandle_t;
 
 OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) TINIUX_FUNCTION;
+#if ( OS_MEMFREE_ON != 0 )
 void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+#endif /* OS_MEMFREE_ON */
 
-sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) TINIUX_FUNCTION;
 
 uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
@@ -94,9 +98,11 @@ uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 
 sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) TINIUX_FUNCTION;
 
-#if (OS_TIMER_ON==1)
+#if ( OS_TIMER_ON!=0 )
 void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
-#endif /* (OS_TIMER_ON==1) */
+#endif /* ( OS_TIMER_ON!=0 ) */
+
+#endif //( OS_MSGQ_ON!=0 )
 
 #ifdef __cplusplus
 }

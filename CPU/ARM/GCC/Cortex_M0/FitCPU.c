@@ -44,22 +44,33 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 /* Constants required to manipulate the NVIC. */
-#define FitNVIC_SYSTICK_CTRL		( ( volatile uOS32_t *) 0xe000e010 )
-#define FitNVIC_SYSTICK_LOAD		( ( volatile uOS32_t *) 0xe000e014 )
-#define FitNVIC_INT_CTRL			( ( volatile uOS32_t *) 0xe000ed04 )
-#define FitNVIC_SYSPRI2				( ( volatile uOS32_t *) 0xe000ed20 )
-#define FitNVIC_SYSTICK_CLK			0x00000004
-#define FitNVIC_SYSTICK_INT			0x00000002
-#define FitNVIC_SYSTICK_ENABLE		0x00000001
-#define FitNVIC_PENDSVSET			0x10000000
-#define FitNVIC_PENDSV_PRI			( OSMIN_HWINT_PRI << 16UL )
-#define FitNVIC_SYSTICK_PRI			( OSMIN_HWINT_PRI << 24UL )
+#define FitNVIC_SYSTICK_CTRL			( ( volatile uOS32_t *) 0xe000e010 )
+#define FitNVIC_SYSTICK_LOAD			( ( volatile uOS32_t *) 0xe000e014 )
+#define FitNVIC_SYSTICK_CURRENT_VALUE	( ( volatile uOS32_t *) 0xe000e018 )
+#define FitNVIC_INT_CTRL				( ( volatile uOS32_t *) 0xe000ed04 )
+#define FitNVIC_SYSPRI2					( ( volatile uOS32_t *) 0xe000ed20 )
+#define FitNVIC_SYSTICK_CLK				0x00000004
+#define FitNVIC_SYSTICK_INT				0x00000002
+#define FitNVIC_SYSTICK_ENABLE			0x00000001
+#define FitNVIC_PENDSVSET				0x10000000
+#define FitNVIC_PENDSV_PRI				( OSMIN_HWINT_PRI << 16UL )
+#define FitNVIC_SYSTICK_PRI				( OSMIN_HWINT_PRI << 24UL )
 
 /* Constants required to set up the initial stack. */
-#define FitINITIAL_XPSR				( 0x01000000 )
+#define FitINITIAL_XPSR					( 0x01000000 )
 
 /* Constants used with memory barrier intrinsics. */
-#define FitSY_FULL_READ_WRITE		( 15 )
+#define FitSY_FULL_READ_WRITE			( 15 )
+
+#ifndef OSSYSTICK_CLOCK_HZ
+	#define OSSYSTICK_CLOCK_HZ 			OSCPU_CLOCK_HZ
+	/* Ensure the SysTick is clocked at the same frequency as the core. */
+	#define FitNVIC_SYSTICK_CLK_BIT		( 1UL << 2UL )
+#else
+	/* The way the SysTick is clocked is not modified in case it is not the same
+	as the core. */
+	#define FitNVIC_SYSTICK_CLK_BIT		( 0 )
+#endif
 
 /* Each task maintains its own interrupt status in the lock nesting
 variable. */
@@ -286,7 +297,7 @@ void FitPendSVHandler( void )
 
 void FitOSTickISR( void )
 {
-uOS32_t ulPreviousMask;
+	uOS32_t ulPreviousMask;
 
 	ulPreviousMask = FitIntMaskFromISR();
 	{
@@ -307,8 +318,12 @@ uOS32_t ulPreviousMask;
  */
 void FitSetupTimerInterrupt( void )
 {
+	/* Stop and reset the SysTick. */
+	*(FitNVIC_SYSTICK_CTRL) = 0UL;
+	*(FitNVIC_SYSTICK_CURRENT_VALUE) = 0UL;
+	
 	/* Configure SysTick to interrupt at the requested rate. */
-	*(FitNVIC_SYSTICK_LOAD) = ( OSCPU_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
+	*(FitNVIC_SYSTICK_LOAD) = ( OSSYSTICK_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
 	*(FitNVIC_SYSTICK_CTRL) = FitNVIC_SYSTICK_CLK | FitNVIC_SYSTICK_INT | FitNVIC_SYSTICK_ENABLE;
 }
 /*-----------------------------------------------------------*/

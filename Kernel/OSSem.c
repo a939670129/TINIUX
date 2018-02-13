@@ -41,7 +41,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_SEMAPHORE_ON==1)
+#if ( OS_SEMAPHORE_ON!=0 )
 
 /* Semaphores do not actually store or copy data, so have an item size of zero. */
 //TINIUX_DATA static uOSBase_t const SEMAPHORE_QUEUE_ITEM_LENGTH		= ( ( uOSBase_t ) 0U );
@@ -226,14 +226,16 @@ OSSemHandle_t OSSemCreate( const uOSBase_t uxInitialCount )
 	return OSSemCreateCount( ( uOSBase_t )SEMAPHORE_QUEUE_LENGTH, ( uOSBase_t )uxInitialCountTemp );
 }
 
+#if ( OS_MEMFREE_ON != 0 )
 void OSSemDelete( OSSemHandle_t SemHandle )
 {
 	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
 
 	OSMemFree( ptSem );
 }
+#endif /* OS_MEMFREE_ON */
 
-sOSBase_t OSSemSetID(OSSemHandle_t const SemHandle, sOSBase_t xID)
+sOSBase_t OSSemSetID(OSSemHandle_t SemHandle, sOSBase_t xID)
 {
 	if(SemHandle == OS_NULL)
 	{
@@ -476,7 +478,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 	return bReturn;
 }
 
-#endif //(OS_SEMAPHORE_ON==1)
+#endif //(OS_SEMAPHORE_ON!=0)
 
 #ifdef __cplusplus
 }

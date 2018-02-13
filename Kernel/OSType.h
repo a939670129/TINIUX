@@ -125,6 +125,13 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
   #define	OSNAME_MAX_LEN			( SETOS_MAX_NAME_LEN )
 #endif
 
+// Enable delete task or not
+#ifndef SETOS_ENABLE_MEMFREE
+  #define	OS_MEMFREE_ON			( 0 )
+#else
+  #define	OS_MEMFREE_ON			( SETOS_ENABLE_MEMFREE )
+#endif
+
 // Use low-power mode or not
 #ifndef SETOS_LOWPOWER_MODE
   #define	OS_LOWPOWER_ON			( 0 )
@@ -133,7 +140,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 
 //define mini ticks could use in low-power mode 
-#if ( OS_LOWPOWER_ON !=0 )
+#if ( OS_LOWPOWER_ON!=0 )
 	#ifndef SETOS_LOWPOWER_MINI_TICKS
 		#define		OS_LOWPOWER_MINI_TICKS	( 2 )
 	#else
@@ -188,14 +195,14 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
   #define	OS_TIMER_ON				( SETOS_USE_TIMER )
 #endif
 
-#if (OS_MSGQ_ON==1)
+#if ( OS_MSGQ_ON!=0 )
 // Used by timer
 #ifndef SETOS_CALLBACK_TASK_PRIORITY
   #define	OSCALLBACK_TASK_PRIO	( OSHIGHEAST_PRIORITY - 1 )
 #else
   #define	OSCALLBACK_TASK_PRIO	( SETOS_CALLBACK_TASK_PRIORITY )
 #endif
-#endif //(OS_MSGQ_ON==1)
+#endif //( OS_MSGQ_ON!=0 )
 
 #ifndef SETOS_TASK_SIGNAL_ON
   #define	OS_TASK_SIGNAL_ON		( 1 )

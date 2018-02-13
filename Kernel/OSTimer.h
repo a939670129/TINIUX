@@ -44,8 +44,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_MSGQ_ON==1)
-#if (OS_TIMER_ON==1)
+#if ( OS_MSGQ_ON!=0 )
+#if ( OS_TIMER_ON!=0 )
 
 typedef struct tOSTimer
 {
@@ -68,15 +68,18 @@ typedef struct tTimerCmdMsg
 } tOSTimerCmdMsg_t;
 
 OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) TINIUX_FUNCTION;
+#if ( OS_MEMFREE_ON != 0 )
 uOSBool_t 		OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+#endif /* OS_MEMFREE_ON */
+
 uOSBool_t 		OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
-sOSBase_t 		OSTimerSetID(OSTimerHandle_t const TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 		OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 		OSTimerGetID(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 
 uOSBool_t		OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
 uOSBool_t		OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSBase_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t 		OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
 uOSBool_t 		OSTimerStart(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 uOSBool_t 		OSTimerStartFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 uOSBool_t 		OSTimerStop(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
@@ -84,8 +87,8 @@ uOSBool_t 		OSTimerStopFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTIO
 
 uOSBool_t 		OSTimerCreateMoniteTask( void ) TINIUX_FUNCTION;
 
-#endif //(OS_TIMER_ON==1)
-#endif//(OS_MSGQ_ON==1)
+#endif //( OS_TIMER_ON!=0 )
+#endif//( OS_MSGQ_ON!=0 )
 
 #ifdef __cplusplus
 }

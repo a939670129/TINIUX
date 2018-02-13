@@ -41,7 +41,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_MUTEX_ON==1)
+#if ( OS_MUTEX_ON!=0 )
 
 TINIUX_DATA static sOSBase_t const MUTEX_STATUS_UNLOCKED				= ( ( sOSBase_t ) -1 );
 TINIUX_DATA static sOSBase_t const MUTEX_STATUS_LOCKED				= ( ( sOSBase_t ) 0 );
@@ -187,14 +187,16 @@ OSMutexHandle_t OSMutexCreate( void )
 	return (OSMutexHandle_t)ptNewMutex;
 }
 
+#if ( OS_MEMFREE_ON != 0 )
 void OSMutexDelete( OSMutexHandle_t MutexHandle )
 {
 	tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
 
 	OSMemFree( ptMutex );
 }
+#endif /* OS_MEMFREE_ON */
 
-sOSBase_t OSMutexSetID(OSMutexHandle_t const MutexHandle, sOSBase_t xID)
+sOSBase_t OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID)
 {
 	if(MutexHandle == OS_NULL)
 	{
@@ -464,7 +466,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
 	}
 }
 
-#endif //(OS_MUTEX_ON==1)
+#endif //(OS_MUTEX_ON!=0)
 
 #ifdef __cplusplus
 }

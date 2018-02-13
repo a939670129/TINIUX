@@ -91,14 +91,14 @@ typedef struct OSTaskControlBlock
 	uOSBase_t*				puxEndOfStack;		/*< Points to the end of the stack on architectures where the stack grows up from low memory. */
 #endif
 
-#if ( OS_MUTEX_ON == 1 )
+#if ( OS_MUTEX_ON!=0 )
 	uOSBase_t 				uxBasePriority;		/*< The priority last assigned to the task - used by the priority inheritance mechanism. */
 	uOSBase_t 				uxMutexHoldNum;
 #endif
 
 	sOSBase_t				xID;
 	
-#if ( OS_TASK_SIGNAL_ON == 1 )
+#if ( OS_TASK_SIGNAL_ON!=0 )
 	uOSBase_t 				uxSigType;		/*< Task signal type: SEM_SIG MSG_SIG MSG_SIG_OVERWRITE. */
 	uOSBase_t 				uxSigState;		/*< Task signal state: NotWaiting Waiting GotSignal. */
 	sOSBase_t 				xSigValue;		/*< Task signal value: Msg or count. */
@@ -116,7 +116,7 @@ uOSBool_t 	OSScheduleUnlock( void ) TINIUX_FUNCTION;
 sOSBase_t 	OSGetScheduleState( void ) TINIUX_FUNCTION;
 OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
 
-#if ( OS_LOWPOWER_ON == 1 )
+#if ( OS_LOWPOWER_ON!=0 )
 void 		OSFixTickCount( const uOSTick_t uxTicksToFix ) TINIUX_FUNCTION;
 uOSBool_t	OSEnableLowPowerIdle( void ) TINIUX_FUNCTION;
 #endif //OS_LOWPOWER_ON
@@ -126,9 +126,11 @@ OSTaskHandle_t OSTaskCreate(OSTaskFunction_t	pxTaskFunction,
                             const uOS16_t 		usStackDepth,
                             uOSBase_t			uxPriority,
                             sOS8_t*				pcTaskName) TINIUX_FUNCTION;
+#if ( OS_MEMFREE_ON != 0 )
 void 		OSTaskDelete( OSTaskHandle_t xTaskToDelete ) TINIUX_FUNCTION;
+#endif /* OS_MEMFREE_ON */
 void 		OSTaskSleep( const uOSTick_t uxTicksToSleep ) TINIUX_FUNCTION;
-sOSBase_t 	OSTaskSetID(OSTaskHandle_t const TaskHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t 	OSTaskSetID(OSTaskHandle_t TaskHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 	OSTaskGetID(OSTaskHandle_t const TaskHandle) TINIUX_FUNCTION;
 
 void 		OSTaskListEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) TINIUX_FUNCTION;
@@ -143,18 +145,18 @@ void 		OSTaskSuspend( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 void 		OSTaskResume( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 sOSBase_t 	OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 
-#if ( OS_MUTEX_ON == 1 )
+#if ( OS_MUTEX_ON!= 0 )
 void *		OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;
 uOSBool_t	OSTaskPriorityInherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
 uOSBool_t 	OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
 void 		OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskHandle, uOSBase_t uxHighestPriorityWaitingTask ) TINIUX_FUNCTION;
 #endif /* OS_MUTEX_ON */
 
-#if ( OS_TIMER_ON == 1 )
+#if ( OS_TIMER_ON != 0 )
 void 		OSTaskBlockAndPend( tOSList_t * const ptEventList, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
-#endif /* (OS_TIMER_ON==1) */
+#endif /* ( OS_TIMER_ON!=0 ) */
 
-#if ( OS_TASK_SIGNAL_ON == 1 )
+#if ( OS_TASK_SIGNAL_ON!=0 )
 uOSBool_t	OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
 uOSBool_t	OSTaskSignalEmit( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 uOSBool_t	OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;

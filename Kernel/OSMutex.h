@@ -44,7 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_MUTEX_ON==1)
+#if ( OS_MUTEX_ON!=0 )
 
 typedef struct tOSMutex
 {
@@ -68,14 +68,17 @@ typedef struct tOSMutex
 typedef	tOSMutex_t*		OSMutexHandle_t;
 
 OSMutexHandle_t OSMutexCreate( void ) TINIUX_FUNCTION;
+#if ( OS_MEMFREE_ON != 0 )
 void 			OSMutexDelete( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
-sOSBase_t 		OSMutexSetID(OSMutexHandle_t const MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
+#endif /* OS_MEMFREE_ON */
+
+sOSBase_t 		OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 		OSMutexGetID(OSMutexHandle_t const MutexHandle) TINIUX_FUNCTION;
 
 uOSBool_t 		OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
 uOSBool_t 		OSMutexUnlock( OSMutexHandle_t MutexHandle) TINIUX_FUNCTION;
 
-#endif //(OS_MUTEX_ON==1)
+#endif //( OS_MUTEX_ON!=0 )
 
 #ifdef __cplusplus
 }

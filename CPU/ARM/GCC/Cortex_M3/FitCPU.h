@@ -96,6 +96,14 @@ void FitPendSVHandler( void ) __attribute__ (( naked ));
 void FitOSTickISR( void );
 void FitSVCHandler( void ) __attribute__ (( naked ));
 
+#if ( OS_LOWPOWER_ON!=0 )
+/* Tickless idle/low power functionality. */
+	#ifndef FitLowPowerIdle
+		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+	#endif
+#endif
+
 #ifdef __cplusplus
 }
 #endif

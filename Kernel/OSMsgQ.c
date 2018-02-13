@@ -41,6 +41,12 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TINIUX.h"
 #include "OSTask.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if ( OS_MSGQ_ON!=0 )
+
 /* Constants used with the xMsgQPLock and xMsgQVLock structure members. */
 TINIUX_DATA static sOSBase_t const OSMSGQ_UNLOCKED			= ( ( sOSBase_t ) -1 );
 TINIUX_DATA static sOSBase_t const OSMSGQ_LOCKED				= ( ( sOSBase_t ) 0 );
@@ -112,7 +118,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 	OSIntLock();
 	{
 		sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
-		
+
 		while( xMsgQVLock > OSMSGQ_LOCKED )
 		{
 			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
@@ -274,14 +280,16 @@ OSMsgQHandle_t OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxIt
 	return xReturn;
 }
 
+#if ( OS_MEMFREE_ON != 0 )
 void OSMsgQDelete( OSMsgQHandle_t MsgQHandle )
 {
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
 	OSMemFree( ptMsgQ );
 }
+#endif /* OS_MEMFREE_ON */
 
-sOSBase_t OSMsgQSetID(OSMsgQHandle_t const MsgQHandle, sOSBase_t xID)
+sOSBase_t OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID)
 {
 	if(MsgQHandle == OS_NULL)
 	{
@@ -740,7 +748,7 @@ uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 	return bReturn;
 }
 
-#if (OS_TIMER_ON==1)
+#if ( OS_TIMER_ON!=0 )
 void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend )
 {
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
@@ -757,7 +765,7 @@ void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t b
 	}
 	OSMsgQUnlock( ptMsgQ );
 }
-#endif /* (OS_TIMER_ON==1) */
+#endif /* ( OS_TIMER_ON!=0 ) */
 
 uOSBase_t OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle )
 {
@@ -787,3 +795,9 @@ uOSBase_t OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle )
 
 	return uxReturn;
 }
+
+#endif //(OS_MSGQ_ON!=0)
+
+#ifdef __cplusplus
+}
+#endif

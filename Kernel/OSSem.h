@@ -44,7 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#if (OS_SEMAPHORE_ON==1)
+#if ( OS_SEMAPHORE_ON!=0 )
 
 typedef struct tOSSem
 {
@@ -66,9 +66,12 @@ typedef tOSSem_t* OSSemHandle_t;
 
 OSSemHandle_t 	OSSemCreate( const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
 OSSemHandle_t 	OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
-void 			OSSemDelete(OSSemHandle_t SemHandle) TINIUX_FUNCTION;
 
-sOSBase_t 		OSSemSetID(OSSemHandle_t const SemHandle, sOSBase_t xID) TINIUX_FUNCTION;
+#if ( OS_MEMFREE_ON != 0 )
+void 			OSSemDelete(OSSemHandle_t SemHandle) TINIUX_FUNCTION;
+#endif /* OS_MEMFREE_ON */
+
+sOSBase_t 		OSSemSetID(OSSemHandle_t SemHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t 		OSSemGetID(OSSemHandle_t const SemHandle) TINIUX_FUNCTION;
 
 uOSBool_t 		OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
@@ -76,7 +79,7 @@ uOSBool_t 		OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait) TINIUX_
 uOSBool_t 		OSSemPost( OSSemHandle_t SemHandle) TINIUX_FUNCTION;
 uOSBool_t 		OSSemPostFromISR( OSSemHandle_t SemHandle ) TINIUX_FUNCTION;
 
-#endif //(OS_SEMAPHORE_ON==1)
+#endif //(OS_SEMAPHORE_ON!=0)
 
 #ifdef __cplusplus
 }
