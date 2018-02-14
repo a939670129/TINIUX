@@ -67,7 +67,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SETOS_USE_SEMAPHORE                     ( 1 )		//是否启用系统信号量功能 0关闭 1启用
 #define SETOS_USE_MUTEX							( 1 )		//是否启用互斥信号量功能 0关闭 1启用
 #define SETOS_USE_MSGQ                          ( 1 )		//是否启用系统消息队列功能 0关闭 1启用
-#define SETOS_MSGQ_MAX_MSGNUM                   ( 10 )		//定义消息队列中消息的门限值
+#define SETOS_MSGQ_MAX_MSGNUM                   ( 5 )		//定义消息队列中消息的门限值
 #define SETOS_USE_TIMER							( 0 )		//是否使用系统软件定时器
 #define SETOS_PEND_FOREVER_VALUE                ( 0xFFFFFFFF )		//定义信号量及消息队列中永久等待的数值
 
