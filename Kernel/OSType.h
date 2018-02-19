@@ -66,15 +66,15 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define 	OS_FAIL					( OS_FALSE )
 
 #ifndef SETOS_CPU_CLOCK_HZ
-  #define	OSCPU_CLOCK_HZ			( ( uOSBase_t )36000000 )
+  #define	OSCPU_CLOCK_HZ			( ( unsigned long )36000000 )
 #else
-  #define	OSCPU_CLOCK_HZ			( ( uOSBase_t ) SETOS_CPU_CLOCK_HZ )
+  #define	OSCPU_CLOCK_HZ			( ( unsigned long ) SETOS_CPU_CLOCK_HZ )
 #endif
 
 #ifndef SETOS_TICK_RATE_HZ
-  #define	OSTICK_RATE_HZ			( ( uOSBase_t )1000 )
+  #define	OSTICK_RATE_HZ			( ( uOSTick_t )1000 )
 #else
-  #define	OSTICK_RATE_HZ			( ( uOSBase_t ) SETOS_TICK_RATE_HZ )
+  #define	OSTICK_RATE_HZ			( ( uOSTick_t ) SETOS_TICK_RATE_HZ )
 #endif
 
 #ifndef FITSTACK_GROWTH
