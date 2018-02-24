@@ -118,7 +118,7 @@ Return      : None
 *****************************************************************************/
 void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem )
 {
-	tOSListItem_t *ptIterator = OS_NULL;
+	tOSListItem_t *ptIterator;
 	const uOSTick_t uxValueOfInsertion = ptNewListItem->uxItemValue;
 
 	/* If the list already contains a list item with the same item value then the
@@ -164,7 +164,7 @@ uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove )
 	/* The list item knows which list it is in.  Obtain the list from the list
 	item. */
 	tOSList_t * const ptList = ( tOSList_t * ) ptItemToRemove->pvList;
-	tOSListItem_t * ptListItemTemp = OS_NULL;
+	tOSListItem_t * ptListItemTemp;
 	
 	ptListItemTemp = ptItemToRemove->ptPrevious;
 	ptItemToRemove->ptNext->ptPrevious = ptListItemTemp;

@@ -49,16 +49,16 @@ extern "C" {
 
 /* Constants used with the xMsgQPLock and xMsgQVLock structure members. */
 TINIUX_DATA static sOSBase_t const OSMSGQ_UNLOCKED			= ( ( sOSBase_t ) -1 );
-TINIUX_DATA static sOSBase_t const OSMSGQ_LOCKED			= ( ( sOSBase_t ) 0 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_LOCKED				= ( ( sOSBase_t ) 0 );
 
 /* OSMsgQ send mode. */
 TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_BACK		= ( ( sOSBase_t ) 0 );
 TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_FRONT		= ( ( sOSBase_t ) 1 );
-TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_OVERWRITE	= ( ( sOSBase_t ) 2 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_OVERWRITE		= ( ( sOSBase_t ) 2 );
 
 static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 
 	OSIntLock();
 	{
@@ -78,7 +78,7 @@ static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
 
 static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 
 	OSIntLock();
 	{
@@ -251,8 +251,8 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 
 OSMsgQHandle_t OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize )
 {
-	tOSMsgQ_t *ptNewMsgQ = OS_NULL;
-	uOS32_t uxQSizeInBytes = (uOS32_t)0U;
+	tOSMsgQ_t *ptNewMsgQ;
+	size_t xQSizeInBytes;
 	OSMsgQHandle_t xReturn = OS_NULL;
 
 	if( uxItemSize == ( uOSBase_t ) 0 )
@@ -261,10 +261,10 @@ OSMsgQHandle_t OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxIt
 	}
 	else
 	{
-		uxQSizeInBytes = ( uOS32_t ) ( uxQueueLength * uxItemSize ) + ( uOS32_t ) 1U;
+		xQSizeInBytes = ( size_t ) ( uxQueueLength * uxItemSize ) + ( size_t ) 1;
 	}
 
-	ptNewMsgQ = ( tOSMsgQ_t * ) OSMemMalloc( sizeof( tOSMsgQ_t ) + uxQSizeInBytes );
+	ptNewMsgQ = ( tOSMsgQ_t * ) OSMemMalloc( sizeof( tOSMsgQ_t ) + xQSizeInBytes );
 
 	if( ptNewMsgQ != OS_NULL )
 	{
@@ -293,7 +293,7 @@ sOSBase_t OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID)
 {
 	if(MsgQHandle == OS_NULL)
 	{
-		return (sOSBase_t)1;
+		return 1;
 	}
 	OSIntLock();
 	{
@@ -301,7 +301,7 @@ sOSBase_t OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID)
 	}
 	OSIntUnlock();
 
-	return (sOSBase_t)0;
+	return 0;
 }
 
 sOSBase_t OSMsgQGetID(OSMsgQHandle_t const MsgQHandle)
@@ -417,8 +417,8 @@ uOSBool_t OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItem
 
 static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSBool_t * const pbNeedSchedule, const sOSBase_t xCopyPosition )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
+	uOSBool_t bReturn;
+	uOSBase_t uxIntSave;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
 	uxIntSave = OSIntMaskFromISR();
@@ -589,7 +589,7 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
 {
 	uOSBool_t bEntryTimeSet = OS_FALSE;
 	tOSTimeOut_t tTimeOut;
-	sOS8_t *pcOriginalReadPosition = OS_NULL;
+	sOS8_t *pcOriginalReadPosition;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
 	for( ;; )
@@ -674,8 +674,8 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
 
 uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
+	uOSBool_t bReturn;
+	uOSBase_t uxIntSave;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 	uOSBool_t bNeedSchedule = OS_FALSE;
 	
@@ -723,9 +723,9 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
 
 uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
-	sOS8_t *pcOriginalReadPosition = OS_NULL;
+	uOSBool_t bReturn;
+	uOSBase_t uxIntSave;
+	sOS8_t *pcOriginalReadPosition;
 	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
 	uxIntSave = OSIntMaskFromISR();
@@ -769,8 +769,8 @@ void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t b
 
 uOSBase_t OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle )
 {
-	uOSBase_t uxReturn = (uOSBase_t)0U;
-	tOSMsgQ_t *ptMsgQ = OS_NULL;
+	uOSBase_t uxReturn;
+	tOSMsgQ_t *ptMsgQ;
 
 	ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
@@ -785,7 +785,7 @@ uOSBase_t OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle )
 
 uOSBase_t OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle )
 {
-	uOSBase_t uxReturn = (uOSBase_t)0U;
+	uOSBase_t uxReturn;
 
 	OSIntLock();
 	{

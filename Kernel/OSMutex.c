@@ -49,7 +49,7 @@ TINIUX_DATA static uOSTick_t const MUTEX_UNLOCK_BLOCK_TIME			= ( ( uOSTick_t ) 0
 
 static uOSBool_t OSMutexIsEmpty( OSMutexHandle_t MutexHandle )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 	tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
 	
 	OSIntLock();
@@ -70,7 +70,7 @@ static uOSBool_t OSMutexIsEmpty( OSMutexHandle_t MutexHandle )
 
 static uOSBool_t OSMutexIsFull( OSMutexHandle_t MutexHandle )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 	tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
 
 	OSIntLock();
@@ -163,7 +163,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
 
 OSMutexHandle_t OSMutexCreate( void )
 {
-	tOSMutex_t *ptNewMutex = OS_NULL;
+	tOSMutex_t *ptNewMutex;
 
 	/* Allocate the new queue structure. */
 	ptNewMutex = ( tOSMutex_t * ) OSMemMalloc( sizeof( tOSMutex_t ) );
@@ -227,7 +227,7 @@ sOSBase_t OSMutexGetID(OSMutexHandle_t const MutexHandle)
 
 static uOSBase_t OSMutexGetDisinheritPriorityAfterTimeout( OSMutexHandle_t const MutexHandle )
 {
-	uOSBase_t uxHighestPriorityOfWaitingTasks = OSLOWEAST_PRIORITY;
+	uOSBase_t uxHighestPriorityOfWaitingTasks;
 
 	/* If a task waiting for a mutex causes the mutex holder to inherit a
 	priority, but the waiting task times out, then the holder should

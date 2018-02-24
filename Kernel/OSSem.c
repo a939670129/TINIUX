@@ -53,7 +53,7 @@ TINIUX_DATA static sOSBase_t const SEM_STATUS_LOCKED				= ( ( sOSBase_t ) 0 );
 
 static uOSBool_t OSSemIsEmpty( OSSemHandle_t SemHandle )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
 
 	OSIntLock();
@@ -74,7 +74,7 @@ static uOSBool_t OSSemIsEmpty( OSSemHandle_t SemHandle )
 
 static uOSBool_t OSSemIsFull( OSSemHandle_t SemHandle )
 {
-	uOSBool_t bReturn = OS_FALSE;
+	uOSBool_t bReturn;
 	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
 
 	OSIntLock();
@@ -197,7 +197,7 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
 
 OSSemHandle_t OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount )
 {
-	tOSSem_t *ptNewSem = OS_NULL;
+	tOSSem_t *ptNewSem;
 	OSSemHandle_t xReturn = OS_NULL;
 
 	ptNewSem = ( tOSSem_t * ) OSMemMalloc( sizeof( tOSSem_t ) );
@@ -429,8 +429,8 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
 
 uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
+	uOSBool_t bReturn;
+	uOSBase_t uxIntSave;
 	tOSSem_t * const ptSem = ( tOSSem_t * ) SemHandle;
 
 	uOSBool_t bNeedSchedule = OS_FALSE;

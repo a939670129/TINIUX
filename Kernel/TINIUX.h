@@ -54,8 +54,8 @@ extern "C" {
 #include "OSTimer.h"
 
 #define MAJOR_VERSION        2
-#define MINOR_VERSION        1
-#define REVISION_NUM         a
+#define MINOR_VERSION        0
+#define REVISION_NUM         0
 
 //MAJOR_VERSION.MINOR_VERSION.REVISION_NUM
 
