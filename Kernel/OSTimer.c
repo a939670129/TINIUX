@@ -45,34 +45,34 @@ extern "C" {
 #if ( OS_TIMER_ON!=0 )
 
 TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_NO_DELAY			= ( ( sOSBase_t ) 0 );
-TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_LENGTH				= ( ( sOSBase_t ) 8 );
+TINIUX_DATA static sOSBase_t const TMCMD_MSGQ_LENGTH			= ( ( sOSBase_t ) 8 );
 
 TINIUX_DATA static sOSBase_t const TMCMD_START					= ( ( sOSBase_t ) 1 );
 TINIUX_DATA static sOSBase_t const TMCMD_RESET					= ( ( sOSBase_t ) 2 );
-TINIUX_DATA static sOSBase_t const TMCMD_STOP						= ( ( sOSBase_t ) 3 );
+TINIUX_DATA static sOSBase_t const TMCMD_STOP					= ( ( sOSBase_t ) 3 );
 TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD			= ( ( sOSBase_t ) 4 );
 
 #if ( OS_MEMFREE_ON != 0 )
 TINIUX_DATA static sOSBase_t const TMCMD_DELETE					= ( ( sOSBase_t ) 5 );
 #endif /* OS_MEMFREE_ON */
 
-TINIUX_DATA static sOSBase_t const TMCMD_FIRST_FROM_ISR_TYPE		= ( ( sOSBase_t ) 6 );
+TINIUX_DATA static sOSBase_t const TMCMD_FIRST_FROM_ISR_TYPE	= ( ( sOSBase_t ) 6 );
 TINIUX_DATA static sOSBase_t const TMCMD_START_FROM_ISR			= ( ( sOSBase_t ) 6 );
 TINIUX_DATA static sOSBase_t const TMCMD_RESET_FROM_ISR			= ( ( sOSBase_t ) 7 );
 TINIUX_DATA static sOSBase_t const TMCMD_STOP_FROM_ISR			= ( ( sOSBase_t ) 8 );
 TINIUX_DATA static sOSBase_t const TMCMD_CHANGE_PERIOD_FROM_ISR	= ( ( sOSBase_t ) 9 );
 
 #if ( OS_MEMFREE_ON != 0 )
-TINIUX_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR			= ( ( sOSBase_t ) 10 );
+TINIUX_DATA static sOSBase_t const TMCMD_DELETE_FROM_ISR		= ( ( sOSBase_t ) 10 );
 #endif /* OS_MEMFREE_ON */
 
-TINIUX_DATA static tOSList_t 			gtOSTimerList1;
-TINIUX_DATA static tOSList_t 			gtOSTimerList2;
+TINIUX_DATA static tOSList_t 		gtOSTimerList1;
+TINIUX_DATA static tOSList_t 		gtOSTimerList2;
 TINIUX_DATA static tOSList_t *		gptOSTimerList 				= OS_NULL;
 TINIUX_DATA static tOSList_t *		gptOSOFTimerList 			= OS_NULL;
 
 TINIUX_DATA static OSMsgQHandle_t 	gOSTimerCmdMsgQHandle 		= OS_NULL;
-TINIUX_DATA static OSTaskHandle_t		gOSTimerMoniteTaskHandle 	= OS_NULL;
+TINIUX_DATA static OSTaskHandle_t	gOSTimerMoniteTaskHandle 	= OS_NULL;
 
 static void OSTimerInitListsAndCmdMsgQ( void )
 {
@@ -98,7 +98,7 @@ static void OSTimerInitTCB(	OSTimerHandle_t NewTimerHandle,
 							void* pvParameter, 
 							sOS8_t* pcName )
 {
-	uOSBase_t x;
+	uOSBase_t x = ( uOSBase_t ) 0;
 	
 	if( NewTimerHandle != OS_NULL )
 	{
@@ -136,9 +136,9 @@ static void OSTimerInitTCB(	OSTimerHandle_t NewTimerHandle,
 
 OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName)
 {
-	OSTimerHandle_t TimerHandle;
+	OSTimerHandle_t TimerHandle = OS_NULL;
 
-	if(uxTimerTicks==0)
+	if(uxTimerTicks == (uOSTick_t)0U)
 	{
 		return OS_NULL;
 	}
@@ -184,10 +184,10 @@ uOSBool_t OSTimerSendCmdMsg( OSTimerHandle_t xTimer, const sOSBase_t xCmdMsgType
 
 static void OSTimerListSwitch( void )
 {
-	uOSTick_t uxNextExpireTime, xReloadTime;
-	tOSList_t *pxTempList;
-	tOSTimer_t *ptTimer;
-	uOSBool_t bReturn;
+	uOSTick_t uxNextExpireTime =(uOSTick_t)0U, xReloadTime = (uOSTick_t)0U;
+	tOSList_t *pxTempList = OS_NULL;
+	tOSTimer_t *ptTimer = OS_NULL;
+	uOSBool_t bReturn = OS_FALSE;
 
 	while( OSListIsEmpty( gptOSTimerList ) == OS_FALSE )
 	{
@@ -222,7 +222,7 @@ static void OSTimerListSwitch( void )
 
 static uOSTick_t OSTimerGetCurTime( uOSBool_t * const pbTimerListsSwitched )
 {
-	uOSTick_t uxTimeNow;
+	uOSTick_t uxTimeNow = ( uOSTick_t ) 0U;
 	TINIUX_DATA static uOSTick_t uxLastTime = ( uOSTick_t ) 0U; 
 
 	uxTimeNow = OSGetTickCount();
@@ -277,7 +277,7 @@ static uOSBool_t OSTimerAddToList( tOSTimer_t * const ptTimer, const uOSTick_t u
 
 static void OSTimerExpiredProcess( const uOSTick_t uxNextExpireTime, const uOSTick_t uxTimeNow )
 {
-	uOSBool_t bReturn;
+	uOSBool_t bReturn = OS_FALSE;
 	tOSTimer_t * const ptTimer = ( tOSTimer_t * ) OSListGetHeadItemHolder( gptOSTimerList );
 
 	( void ) OSListRemoveItem( &( ptTimer->tTimerListItem ) );
@@ -296,8 +296,8 @@ static void OSTimerExpiredProcess( const uOSTick_t uxNextExpireTime, const uOSTi
 
 static void OSTimerProcessOrBlock( const uOSTick_t uxNextExpireTime, uOSBool_t bListWasEmpty )
 {
-	uOSTick_t uxTimeNow;
-	uOSBool_t bTimerListsSwitched;
+	uOSTick_t uxTimeNow = (uOSTick_t)0U;
+	uOSBool_t bTimerListsSwitched = OS_FALSE;
 
 	OSScheduleLock();
 	{
@@ -333,7 +333,7 @@ static void OSTimerProcessOrBlock( const uOSTick_t uxNextExpireTime, uOSBool_t b
 
 static uOSTick_t OSTimerGetNextExpireTime( uOSBool_t * const pbListWasEmpty )
 {
-	uOSTick_t uxNextExpireTime;
+	uOSTick_t uxNextExpireTime = (uOSTick_t)0U;
 
 	*pbListWasEmpty = OSListIsEmpty( gptOSTimerList );
 	if( *pbListWasEmpty == OS_FALSE )
@@ -351,10 +351,10 @@ static uOSTick_t OSTimerGetNextExpireTime( uOSBool_t * const pbListWasEmpty )
 static void	OSTimerReceiveCmdMsg( void )
 {
 	tOSTimerCmdMsg_t tCmdMsg;
-	tOSTimer_t *ptTimer;
-	uOSBool_t bTimerListsSwitched;
-	uOSBool_t bReturn;
-	uOSTick_t uxTimeNow;
+	tOSTimer_t *ptTimer = OS_NULL;
+	uOSBool_t bTimerListsSwitched = OS_FALSE;
+	uOSBool_t bReturn = OS_FALSE;
+	uOSTick_t uxTimeNow = (uOSTick_t)0U;
 
 	while( OSMsgQReceive( gOSTimerCmdMsgQHandle, &tCmdMsg, TMCMD_MSGQ_NO_DELAY ) != OS_FALSE ) 
 	{
@@ -406,8 +406,8 @@ static void	OSTimerReceiveCmdMsg( void )
 
 static void OSTimerMoniteTask( void *pvParameters)
 {
-	uOSTick_t uxNextExpireTime;
-	uOSBool_t bListWasEmpty;
+	uOSTick_t uxNextExpireTime = (uOSTick_t)0U;
+	uOSBool_t bListWasEmpty = OS_FALSE;
 
 	( void ) pvParameters;
 
@@ -461,7 +461,7 @@ uOSBool_t OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle)
 
 uOSBool_t OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks)
 {
-	if( uxTimerTicks==0 )
+	if( uxTimerTicks==(uOSTick_t)0U )
 	{
 		return OS_FALSE;
 	}
@@ -472,7 +472,7 @@ uOSBool_t OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxT
 }
 uOSBool_t OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks)
 {
-	if( uxTimerTicks==0 )
+	if( uxTimerTicks==(uOSTick_t)0U )
 	{
 		return OS_FALSE;
 	}
@@ -484,7 +484,7 @@ uOSBool_t OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTic
 
 uOSBool_t OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod)
 {
-	if( uxTimerPeriod==0 )
+	if( uxTimerPeriod==(uOSTick_t)0U )
 	{
 		return OS_FALSE;
 	}
@@ -495,7 +495,7 @@ uOSBool_t OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSTick_t ux
 }
 uOSBool_t OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod)
 {
-	if( uxTimerPeriod==0 )
+	if( uxTimerPeriod==(uOSTick_t)0U )
 	{
 		return OS_FALSE;
 	}

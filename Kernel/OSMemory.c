@@ -97,8 +97,8 @@ Return      : None
 #if ( OS_MEMFREE_ON != 0 )
 static void OSMemCombine(tOSMem_t *ptOSMem)
 {
-	tOSMem_t *ptNextOSMem;
-	tOSMem_t *ptPrevOSMem;
+	tOSMem_t *ptNextOSMem = OS_NULL;
+	tOSMem_t *ptPrevOSMem = OS_NULL;
 
 	if ( ptOSMem->Used==1 )
 	{
@@ -143,11 +143,14 @@ Return      : None
 *****************************************************************************/
 void OSMemInit(void)
 {
-	tOSMem_t *ptOSMemTemp;
+	tOSMem_t *ptOSMemTemp = OS_NULL;
 
 	// align the heap 
 	gpOSMemBegin = (uOS8_t *)OSMEM_ALIGN_ADDR(OSRAM_HEAP_POINTER);
-	
+
+	/* Initialize the stack tiniux used. */
+	memset(gpOSMemBegin, 0U, OSMEM_SIZE_ALIGNED);
+
 	// initialize the start of the heap 
 	ptOSMemTemp = (tOSMem_t *)(void *)gpOSMemBegin;
 	ptOSMemTemp->NextMem = OSMEM_SIZE_ALIGNED;
@@ -177,7 +180,7 @@ Return      : None
 #if ( OS_MEMFREE_ON != 0 )
 void OSMemFree(void *pMem)
 {
-	tOSMem_t *ptOSMemTemp;
+	tOSMem_t *ptOSMemTemp = OS_NULL;
 
 	if (pMem == OS_NULL) 
 	{
@@ -229,9 +232,9 @@ Return      : for compatibility reasons: is always == pMem, at the moment
 #if ( OS_MEMFREE_ON != 0 )
 void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 {
-	uOSMemSize_t size;
-	uOSMemSize_t ptr, ptr2;
-	tOSMem_t *ptOSMemTemp, *ptOSMemTemp2;
+	uOSMemSize_t size = 0U;
+	uOSMemSize_t ptr = 0U, ptr2 = 0U;
+	tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
 
 	// Expand the size of the allocated memory region so that we can adjust for alignment. 
 	newsize = OSMEM_ALIGN_SIZE(newsize);
@@ -347,8 +350,8 @@ Return      : pointer to allocated memory or OS_NULL if no free memory was found
 void* OSMemMalloc(uOSMemSize_t size)
 {
 	uOS8_t * pResult = OS_NULL;
-	uOSMemSize_t ptr, ptr2;
-	tOSMem_t *ptOSMemTemp, *ptOSMemTemp2;
+	uOSMemSize_t ptr = 0U, ptr2 = 0U;
+	tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
 
 	if(gpOSMemEnd==OS_NULL)
 	{
@@ -457,7 +460,7 @@ Return      : pointer to allocated memory / OS_NULL pointer if there is an error
 *****************************************************************************/ 
 void* OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size)
 {
-	void *pMem;
+	void *pMem = OS_NULL;
 
 	// allocate 'count' objects of size 'size' 
 	pMem = OSMemMalloc(count * size);
