@@ -53,8 +53,8 @@ extern "C" {
 #define FitNVIC_SYSTICK_INT				0x00000002
 #define FitNVIC_SYSTICK_ENABLE			0x00000001
 #define FitNVIC_PENDSVSET				0x10000000
-#define FitNVIC_PENDSV_PRI				( OSMIN_HWINT_PRI << 16UL )
-#define FitNVIC_SYSTICK_PRI				( OSMIN_HWINT_PRI << 24UL )
+#define FitNVIC_PENDSV_PRI				( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 16UL )
+#define FitNVIC_SYSTICK_PRI				( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 24UL )
 
 /* Constants required to set up the initial stack. */
 #define FitINITIAL_XPSR					( 0x01000000 )
