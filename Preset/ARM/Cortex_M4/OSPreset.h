@@ -84,11 +84,11 @@ routine that makes calls to interrupt safe TINIUX API functions.  DO NOT CALL
 INTERRUPT SAFE TINIUX API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
 PRIORITY THAN THIS! (higher priorities are lower numeric values. */
 /* !!!! OSMAX_HWINT_PRI must not be set to zero !!!!*/
-#define OSMAX_HWINT_PRI					( 0x5 << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x50, or priority 5. */
+#define OSMAX_HWINT_PRI					( 0x5UL << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0x50, or priority 5. */
 /* This is the value being used as per the ST library which permits 16
 priority values, 0 to 15.  This must correspond to the OSMIN_HWINT_PRI 
 setting.  Here 15 corresponds to the lowest NVIC value of 255. */
-#define OSMIN_HWINT_PRI					( 0xF << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
+#define OSMIN_HWINT_PRI					( 0xFUL << (8 - SETHW_PRIO_BITS) ) /* equivalent to 0xF0, or priority 15. */
 
 #define FitSVCHandler           		SVC_Handler
 #define FitPendSVHandler        		PendSV_Handler
