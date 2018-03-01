@@ -67,6 +67,8 @@ typedef struct tTimerCmdMsg
 	tOSTimer_t *			ptTimer;			/*<< The timer to which the command will be applied. */
 } tOSTimerCmdMsg_t;
 
+uOSBase_t 		OSTimerInit( void ) TINIUX_FUNCTION;
+
 OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
 uOSBool_t 		OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;

@@ -77,6 +77,43 @@ TINIUX_DATA static uOSBase_t const SIG_STATE_WAITING			= ( ( uOS8_t ) 1 );
 TINIUX_DATA static uOSBase_t const SIG_STATE_RECEIVED			= ( ( uOS8_t ) 2 );
 #endif
 
+uOSBase_t OSInit( void )
+{
+	uOSBase_t uxReturn = 0;
+
+	uxReturn += OSMemInit( );	
+	uxReturn += OSTaskInit( );
+	
+#if ( OS_TIMER_ON!=0 )
+	uxReturn += OSTimerInit( );
+#endif
+	
+	return uxReturn;
+}
+
+uOSBase_t OSTaskInit( void )
+{
+	gptCurrentTCB = OS_NULL;
+	gptOSTaskListPend = OS_NULL;
+	gptOSTaskListLongPeriodPend = OS_NULL;
+
+#if ( OS_MEMFREE_ON != 0 )
+	guxTasksDeleted 			= ( uOSBase_t ) 0U;
+#endif /* OS_MEMFREE_ON */
+
+	guxCurrentNumberOfTasks 	= ( uOSBase_t ) 0U;
+	guxTickCount 				= ( uOSTick_t ) 0U;
+	guxTopReadyPriority 		= OSLOWEAST_PRIORITY;
+	gbSchedulerRunning 			= OS_FALSE;
+	guxPendedTicks 				= ( uOSBase_t ) 0U;
+	gbNeedSchedule 				= OS_FALSE;
+	gxOverflowCount 			= ( sOSBase_t ) 0U;
+	guxNextTaskUnblockTime		= ( uOSTick_t ) 0U;
+	guxSchedulerLocked			= ( uOSBase_t ) OS_FALSE;
+
+	return 0U;
+}
+
 static void OSTaskRecordReadyPriority(uOSBase_t uxPriority)
 {
 #if ( FIT_QUICK_GET_PRIORITY == 1 )

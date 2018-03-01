@@ -74,6 +74,17 @@ TINIUX_DATA static tOSList_t *		gptOSOFTimerList 			= OS_NULL;
 TINIUX_DATA static OSMsgQHandle_t 	gOSTimerCmdMsgQHandle 		= OS_NULL;
 TINIUX_DATA static OSTaskHandle_t	gOSTimerMoniteTaskHandle 	= OS_NULL;
 
+uOSBase_t OSTimerInit( void )
+{
+	gptOSTimerList 				= OS_NULL;
+	gptOSOFTimerList 			= OS_NULL;
+
+	gOSTimerCmdMsgQHandle 		= OS_NULL;
+	gOSTimerMoniteTaskHandle 	= OS_NULL;
+	
+	return 0U;
+}
+
 static void OSTimerInitListsAndCmdMsgQ( void )
 {
 	OSIntLock();

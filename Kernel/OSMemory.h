@@ -54,7 +54,7 @@ typedef uOS32_t uOSMemSize_t;
 typedef uOS16_t uOSMemSize_t;
 #endif /* OSMEM_SIZE > 64000 */
 
-void  OSMemInit(void);
+uOSBase_t  OSMemInit(void);
 void *OSMemMalloc(uOSMemSize_t size);
 void *OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size);
 

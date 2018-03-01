@@ -141,7 +141,7 @@ Input       : None
 Output      : None 
 Return      : None 
 *****************************************************************************/
-void OSMemInit(void)
+uOSBase_t OSMemInit(void)
 {
 	tOSMem_t *ptOSMemTemp = OS_NULL;
 
@@ -166,7 +166,7 @@ void OSMemInit(void)
 	// initialize the lowest-free pointer to the start of the heap 
 	gpOSMemLFree = (tOSMem_t *)(void *)gpOSMemBegin;
 	
-	return;
+	return 0U;
 }
 
 /***************************************************************************** 
