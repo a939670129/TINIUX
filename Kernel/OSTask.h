@@ -109,7 +109,7 @@ typedef struct OSTaskControlBlock
 typedef	tOSTCB_t*		OSTaskHandle_t;
 
 uOSBase_t	OSInit( void ) TINIUX_FUNCTION;
-uOS16_t 	OSStart( void ) TINIUX_FUNCTION;
+uOSBase_t	OSStart( void ) TINIUX_FUNCTION;
 uOSTick_t 	OSGetTickCount( void ) TINIUX_FUNCTION;
 uOSTick_t	OSGetTickCountFromISR( void ) TINIUX_FUNCTION;
 void 		OSScheduleLock( void ) TINIUX_FUNCTION;

@@ -1415,9 +1415,9 @@ static void OSIdleTask( void *pvParameters)
 	}
 }
 
-uOS16_t OSStart( void )
+uOSBase_t OSStart( void )
 {
-	uOS16_t ReturnValue = (uOS16_t)0U;
+	uOSBase_t ReturnValue = (uOSBase_t)0U;
 	OSTaskHandle_t TaskHandle = OS_NULL;
 
 	TaskHandle = OSTaskCreate(OSIdleTask, OS_NULL, OSMINIMAL_STACK_SIZE, OSLOWEAST_PRIORITY, "OSIdleTask");
@@ -1435,7 +1435,7 @@ uOS16_t OSStart( void )
 	}
 	else
 	{
-		ReturnValue = 1;
+		ReturnValue = 1U;
 	}
 
 	// Should not get here!
