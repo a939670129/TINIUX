@@ -52,9 +52,9 @@ typedef struct tOSTimer
     tOSListItem_t            tTimerListItem;
     uOSTick_t                uxTimerTicks;
     uOS16_t                  bPeriod;
-    OSTimerFunction_t        pxTimerFunction;                /* << The callback function to execute. */
-    void *                   pvParameter;                    /* << The value that will be used as the callback functions first parameter. */    
-    sOS8_t                   pcTimerName[OSNAME_MAX_LEN];    /* name of the timer*/
+    OSTimerFunction_t        pxTimerFunction;            /* << The callback function to execute. */
+    void *                   pvParameter;                /* << The value that will be used as the callback functions first parameter. */    
+    sOS8_t                   pcTimerName[OSNAME_MAX_LEN];/* name of the timer*/
     sOSBase_t                xID;
 }tOSTimer_t;
 
@@ -62,9 +62,9 @@ typedef    tOSTimer_t*       OSTimerHandle_t;
 
 typedef struct tTimerCmdMsg
 {
-    sOSBase_t                xCmdMsgType;        /*<< The command message type being sent to the timer moniter task. */
-    uOSTick_t                uxTicks;            /*<< An optional value used by a timer commands, for example, when changing the period of a timer. */
-    tOSTimer_t *             ptTimer;            /*<< The timer to which the command will be applied. */
+    sOSBase_t                xCmdMsgType;                /*<< The command message type being sent to the timer moniter task. */
+    uOSTick_t                uxTicks;                    /*<< An optional value used by a timer commands, for example, when changing the period of a timer. */
+    tOSTimer_t *             ptTimer;                    /*<< The timer to which the command will be applied. */
 } tOSTimerCmdMsg_t;
 
 uOSBase_t         OSTimerInit( void ) TINIUX_FUNCTION;

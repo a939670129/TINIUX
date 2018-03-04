@@ -82,8 +82,8 @@ typedef struct OSTaskControlBlock
     volatile uOSStack_t*    puxTopOfStack;        /*< Points to the location of the last item placed on the task stack. THIS MUST BE THE FIRST MEMBER OF THE TCB STRUCT. */
 
     tOSListItem_t           tTaskListItem;        /*< Used to reference a task from an Ready/Timer/Suspended/Recycle list. */
-    tOSListItem_t           tEventListItem;        /*< Used to reference a task from an PendingReady/Event list. */
-    uOSBase_t               uxPriority;            /*< The priority of the task.  0 is the lowest priority. */
+    tOSListItem_t           tEventListItem;       /*< Used to reference a task from an PendingReady/Event list. */
+    uOSBase_t               uxPriority;           /*< The priority of the task.  0 is the lowest priority. */
     uOSStack_t*             puxStartStack;        /*< Points to the start of the stack. */
     char                    pcTaskName[ OSNAME_MAX_LEN ];
 
@@ -92,16 +92,16 @@ typedef struct OSTaskControlBlock
 #endif
 
 #if ( OS_MUTEX_ON!=0 )
-    uOSBase_t               uxBasePriority;        /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
+    uOSBase_t               uxBasePriority;       /*< The priority last assigned to the task - used by the priority inheritance mechanism. */
     uOSBase_t               uxMutexHoldNum;
 #endif
 
     sOSBase_t               xID;
     
 #if ( OS_TASK_SIGNAL_ON!=0 )
-    uOSBase_t               uxSigType;        /*< Task signal type: SEM_SIG MSG_SIG MSG_SIG_OVERWRITE. */
-    uOSBase_t               uxSigState;        /*< Task signal state: NotWaiting Waiting GotSignal. */
-    sOSBase_t               xSigValue;        /*< Task signal value: Msg or count. */
+    uOSBase_t               uxSigType;            /*< Task signal type: SEM_SIG MSG_SIG MSG_SIG_OVERWRITE. */
+    uOSBase_t               uxSigState;           /*< Task signal state: NotWaiting Waiting GotSignal. */
+    sOSBase_t               xSigValue;            /*< Task signal value: Msg or count. */
 #endif
 
 } tOSTCB_t;
@@ -124,10 +124,10 @@ uOSBool_t    OSEnableLowPowerIdle( void ) TINIUX_FUNCTION;
 
 uOSBase_t    OSTaskInit( void ) TINIUX_FUNCTION;
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t    pxTaskFunction,
-                            void*                pvParameter,
-                            const uOS16_t         usStackDepth,
-                            uOSBase_t            uxPriority,
-                            sOS8_t*                pcTaskName) TINIUX_FUNCTION;
+                            void*               pvParameter,
+                            const uOS16_t       usStackDepth,
+                            uOSBase_t           uxPriority,
+                            sOS8_t*             pcTaskName) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
 void         OSTaskDelete( OSTaskHandle_t xTaskToDelete ) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */

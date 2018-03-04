@@ -55,8 +55,8 @@ typedef struct tOSMsgQ
     sOS8_t *                    pcWriteTo;
     sOS8_t *                    pcReadFrom;
     
-    tOSList_t                   tTaskListEventMsgQV;        // MsgQ Send TaskList;
-    tOSList_t                   tTaskListEventMsgQP;        // MsgQ Recv TaskList;
+    tOSList_t                   tTaskListEventMsgQV;   // MsgQ Send TaskList;
+    tOSList_t                   tTaskListEventMsgQP;   // MsgQ Recv TaskList;
 
     volatile uOSBase_t          uxCurNum;    
     uOSBase_t                   uxMaxNum;

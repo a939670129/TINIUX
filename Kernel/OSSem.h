@@ -50,8 +50,8 @@ typedef struct tOSSem
 {
     char                        pcSemName[ OSNAME_MAX_LEN ];
 
-    tOSList_t                   tTaskListEventSemV;        //Semaphore Post TaskList;
-    tOSList_t                   tTaskListEventSemP;        //Semaphore Pend TaskList;
+    tOSList_t                   tTaskListEventSemV;   //Semaphore Post TaskList;
+    tOSList_t                   tTaskListEventSemP;   //Semaphore Pend TaskList;
 
     volatile uOSBase_t          uxCurNum;    
     uOSBase_t                   uxMaxNum;
