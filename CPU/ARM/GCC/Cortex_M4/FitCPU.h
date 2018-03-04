@@ -45,98 +45,98 @@ extern "C" {
 #endif
 
 /* Constants used with memory barrier intrinsics. */
-#define FitSY_FULL_READ_WRITE		( 15 )
+#define FitSY_FULL_READ_WRITE                   ( 15 )
 
 /* Scheduler utilities. */
-#define FitSchedule()															\
-{																				\
-	/* Set a PendSV to request a context switch. */								\
-	FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;								\
-																				\
-	/* Barriers are normally not required but do ensure the code is completely	\
-	within the specified behaviour for the architecture. */						\
-	__asm volatile( "dsb" );													\
-	__asm volatile( "isb" );													\
+#define FitSchedule()                                                            \
+{                                                                                \
+    /* Set a PendSV to request a context switch. */                              \
+    FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;                                \
+                                                                                 \
+    /* Barriers are normally not required but do ensure the code is completely   \
+    within the specified behaviour for the architecture. */                      \
+    __asm volatile( "dsb" );                                                     \
+    __asm volatile( "isb" );                                                     \
 }
 /*-----------------------------------------------------------*/
 
-#define FitNVIC_INT_CTRL_REG					( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT					( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 				if( b ) FitSchedule()
+#define FitNVIC_INT_CTRL_REG                    ( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT                   ( 1UL << 28UL )
+#define FitScheduleFromISR( b )                 if( b ) FitSchedule()
 
 
 /* Critical section management. */
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 
-#define FitIntMask()							FitRaiseBasePRI()
-#define FitIntUnmask( x )						FitSetBasePRI( x )
+#define FitIntMask()                            FitRaiseBasePRI()
+#define FitIntUnmask( x )                       FitSetBasePRI( x )
 
-#define FitIntMaskFromISR()						FitIntMask()
-#define FitIntUnmaskFromISR( x )				FitIntUnmask( x )
+#define FitIntMaskFromISR()                     FitIntMask()
+#define FitIntUnmaskFromISR( x )                FitIntUnmask( x )
 
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
+    #define FIT_FORCE_INLINE inline __attribute__(( always_inline))
 #endif
 
-#define FIT_QUICK_GET_PRIORITY	1
+#define FIT_QUICK_GET_PRIORITY                  1
 /* Generic helper function. */
 static FIT_FORCE_INLINE uOS8_t FitCountLeadingZeros( uint32_t ulBitmap )
 {
-	uOS8_t ucReturn;
+    uOS8_t ucReturn;
 
-	__asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) );
-	return ucReturn;
+    __asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) );
+    return ucReturn;
 }
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - FitCountLeadingZeros( ( uxReadyPriorities ) ) )
 
 
 FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
 {
-	uOS32_t ulCurrentInterrupt;
+    uOS32_t ulCurrentInterrupt;
 
-	/* Obtain the number of the currently executing interrupt. */
-	__asm volatile
-	( 
-	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
-	);
-	
-	return ulCurrentInterrupt;
+    /* Obtain the number of the currently executing interrupt. */
+    __asm volatile
+    ( 
+    "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+    );
+    
+    return ulCurrentInterrupt;
 }
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE void FitSetBasePRI( uOS32_t ulBASEPRI )
 {
-	__asm volatile
-	(
-		"	msr basepri, %0	" :: "r" ( ulBASEPRI )
-	);	
+    __asm volatile
+    (
+        "    msr basepri, %0    " :: "r" ( ulBASEPRI )
+    );    
 }
 
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE uOS32_t FitRaiseBasePRI( void )
-{	
-	uOS32_t ulOriginalBASEPRI, ulNewBASEPRI;
+{    
+    uOS32_t ulOriginalBASEPRI, ulNewBASEPRI;
 
-	__asm volatile
-	(
-		"	mrs %0, basepri											\n" \
-		"	mov %1, %2												\n"	\
-		"	msr basepri, %1											\n" \
-		"	isb														\n" \
-		"	dsb														\n" \
-		:"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" ( OSMAX_HWINT_PRI )
-	);
+    __asm volatile
+    (
+        "    mrs %0, basepri                                            \n" \
+        "    mov %1, %2                                                 \n" \
+        "    msr basepri, %1                                            \n" \
+        "    isb                                                        \n" \
+        "    dsb                                                        \n" \
+        :"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" ( OSMAX_HWINT_PRI )
+    );
 
-	/* This return will not be reached but is necessary to prevent compiler
-	warnings. */
-	return ulOriginalBASEPRI;	
+    /* This return will not be reached but is necessary to prevent compiler
+    warnings. */
+    return ulOriginalBASEPRI;    
 }
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
@@ -148,10 +148,10 @@ void FitSVCHandler( void ) __attribute__ (( naked ));
 
 #if ( OS_LOWPOWER_ON!=0 )
 /* Tickless idle/low power functionality. */
-	#ifndef FitLowPowerIdle
-		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
-		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
-	#endif
+    #ifndef FitLowPowerIdle
+        extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+        #define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+    #endif
 #endif
 
 #ifdef __cplusplus

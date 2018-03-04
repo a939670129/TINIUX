@@ -49,21 +49,21 @@ extern "C" {
  * we only use the macro SIZEOF_OSMEM_ALIGNED, which automatically alignes.*/
 typedef struct _tOSMem 
 {
-  uOSMemSize_t NextMem;	/** index (-> gpOSMemBegin[NextMem]) of the next struct */
-  uOSMemSize_t PrevMem;	/** index (-> gpOSMemBegin[PrevMem]) of the previous struct */
-  uOS8_t Used;			/** 1: this memory block is Used; 0: this memory block is unused */
+  uOSMemSize_t NextMem;    /** index (-> gpOSMemBegin[NextMem]) of the next struct */
+  uOSMemSize_t PrevMem;    /** index (-> gpOSMemBegin[PrevMem]) of the previous struct */
+  uOS8_t Used;             /** 1: this memory block is Used; 0: this memory block is unused */
 }tOSMem_t;
 
 /** All allocated blocks will be MIN_SIZE bytes big, at least!
  * MIN_SIZE can be overridden to suit your needs. Smaller values save space,
  * larger values could prevent too small blocks to fragment the RAM too much. */
 #ifndef MIN_SIZE
-#define MIN_SIZE             16
+#define MIN_SIZE                  ( 16 )
 #endif /* MIN_SIZE */
 /** some alignment macros: we define them here for better source code layout */
-#define OSMIN_SIZE_ALIGNED		OSMEM_ALIGN_SIZE(MIN_SIZE)
-#define SIZEOF_OSMEM_ALIGNED	OSMEM_ALIGN_SIZE(sizeof(tOSMem_t))
-#define OSMEM_SIZE_ALIGNED		OSMEM_ALIGN_SIZE(OSMEM_SIZE)
+#define OSMIN_SIZE_ALIGNED        OSMEM_ALIGN_SIZE(MIN_SIZE)
+#define SIZEOF_OSMEM_ALIGNED      OSMEM_ALIGN_SIZE(sizeof(tOSMem_t))
+#define OSMEM_SIZE_ALIGNED        OSMEM_ALIGN_SIZE(OSMEM_SIZE)
 
 /** If you want to relocate the heap to external memory, simply define
  * OSRAM_HEAP_POINTER as a void-pointer to that location.
@@ -97,40 +97,40 @@ Return      : None
 #if ( OS_MEMFREE_ON != 0 )
 static void OSMemCombine(tOSMem_t *ptOSMem)
 {
-	tOSMem_t *ptNextOSMem = OS_NULL;
-	tOSMem_t *ptPrevOSMem = OS_NULL;
+    tOSMem_t *ptNextOSMem = OS_NULL;
+    tOSMem_t *ptPrevOSMem = OS_NULL;
 
-	if ( ptOSMem->Used==1 )
-	{
-		return;
-	}
-	
-	// Combine forward 
-	ptNextOSMem = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->NextMem];
-	if (ptOSMem != ptNextOSMem && ptNextOSMem->Used == 0 && (uOS8_t *)ptNextOSMem != (uOS8_t *)gpOSMemEnd) 
-	{
-		// if ptOSMem->NextMem is unused and not end of gpOSMemBegin, combine ptOSMem and ptOSMem->NextMem 
-		if (gpOSMemLFree == ptNextOSMem) 
-		{
-			gpOSMemLFree = ptOSMem;
-		}
-		ptOSMem->NextMem = ptNextOSMem->NextMem;
-		((tOSMem_t *)(void *)&gpOSMemBegin[ptNextOSMem->NextMem])->PrevMem = (uOSMemSize_t)((uOS8_t *)ptOSMem - gpOSMemBegin);
-	}
+    if ( ptOSMem->Used==1 )
+    {
+        return;
+    }
+    
+    // Combine forward 
+    ptNextOSMem = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->NextMem];
+    if (ptOSMem != ptNextOSMem && ptNextOSMem->Used == 0 && (uOS8_t *)ptNextOSMem != (uOS8_t *)gpOSMemEnd) 
+    {
+        // if ptOSMem->NextMem is unused and not end of gpOSMemBegin, combine ptOSMem and ptOSMem->NextMem 
+        if (gpOSMemLFree == ptNextOSMem) 
+        {
+            gpOSMemLFree = ptOSMem;
+        }
+        ptOSMem->NextMem = ptNextOSMem->NextMem;
+        ((tOSMem_t *)(void *)&gpOSMemBegin[ptNextOSMem->NextMem])->PrevMem = (uOSMemSize_t)((uOS8_t *)ptOSMem - gpOSMemBegin);
+    }
 
-	// Combine backward 
-	ptPrevOSMem = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->PrevMem];
-	if (ptPrevOSMem != ptOSMem && ptPrevOSMem->Used == 0) 
-	{
-		// if ptOSMem->PrevMem is unused, combine ptOSMem and ptOSMem->PrevMem 
-		if (gpOSMemLFree == ptOSMem) 
-		{
-			gpOSMemLFree = ptPrevOSMem;
-		}
-		ptPrevOSMem->NextMem = ptOSMem->NextMem;
-		((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->NextMem])->PrevMem = (uOSMemSize_t)((uOS8_t *)ptPrevOSMem - gpOSMemBegin);
-	}
-	return;
+    // Combine backward 
+    ptPrevOSMem = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->PrevMem];
+    if (ptPrevOSMem != ptOSMem && ptPrevOSMem->Used == 0) 
+    {
+        // if ptOSMem->PrevMem is unused, combine ptOSMem and ptOSMem->PrevMem 
+        if (gpOSMemLFree == ptOSMem) 
+        {
+            gpOSMemLFree = ptPrevOSMem;
+        }
+        ptPrevOSMem->NextMem = ptOSMem->NextMem;
+        ((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMem->NextMem])->PrevMem = (uOSMemSize_t)((uOS8_t *)ptPrevOSMem - gpOSMemBegin);
+    }
+    return;
 }
 #endif /* OS_MEMFREE_ON */
 
@@ -143,30 +143,30 @@ Return      : None
 *****************************************************************************/
 uOSBase_t OSMemInit(void)
 {
-	tOSMem_t *ptOSMemTemp = OS_NULL;
+    tOSMem_t *ptOSMemTemp = OS_NULL;
 
-	// align the heap 
-	gpOSMemBegin = (uOS8_t *)OSMEM_ALIGN_ADDR(OSRAM_HEAP_POINTER);
+    // align the heap 
+    gpOSMemBegin = (uOS8_t *)OSMEM_ALIGN_ADDR(OSRAM_HEAP_POINTER);
 
-	/* Initialize the stack tiniux used. */
-	memset(gpOSMemBegin, 0U, OSMEM_SIZE_ALIGNED);
+    /* Initialize the stack tiniux used. */
+    memset(gpOSMemBegin, 0U, OSMEM_SIZE_ALIGNED);
 
-	// initialize the start of the heap 
-	ptOSMemTemp = (tOSMem_t *)(void *)gpOSMemBegin;
-	ptOSMemTemp->NextMem = OSMEM_SIZE_ALIGNED;
-	ptOSMemTemp->PrevMem = 0;
-	ptOSMemTemp->Used = 0;
-	
-	// initialize the end of the heap 
-	gpOSMemEnd = (tOSMem_t *)(void *)&gpOSMemBegin[OSMEM_SIZE_ALIGNED];
-	gpOSMemEnd->Used = 1;
-	gpOSMemEnd->NextMem = OSMEM_SIZE_ALIGNED;
-	gpOSMemEnd->PrevMem = OSMEM_SIZE_ALIGNED;
+    // initialize the start of the heap 
+    ptOSMemTemp = (tOSMem_t *)(void *)gpOSMemBegin;
+    ptOSMemTemp->NextMem = OSMEM_SIZE_ALIGNED;
+    ptOSMemTemp->PrevMem = 0;
+    ptOSMemTemp->Used = 0;
+    
+    // initialize the end of the heap 
+    gpOSMemEnd = (tOSMem_t *)(void *)&gpOSMemBegin[OSMEM_SIZE_ALIGNED];
+    gpOSMemEnd->Used = 1;
+    gpOSMemEnd->NextMem = OSMEM_SIZE_ALIGNED;
+    gpOSMemEnd->PrevMem = OSMEM_SIZE_ALIGNED;
 
-	// initialize the lowest-free pointer to the start of the heap 
-	gpOSMemLFree = (tOSMem_t *)(void *)gpOSMemBegin;
-	
-	return 0U;
+    // initialize the lowest-free pointer to the start of the heap 
+    gpOSMemLFree = (tOSMem_t *)(void *)gpOSMemBegin;
+    
+    return 0U;
 }
 
 /***************************************************************************** 
@@ -180,41 +180,41 @@ Return      : None
 #if ( OS_MEMFREE_ON != 0 )
 void OSMemFree(void *pMem)
 {
-	tOSMem_t *ptOSMemTemp = OS_NULL;
+    tOSMem_t *ptOSMemTemp = OS_NULL;
 
-	if (pMem == OS_NULL) 
-	{
-		return;
-	}
+    if (pMem == OS_NULL) 
+    {
+        return;
+    }
 
-	if ((uOS8_t *)pMem < (uOS8_t *)gpOSMemBegin || (uOS8_t *)pMem >= (uOS8_t *)gpOSMemEnd) 
-	{
-		return;
-	}
-	
-	// protect the heap from concurrent access 
-	OSIntLock();
-	// Get the corresponding tOSMem_t ... 
-	ptOSMemTemp = (tOSMem_t *)(void *)((uOS8_t *)pMem - SIZEOF_OSMEM_ALIGNED);
-	
-	//ptOSMemTemp->Used must be 1
-	if( ptOSMemTemp->Used==1 )
-	{
-		// now set it unused. 
-		ptOSMemTemp->Used = 0;
+    if ((uOS8_t *)pMem < (uOS8_t *)gpOSMemBegin || (uOS8_t *)pMem >= (uOS8_t *)gpOSMemEnd) 
+    {
+        return;
+    }
+    
+    // protect the heap from concurrent access 
+    OSIntLock();
+    // Get the corresponding tOSMem_t ... 
+    ptOSMemTemp = (tOSMem_t *)(void *)((uOS8_t *)pMem - SIZEOF_OSMEM_ALIGNED);
+    
+    //ptOSMemTemp->Used must be 1
+    if( ptOSMemTemp->Used==1 )
+    {
+        // now set it unused. 
+        ptOSMemTemp->Used = 0;
 
-		if (ptOSMemTemp < gpOSMemLFree) 
-		{
-			// the newly freed struct is now the lowest 
-			gpOSMemLFree = ptOSMemTemp;
-		}
+        if (ptOSMemTemp < gpOSMemLFree) 
+        {
+            // the newly freed struct is now the lowest 
+            gpOSMemLFree = ptOSMemTemp;
+        }
 
-		// finally, see if prev or next are free also 
-		OSMemCombine(ptOSMemTemp);		
-	}
-	OSIntUnlock();
-	
-	return;
+        // finally, see if prev or next are free also 
+        OSMemCombine(ptOSMemTemp);        
+    }
+    OSIntUnlock();
+    
+    return;
 }
 #endif /* OS_MEMFREE_ON */
 
@@ -232,107 +232,107 @@ Return      : for compatibility reasons: is always == pMem, at the moment
 #if ( OS_MEMFREE_ON != 0 )
 void* OSMemTrim(void *pMem, uOSMemSize_t newsize)
 {
-	uOSMemSize_t size = 0U;
-	uOSMemSize_t ptr = 0U, ptr2 = 0U;
-	tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
+    uOSMemSize_t size = 0U;
+    uOSMemSize_t ptr = 0U, ptr2 = 0U;
+    tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
 
-	// Expand the size of the allocated memory region so that we can adjust for alignment. 
-	newsize = OSMEM_ALIGN_SIZE(newsize);
+    // Expand the size of the allocated memory region so that we can adjust for alignment. 
+    newsize = OSMEM_ALIGN_SIZE(newsize);
 
-	if(newsize < OSMIN_SIZE_ALIGNED) 
-	{
-		// every data block must be at least OSMIN_SIZE_ALIGNED long 
-		newsize = OSMIN_SIZE_ALIGNED;
-	}
+    if(newsize < OSMIN_SIZE_ALIGNED) 
+    {
+        // every data block must be at least OSMIN_SIZE_ALIGNED long 
+        newsize = OSMIN_SIZE_ALIGNED;
+    }
 
-	if (newsize > OSMEM_SIZE_ALIGNED) 
-	{
-		return OS_NULL;
-	}
+    if (newsize > OSMEM_SIZE_ALIGNED) 
+    {
+        return OS_NULL;
+    }
 
-	if ((uOS8_t *)pMem < (uOS8_t *)gpOSMemBegin || (uOS8_t *)pMem >= (uOS8_t *)gpOSMemEnd) 
-	{
-		return pMem;
-	}
-	// Get the corresponding tOSMem_t 
-	ptOSMemTemp = (tOSMem_t *)(void *)((uOS8_t *)pMem - SIZEOF_OSMEM_ALIGNED);
-	// Get its offset pointer 
-	ptr = (uOSMemSize_t)((uOS8_t *)ptOSMemTemp - gpOSMemBegin);
+    if ((uOS8_t *)pMem < (uOS8_t *)gpOSMemBegin || (uOS8_t *)pMem >= (uOS8_t *)gpOSMemEnd) 
+    {
+        return pMem;
+    }
+    // Get the corresponding tOSMem_t 
+    ptOSMemTemp = (tOSMem_t *)(void *)((uOS8_t *)pMem - SIZEOF_OSMEM_ALIGNED);
+    // Get its offset pointer 
+    ptr = (uOSMemSize_t)((uOS8_t *)ptOSMemTemp - gpOSMemBegin);
 
-	size = ptOSMemTemp->NextMem - ptr - SIZEOF_OSMEM_ALIGNED;
-	if (newsize > size) 
-	{
-		// not supported
-		return OS_NULL;
-	}
-	if (newsize == size) 
-	{
-		// No change in size, simply return 
-		return pMem;
-	}
+    size = ptOSMemTemp->NextMem - ptr - SIZEOF_OSMEM_ALIGNED;
+    if (newsize > size) 
+    {
+        // not supported
+        return OS_NULL;
+    }
+    if (newsize == size) 
+    {
+        // No change in size, simply return 
+        return pMem;
+    }
 
-	// protect the heap from concurrent access 
-	OSIntLock();
+    // protect the heap from concurrent access 
+    OSIntLock();
 
-	ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp->NextMem];
-	if(ptOSMemTemp2->Used == 0) 
-	{
-		// The next struct is unused, we can simply move it at little 
-		uOSMemSize_t NextMem;
-		// remember the old next pointer 
-		NextMem = ptOSMemTemp2->NextMem;
-		// create new tOSMem_t which is moved directly after the shrinked ptOSMemTemp 
-		ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + newsize;
-		if (gpOSMemLFree == ptOSMemTemp2) 
-		{
-			gpOSMemLFree = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
-		}
-		ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
-		ptOSMemTemp2->Used = 0;
-		// restore the next pointer 
-		ptOSMemTemp2->NextMem = NextMem;
-		// link it back to ptOSMemTemp 
-		ptOSMemTemp2->PrevMem = ptr;
-		// link ptOSMemTemp to it 
-		ptOSMemTemp->NextMem = ptr2;
-		// last thing to restore linked list: as we have moved ptOSMemTemp2,
-		// let 'ptOSMemTemp2->NextMem->PrevMem' point to ptOSMemTemp2 again. but only if ptOSMemTemp2->NextMem is not
-		// the end of the heap 
-		if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
-		{
-			((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
-		}
-		// no need to combine, we've already done that 
-	} 
-	else if (newsize + SIZEOF_OSMEM_ALIGNED + OSMIN_SIZE_ALIGNED <= size) 
-	{
-		// Next struct is used but there's room for another tOSMem_t with
-		// at least OSMIN_SIZE_ALIGNED of data.
-		// Old size ('size') must be big enough to contain at least 'newsize' plus a tOSMem_t
-		// ('SIZEOF_OSMEM_ALIGNED') with some data ('OSMIN_SIZE_ALIGNED').
-		ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + newsize;
-		ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
-		if (ptOSMemTemp2 < gpOSMemLFree) 
-		{
-			gpOSMemLFree = ptOSMemTemp2;
-		}
-		ptOSMemTemp2->Used = 0;
-		ptOSMemTemp2->NextMem = ptOSMemTemp->NextMem;
-		ptOSMemTemp2->PrevMem = ptr;
-		ptOSMemTemp->NextMem = ptr2;
-		if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
-		{
-			((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
-		}
-		// the original ptOSMemTemp->NextMem is Used, so no need to combine! 
-	}
-/*	else 
-	{
-		next tOSMem_t is Used but size between ptOSMemTemp and ptOSMemTemp2 is not big enough
-		to create another tOSMem_t
-		-> don't do anyhting. 
-		-> the remaining space stays unused since it is too small
-	} 
+    ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp->NextMem];
+    if(ptOSMemTemp2->Used == 0) 
+    {
+        // The next struct is unused, we can simply move it at little 
+        uOSMemSize_t NextMem;
+        // remember the old next pointer 
+        NextMem = ptOSMemTemp2->NextMem;
+        // create new tOSMem_t which is moved directly after the shrinked ptOSMemTemp 
+        ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + newsize;
+        if (gpOSMemLFree == ptOSMemTemp2) 
+        {
+            gpOSMemLFree = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
+        }
+        ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
+        ptOSMemTemp2->Used = 0;
+        // restore the next pointer 
+        ptOSMemTemp2->NextMem = NextMem;
+        // link it back to ptOSMemTemp 
+        ptOSMemTemp2->PrevMem = ptr;
+        // link ptOSMemTemp to it 
+        ptOSMemTemp->NextMem = ptr2;
+        // last thing to restore linked list: as we have moved ptOSMemTemp2,
+        // let 'ptOSMemTemp2->NextMem->PrevMem' point to ptOSMemTemp2 again. but only if ptOSMemTemp2->NextMem is not
+        // the end of the heap 
+        if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
+        {
+            ((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
+        }
+        // no need to combine, we've already done that 
+    } 
+    else if (newsize + SIZEOF_OSMEM_ALIGNED + OSMIN_SIZE_ALIGNED <= size) 
+    {
+        // Next struct is used but there's room for another tOSMem_t with
+        // at least OSMIN_SIZE_ALIGNED of data.
+        // Old size ('size') must be big enough to contain at least 'newsize' plus a tOSMem_t
+        // ('SIZEOF_OSMEM_ALIGNED') with some data ('OSMIN_SIZE_ALIGNED').
+        ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + newsize;
+        ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
+        if (ptOSMemTemp2 < gpOSMemLFree) 
+        {
+            gpOSMemLFree = ptOSMemTemp2;
+        }
+        ptOSMemTemp2->Used = 0;
+        ptOSMemTemp2->NextMem = ptOSMemTemp->NextMem;
+        ptOSMemTemp2->PrevMem = ptr;
+        ptOSMemTemp->NextMem = ptr2;
+        if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
+        {
+            ((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
+        }
+        // the original ptOSMemTemp->NextMem is Used, so no need to combine! 
+    }
+/*    else 
+    {
+        next tOSMem_t is Used but size between ptOSMemTemp and ptOSMemTemp2 is not big enough
+        to create another tOSMem_t
+        -> don't do anyhting. 
+        -> the remaining space stays unused since it is too small
+    } 
 */
   OSIntUnlock();
   return pMem;
@@ -349,103 +349,103 @@ Return      : pointer to allocated memory or OS_NULL if no free memory was found
 *****************************************************************************/ 
 void* OSMemMalloc(uOSMemSize_t size)
 {
-	uOS8_t * pResult = OS_NULL;
-	uOSMemSize_t ptr = 0U, ptr2 = 0U;
-	tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
+    uOS8_t * pResult = OS_NULL;
+    uOSMemSize_t ptr = 0U, ptr2 = 0U;
+    tOSMem_t *ptOSMemTemp = OS_NULL, *ptOSMemTemp2 = OS_NULL;
 
-	if(gpOSMemEnd==OS_NULL)
-	{
-		OSMemInit();
-		if(gpOSMemEnd==OS_NULL)
-		{
-			return pResult;
-		}
-	}
-	if (size == 0) 
-	{
-		return pResult;
-	}
+    if(gpOSMemEnd==OS_NULL)
+    {
+        OSMemInit();
+        if(gpOSMemEnd==OS_NULL)
+        {
+            return pResult;
+        }
+    }
+    if (size == 0) 
+    {
+        return pResult;
+    }
 
-	// Expand the size of the allocated memory region so that we can
-	// adjust for alignment. 
-	size = OSMEM_ALIGN_SIZE(size);
+    // Expand the size of the allocated memory region so that we can
+    // adjust for alignment. 
+    size = OSMEM_ALIGN_SIZE(size);
 
-	if(size < OSMIN_SIZE_ALIGNED) 
-	{
-		// every data block must be at least OSMIN_SIZE_ALIGNED long 
-		size = OSMIN_SIZE_ALIGNED;
-	}
+    if(size < OSMIN_SIZE_ALIGNED) 
+    {
+        // every data block must be at least OSMIN_SIZE_ALIGNED long 
+        size = OSMIN_SIZE_ALIGNED;
+    }
 
-	if (size > OSMEM_SIZE_ALIGNED) 
-	{
-		return pResult;
-	}
+    if (size > OSMEM_SIZE_ALIGNED) 
+    {
+        return pResult;
+    }
 
-	// protect the heap from concurrent access 
-	OSIntLock();
+    // protect the heap from concurrent access 
+    OSIntLock();
 
-	// Scan through the heap searching for a free block that is big enough,
-	// beginning with the lowest free block.
-	for (ptr = (uOSMemSize_t)((uOS8_t *)gpOSMemLFree - gpOSMemBegin); ptr < OSMEM_SIZE_ALIGNED - size;
-		ptr = ((tOSMem_t *)(void *)&gpOSMemBegin[ptr])->NextMem) 
-	{
-		ptOSMemTemp = (tOSMem_t *)(void *)&gpOSMemBegin[ptr];
+    // Scan through the heap searching for a free block that is big enough,
+    // beginning with the lowest free block.
+    for (ptr = (uOSMemSize_t)((uOS8_t *)gpOSMemLFree - gpOSMemBegin); ptr < OSMEM_SIZE_ALIGNED - size;
+        ptr = ((tOSMem_t *)(void *)&gpOSMemBegin[ptr])->NextMem) 
+    {
+        ptOSMemTemp = (tOSMem_t *)(void *)&gpOSMemBegin[ptr];
 
-		if ((!ptOSMemTemp->Used) && (ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED)) >= size) 
-		{
-			// ptOSMemTemp is not Used and at least perfect fit is possible:
-			// ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED) gives us the 'user data size' of ptOSMemTemp 
+        if ((!ptOSMemTemp->Used) && (ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED)) >= size) 
+        {
+            // ptOSMemTemp is not Used and at least perfect fit is possible:
+            // ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED) gives us the 'user data size' of ptOSMemTemp 
 
-			if (ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED) >= (size + SIZEOF_OSMEM_ALIGNED + OSMIN_SIZE_ALIGNED)) 
-			{
-				// (in addition to the above, we test if another tOSMem_t (SIZEOF_OSMEM_ALIGNED) containing
-				// at least OSMIN_SIZE_ALIGNED of data also fits in the 'user data space' of 'ptOSMemTemp')
-				// -> split large block, create empty remainder,
-				// remainder must be large enough to contain OSMIN_SIZE_ALIGNED data: if
-				// ptOSMemTemp->NextMem - (ptr + (2*SIZEOF_OSMEM_ALIGNED)) == size,
-				// tOSMem_t would fit in but no data between ptOSMemTemp2 and ptOSMemTemp2->NextMem
-				ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + size;
-				// create ptOSMemTemp2 struct 
-				ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
-				ptOSMemTemp2->Used = 0;
-				ptOSMemTemp2->NextMem = ptOSMemTemp->NextMem;
-				ptOSMemTemp2->PrevMem = ptr;
-				// and insert it between ptOSMemTemp and ptOSMemTemp->NextMem 
-				ptOSMemTemp->NextMem = ptr2;
-				ptOSMemTemp->Used = 1;
+            if (ptOSMemTemp->NextMem - (ptr + SIZEOF_OSMEM_ALIGNED) >= (size + SIZEOF_OSMEM_ALIGNED + OSMIN_SIZE_ALIGNED)) 
+            {
+                // (in addition to the above, we test if another tOSMem_t (SIZEOF_OSMEM_ALIGNED) containing
+                // at least OSMIN_SIZE_ALIGNED of data also fits in the 'user data space' of 'ptOSMemTemp')
+                // -> split large block, create empty remainder,
+                // remainder must be large enough to contain OSMIN_SIZE_ALIGNED data: if
+                // ptOSMemTemp->NextMem - (ptr + (2*SIZEOF_OSMEM_ALIGNED)) == size,
+                // tOSMem_t would fit in but no data between ptOSMemTemp2 and ptOSMemTemp2->NextMem
+                ptr2 = ptr + SIZEOF_OSMEM_ALIGNED + size;
+                // create ptOSMemTemp2 struct 
+                ptOSMemTemp2 = (tOSMem_t *)(void *)&gpOSMemBegin[ptr2];
+                ptOSMemTemp2->Used = 0;
+                ptOSMemTemp2->NextMem = ptOSMemTemp->NextMem;
+                ptOSMemTemp2->PrevMem = ptr;
+                // and insert it between ptOSMemTemp and ptOSMemTemp->NextMem 
+                ptOSMemTemp->NextMem = ptr2;
+                ptOSMemTemp->Used = 1;
 
-				if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
-				{
-					((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
-				}
-			} 
-			else 
-			{
-				// (a ptOSMemTemp2 struct does no fit into the user data space of ptOSMemTemp and ptOSMemTemp->NextMem will always
-				// be Used at this point: if not we have 2 unused structs in a row, OSMemCombine should have
-				// take care of this).
-				// -> near fit or excact fit: do not split, no ptOSMemTemp2 creation
-				// also can't move ptOSMemTemp->NextMem directly behind ptOSMemTemp, since ptOSMemTemp->NextMem
-				// will always be Used at this point!
-				ptOSMemTemp->Used = 1;
-			}
+                if (ptOSMemTemp2->NextMem != OSMEM_SIZE_ALIGNED) 
+                {
+                    ((tOSMem_t *)(void *)&gpOSMemBegin[ptOSMemTemp2->NextMem])->PrevMem = ptr2;
+                }
+            } 
+            else 
+            {
+                // (a ptOSMemTemp2 struct does no fit into the user data space of ptOSMemTemp and ptOSMemTemp->NextMem will always
+                // be Used at this point: if not we have 2 unused structs in a row, OSMemCombine should have
+                // take care of this).
+                // -> near fit or excact fit: do not split, no ptOSMemTemp2 creation
+                // also can't move ptOSMemTemp->NextMem directly behind ptOSMemTemp, since ptOSMemTemp->NextMem
+                // will always be Used at this point!
+                ptOSMemTemp->Used = 1;
+            }
 
-			if (ptOSMemTemp == gpOSMemLFree) 
-			{
-				// Find next free block after ptOSMemTemp and update lowest free pointer 
-				while (gpOSMemLFree->Used && gpOSMemLFree != gpOSMemEnd) 
-				{
-					gpOSMemLFree = (tOSMem_t *)(void *)&gpOSMemBegin[gpOSMemLFree->NextMem];
-				}
-			}
-			pResult = (uOS8_t *)ptOSMemTemp + SIZEOF_OSMEM_ALIGNED;
-			break;
-		}
-	}
+            if (ptOSMemTemp == gpOSMemLFree) 
+            {
+                // Find next free block after ptOSMemTemp and update lowest free pointer 
+                while (gpOSMemLFree->Used && gpOSMemLFree != gpOSMemEnd) 
+                {
+                    gpOSMemLFree = (tOSMem_t *)(void *)&gpOSMemBegin[gpOSMemLFree->NextMem];
+                }
+            }
+            pResult = (uOS8_t *)ptOSMemTemp + SIZEOF_OSMEM_ALIGNED;
+            break;
+        }
+    }
 
-	OSIntUnlock();
+    OSIntUnlock();
 
-	return pResult;
+    return pResult;
 }
 
 /***************************************************************************** 
@@ -460,16 +460,16 @@ Return      : pointer to allocated memory / OS_NULL pointer if there is an error
 *****************************************************************************/ 
 void* OSMemCalloc(uOSMemSize_t count, uOSMemSize_t size)
 {
-	void *pMem = OS_NULL;
+    void *pMem = OS_NULL;
 
-	// allocate 'count' objects of size 'size' 
-	pMem = OSMemMalloc(count * size);
-	if (pMem) 
-	{
-		// zero the memory 
-		memset(pMem, 0, count * size);
-	}
-	return pMem;
+    // allocate 'count' objects of size 'size' 
+    pMem = OSMemMalloc(count * size);
+    if (pMem) 
+    {
+        // zero the memory 
+        memset(pMem, 0, count * size);
+    }
+    return pMem;
 }
 
 #ifdef __cplusplus

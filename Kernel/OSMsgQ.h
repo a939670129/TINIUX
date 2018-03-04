@@ -48,58 +48,58 @@ extern "C" {
 
 typedef struct tOSMsgQ
 {
-	char						pcMsgQName[ OSNAME_MAX_LEN ];
+    char                        pcMsgQName[ OSNAME_MAX_LEN ];
 
-	sOS8_t *					pcHead;	
-	sOS8_t *					pcTail;	
-	sOS8_t *					pcWriteTo;
-	sOS8_t *					pcReadFrom;
-	
-	tOSList_t 					tTaskListEventMsgQV;		// MsgQ Send TaskList;
-	tOSList_t 					tTaskListEventMsgQP;		// MsgQ Recv TaskList;
+    sOS8_t *                    pcHead;    
+    sOS8_t *                    pcTail;    
+    sOS8_t *                    pcWriteTo;
+    sOS8_t *                    pcReadFrom;
+    
+    tOSList_t                   tTaskListEventMsgQV;        // MsgQ Send TaskList;
+    tOSList_t                   tTaskListEventMsgQP;        // MsgQ Recv TaskList;
 
-	volatile uOSBase_t 			uxCurNum;	
-	uOSBase_t 					uxMaxNum;
-	uOSBase_t 					uxItemSize;
+    volatile uOSBase_t          uxCurNum;    
+    uOSBase_t                   uxMaxNum;
+    uOSBase_t                   uxItemSize;
 
-	volatile sOSBase_t 			xMsgQPLock;			// Record the number of task which received msg from the MsgQ while it was locked.
-	volatile sOSBase_t 			xMsgQVLock;			// Record the number of task which send msg to the MsgQ while it was locked.
+    volatile sOSBase_t          xMsgQPLock;            // Record the number of task which received msg from the MsgQ while it was locked.
+    volatile sOSBase_t          xMsgQVLock;            // Record the number of task which send msg to the MsgQ while it was locked.
 
-	sOSBase_t					xID;
+    sOSBase_t                   xID;
 } tOSMsgQ_t;
 
-typedef tOSMsgQ_t* 	OSMsgQHandle_t;
+typedef tOSMsgQ_t*              OSMsgQHandle_t;
 
-OSMsgQHandle_t	OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) TINIUX_FUNCTION;
+OSMsgQHandle_t    OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize ) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
-void 			OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+void             OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
-sOSBase_t 		OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
-sOSBase_t 		OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) TINIUX_FUNCTION;
+sOSBase_t         OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t         OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
-uOSBool_t 		OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
-uOSBool_t 		OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
-uOSBool_t 		OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
-uOSBool_t 		OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) TINIUX_FUNCTION;
-uOSBool_t 		OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer ) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer) TINIUX_FUNCTION;
 
-uOSBase_t 		OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
-uOSBase_t 		OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+uOSBase_t         OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+uOSBase_t         OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 
-sOSBase_t		OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) TINIUX_FUNCTION;
+sOSBase_t        OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) TINIUX_FUNCTION;
 
 #if ( OS_TIMER_ON!=0 )
-void 			OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
+void             OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend ) TINIUX_FUNCTION;
 #endif /* ( OS_TIMER_ON!=0 ) */
 
 #endif //( OS_MSGQ_ON!=0 )

@@ -49,45 +49,45 @@ extern "C" {
 
 typedef struct tOSTimer
 {
-	tOSListItem_t			tTimerListItem;
-	uOSTick_t				uxTimerTicks;
-	uOS16_t					bPeriod;
-	OSTimerFunction_t		pxTimerFunction;				/* << The callback function to execute. */
-	void *					pvParameter;					/* << The value that will be used as the callback functions first parameter. */	
-	sOS8_t					pcTimerName[OSNAME_MAX_LEN];	/* name of the timer*/
-	sOSBase_t				xID;
+    tOSListItem_t            tTimerListItem;
+    uOSTick_t                uxTimerTicks;
+    uOS16_t                  bPeriod;
+    OSTimerFunction_t        pxTimerFunction;                /* << The callback function to execute. */
+    void *                   pvParameter;                    /* << The value that will be used as the callback functions first parameter. */    
+    sOS8_t                   pcTimerName[OSNAME_MAX_LEN];    /* name of the timer*/
+    sOSBase_t                xID;
 }tOSTimer_t;
 
-typedef	tOSTimer_t*			OSTimerHandle_t;
+typedef    tOSTimer_t*       OSTimerHandle_t;
 
 typedef struct tTimerCmdMsg
 {
-	sOSBase_t				xCmdMsgType;		/*<< The command message type being sent to the timer moniter task. */
-	uOSTick_t				uxTicks;			/*<< An optional value used by a timer commands, for example, when changing the period of a timer. */
-	tOSTimer_t *			ptTimer;			/*<< The timer to which the command will be applied. */
+    sOSBase_t                xCmdMsgType;        /*<< The command message type being sent to the timer moniter task. */
+    uOSTick_t                uxTicks;            /*<< An optional value used by a timer commands, for example, when changing the period of a timer. */
+    tOSTimer_t *             ptTimer;            /*<< The timer to which the command will be applied. */
 } tOSTimerCmdMsg_t;
 
-uOSBase_t 		OSTimerInit( void ) TINIUX_FUNCTION;
+uOSBase_t         OSTimerInit( void ) TINIUX_FUNCTION;
 
-OSTimerHandle_t OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) TINIUX_FUNCTION;
+OSTimerHandle_t   OSTimerCreate(const uOSTick_t uxTimerTicks, const uOS16_t uiIsPeriod, const OSTimerFunction_t Function, void* pvParameter, sOS8_t* pcName) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
-uOSBool_t 		OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
-uOSBool_t 		OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
-sOSBase_t 		OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
-sOSBase_t 		OSTimerGetID(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+sOSBase_t         OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t         OSTimerGetID(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 
-uOSBool_t		OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
-uOSBool_t		OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerStart(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerStartFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerStop(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
-uOSBool_t 		OSTimerStopFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerSetTicks(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
+uOSBool_t         OSTimerSetTicksFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerTicks) TINIUX_FUNCTION;
+uOSBool_t         OSTimerSetPeriod(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t         OSTimerSetPeriodFromISR(OSTimerHandle_t const TimerHandle, const uOSTick_t uxTimerPeriod) TINIUX_FUNCTION;
+uOSBool_t         OSTimerStart(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerStartFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerStop(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerStopFromISR(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSTimerCreateMoniteTask( void ) TINIUX_FUNCTION;
+uOSBool_t         OSTimerCreateMoniteTask( void ) TINIUX_FUNCTION;
 
 #endif //( OS_TIMER_ON!=0 )
 #endif//( OS_MSGQ_ON!=0 )

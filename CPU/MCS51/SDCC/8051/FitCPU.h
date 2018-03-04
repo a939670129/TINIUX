@@ -49,39 +49,39 @@ extern "C" {
 
 /* Critical section management. */
 
-#define FitIntLock()				__asm		\
-									push	ACC	\
-									push	IE	\
-									__endasm;	\
-									EA = 0;
+#define FitIntLock()                __asm        \
+                                    push    ACC  \
+                                    push    IE   \
+                                    __endasm;    \
+                                    EA = 0;
 
-#define FitIntUnlock()				__asm			\
-									pop		ACC		\
-									__endasm;		\
-									ACC &= 0x80;	\
-									IE |= ACC;		\
-									__asm			\
-									pop		ACC		\
-									__endasm;
+#define FitIntUnlock()                __asm          \
+                                    pop        ACC   \
+                                    __endasm;        \
+                                    ACC &= 0x80;     \
+                                    IE |= ACC;       \
+                                    __asm            \
+                                    pop        ACC   \
+                                    __endasm;
 
-#define FitIntMask()				EA = 0;
-#define FitIntUnmask()				EA = 1;
+#define FitIntMask()                EA = 0;
+#define FitIntUnmask()              EA = 1;
 
-#define FitIntMaskFromISR() 		EA = 0;
-#define FitIntUnmaskFromISR( x ) 	EA = 1; ( void ) x;
+#define FitIntMaskFromISR()         EA = 0;
+#define FitIntUnmaskFromISR( x )    EA = 1; ( void ) x;
 
-#define FitIsInsideISR()			0;
+#define FitIsInsideISR()            0;
 
 /*-----------------------------------------------------------*/
 
 /* Task utilities. */
 void FitSchedule( void ) __naked;
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 /*-----------------------------------------------------------*/
 
-#define FitNOP()				__asm	\
-									nop \
-								__endasm;
+#define FitNOP()                __asm    \
+                                    nop  \
+                                __endasm;
 
 /*-----------------------------------------------------------*/
 

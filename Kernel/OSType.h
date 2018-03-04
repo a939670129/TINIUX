@@ -54,166 +54,166 @@ typedef void (*OSCallbackFunction_t)( void *, uOS32_t );
 
 typedef struct tTIME_OUT
 {
-	sOSBase_t xOverflowCount;
-	uOSTick_t uxTimeOnEntering;
+    sOSBase_t xOverflowCount;
+    uOSTick_t uxTimeOnEntering;
 } tOSTimeOut_t;
 
-typedef enum {OS_FALSE = 0, OS_TRUE = !OS_FALSE} uOSBool_t;
+typedef enum {OS_FALSE = 0, OS_TRUE = !OS_FALSE}    uOSBool_t;
 typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
-#define 	OS_NULL					( ( void* ) 0 )
-#define 	OS_PASS					( OS_TRUE )
-#define 	OS_FAIL					( OS_FALSE )
+#define     OS_NULL                    ( ( void* ) 0 )
+#define     OS_PASS                    ( OS_TRUE )
+#define     OS_FAIL                    ( OS_FALSE )
 
 #ifndef SETOS_CPU_CLOCK_HZ
-  #define	OSCPU_CLOCK_HZ			( ( unsigned long )36000000 )
+  #define    OSCPU_CLOCK_HZ            ( ( unsigned long )36000000 )
 #else
-  #define	OSCPU_CLOCK_HZ			( ( unsigned long ) SETOS_CPU_CLOCK_HZ )
+  #define    OSCPU_CLOCK_HZ            ( ( unsigned long ) SETOS_CPU_CLOCK_HZ )
 #endif
 
 #ifndef SETOS_TICK_RATE_HZ
-  #define	OSTICK_RATE_HZ			( ( uOSTick_t )1000 )
+  #define    OSTICK_RATE_HZ            ( ( uOSTick_t )1000 )
 #else
-  #define	OSTICK_RATE_HZ			( ( uOSTick_t ) SETOS_TICK_RATE_HZ )
+  #define    OSTICK_RATE_HZ            ( ( uOSTick_t ) SETOS_TICK_RATE_HZ )
 #endif
 
 #ifndef FITSTACK_GROWTH
-  #define	OSSTACK_GROWTH			( -1 )
+  #define    OSSTACK_GROWTH            ( -1 )
 #else
-  #define	OSSTACK_GROWTH			( FITSTACK_GROWTH )
+  #define    OSSTACK_GROWTH            ( FITSTACK_GROWTH )
 #endif
 
 #ifndef FITBYTE_ALIGNMENT
-  #define	OSMEM_ALIGNMENT			( 8 )
+  #define    OSMEM_ALIGNMENT            ( 8 )
 #else
-  #define	OSMEM_ALIGNMENT			( FITBYTE_ALIGNMENT )
+  #define    OSMEM_ALIGNMENT            ( FITBYTE_ALIGNMENT )
 #endif
-#define 	OSMEM_ALIGNMENT_MASK	( OSMEM_ALIGNMENT-1 )
+#define     OSMEM_ALIGNMENT_MASK        ( OSMEM_ALIGNMENT-1 )
 
 // Priority range of the TINIUX 0~31
 #ifndef SETOS_MAX_PRIORITIES
-  #define	OSTASK_MAX_PRIORITY		( 8 )
+  #define    OSTASK_MAX_PRIORITY        ( 8 )
 #else
   #if (SETOS_MAX_PRIORITIES>32)
-    #define 	OSTASK_MAX_PRIORITY	( 32 )
+    #define     OSTASK_MAX_PRIORITY     ( 32 )
   #else
-    #define	OSTASK_MAX_PRIORITY		( SETOS_MAX_PRIORITIES )
+    #define    OSTASK_MAX_PRIORITY      ( SETOS_MAX_PRIORITIES )
   #endif
 #endif
 
-#define 	OSLOWEAST_PRIORITY		( 0 )
-#define		OSHIGHEAST_PRIORITY		( OSTASK_MAX_PRIORITY )
+#define     OSLOWEAST_PRIORITY          ( 0 )
+#define        OSHIGHEAST_PRIORITY      ( OSTASK_MAX_PRIORITY )
 
 // The total heap size of the TINIUX
 #ifndef SETOS_TOTAL_HEAP_SIZE
-  #define	OSTOTAL_HEAP_SIZE		( 512 )
+  #define    OSTOTAL_HEAP_SIZE          ( 512 )
 #else
-  #define	OSTOTAL_HEAP_SIZE		( SETOS_TOTAL_HEAP_SIZE )
+  #define    OSTOTAL_HEAP_SIZE          ( SETOS_TOTAL_HEAP_SIZE )
 #endif
 
 // Mini stack size of a task(Idle task or Monitor task)
 #ifndef SETOS_MINIMAL_STACK_SIZE
-  #define	OSMINIMAL_STACK_SIZE	( 32 )
+  #define    OSMINIMAL_STACK_SIZE       ( 32 )
 #else
-  #define	OSMINIMAL_STACK_SIZE	( SETOS_MINIMAL_STACK_SIZE )
+  #define    OSMINIMAL_STACK_SIZE       ( SETOS_MINIMAL_STACK_SIZE )
 #endif
 
 // Length of name(eg. task name, semaphore name, MsgQ name, Mutex name)
 #ifndef SETOS_MAX_NAME_LEN
-  #define	OSNAME_MAX_LEN			( 10 )
+  #define    OSNAME_MAX_LEN             ( 10 )
 #else
-  #define	OSNAME_MAX_LEN			( SETOS_MAX_NAME_LEN )
+  #define    OSNAME_MAX_LEN             ( SETOS_MAX_NAME_LEN )
 #endif
 
 // Enable delete task or not
 #ifndef SETOS_ENABLE_MEMFREE
-  #define	OS_MEMFREE_ON			( 0 )
+  #define    OS_MEMFREE_ON              ( 0 )
 #else
-  #define	OS_MEMFREE_ON			( SETOS_ENABLE_MEMFREE )
+  #define    OS_MEMFREE_ON              ( SETOS_ENABLE_MEMFREE )
 #endif
 
 // Use low-power mode or not
 #ifndef SETOS_LOWPOWER_MODE
-  #define	OS_LOWPOWER_ON			( 0 )
+  #define    OS_LOWPOWER_ON             ( 0 )
 #else
-  #define	OS_LOWPOWER_ON			( SETOS_LOWPOWER_MODE )
+  #define    OS_LOWPOWER_ON             ( SETOS_LOWPOWER_MODE )
 #endif
 
 //define mini ticks could use in low-power mode 
 #if ( OS_LOWPOWER_ON!=0 )
-	#ifndef SETOS_LOWPOWER_MINI_TICKS
-		#define		OS_LOWPOWER_MINI_TICKS	( 2 )
-	#else
-		#if (SETOS_LOWPOWER_MINI_TICKS<2)
-			#define	OS_LOWPOWER_MINI_TICKS	( 2 )
-		#else
-			#define	OS_LOWPOWER_MINI_TICKS	( SETOS_LOWPOWER_MINI_TICKS )
-		#endif
-	#endif
+    #ifndef SETOS_LOWPOWER_MINI_TICKS
+        #define        OS_LOWPOWER_MINI_TICKS    ( 2 )
+    #else
+        #if (SETOS_LOWPOWER_MINI_TICKS<2)
+            #define    OS_LOWPOWER_MINI_TICKS    ( 2 )
+        #else
+            #define    OS_LOWPOWER_MINI_TICKS    ( SETOS_LOWPOWER_MINI_TICKS )
+        #endif
+    #endif
 #endif
 
 // The value used as pend forever
 #ifndef SETOS_PEND_FOREVER_VALUE
-  #define	OSPEND_FOREVER_VALUE	( ( uOSTick_t ) 0xFFFFFFFFUL )
+  #define    OSPEND_FOREVER_VALUE       ( ( uOSTick_t ) 0xFFFFFFFFUL )
 #else
-  #define	OSPEND_FOREVER_VALUE	( SETOS_PEND_FOREVER_VALUE )
+  #define    OSPEND_FOREVER_VALUE       ( SETOS_PEND_FOREVER_VALUE )
 #endif
 
 // Use semaphore or not
 #ifndef SETOS_USE_SEMAPHORE
-  #define	OS_SEMAPHORE_ON			( 1 )
+  #define    OS_SEMAPHORE_ON            ( 1 )
 #else
-  #define	OS_SEMAPHORE_ON			( SETOS_USE_SEMAPHORE )
+  #define    OS_SEMAPHORE_ON            ( SETOS_USE_SEMAPHORE )
 #endif
 
 // Use message queue or not
 #ifndef SETOS_USE_MSGQ
-  #define	OS_MSGQ_ON				( 1 )
+  #define    OS_MSGQ_ON                 ( 1 )
 #else
-  #define	OS_MSGQ_ON				( SETOS_USE_MSGQ )
+  #define    OS_MSGQ_ON                 ( SETOS_USE_MSGQ )
 #endif
 
 // The max message num in a message queue
 #ifndef SETOS_MSGQ_MAX_MSGNUM
-  #define	OSMSGQ_MAX_MSGNUM		( 5 )
+  #define    OSMSGQ_MAX_MSGNUM          ( 5 )
 #else
-  #define	OSMSGQ_MAX_MSGNUM		( SETOS_MSGQ_MAX_MSGNUM )
+  #define    OSMSGQ_MAX_MSGNUM          ( SETOS_MSGQ_MAX_MSGNUM )
 #endif
 
 
 // Use mutex or not
 #ifndef SETOS_USE_MUTEX
-  #define	OS_MUTEX_ON				( 1 )
+  #define    OS_MUTEX_ON                ( 1 )
 #else
-  #define	OS_MUTEX_ON				( SETOS_USE_MUTEX )
+  #define    OS_MUTEX_ON                ( SETOS_USE_MUTEX )
 #endif
 
 // Use Timer or not
 #ifndef SETOS_USE_TIMER
-  #define	OS_TIMER_ON				( 1 )
+  #define    OS_TIMER_ON                ( 1 )
 #else
-  #define	OS_TIMER_ON				( SETOS_USE_TIMER )
+  #define    OS_TIMER_ON                ( SETOS_USE_TIMER )
 #endif
 
 #if ( OS_MSGQ_ON!=0 )
 // Used by timer
 #ifndef SETOS_CALLBACK_TASK_PRIORITY
-  #define	OSCALLBACK_TASK_PRIO	( OSHIGHEAST_PRIORITY - 1 )
+  #define    OSCALLBACK_TASK_PRIO       ( OSHIGHEAST_PRIORITY - 1 )
 #else
-  #define	OSCALLBACK_TASK_PRIO	( SETOS_CALLBACK_TASK_PRIORITY )
+  #define    OSCALLBACK_TASK_PRIO       ( SETOS_CALLBACK_TASK_PRIORITY )
 #endif
 #endif //( OS_MSGQ_ON!=0 )
 
 #ifndef SETOS_TASK_SIGNAL_ON
-  #define	OS_TASK_SIGNAL_ON		( 1 )
+  #define    OS_TASK_SIGNAL_ON          ( 1 )
 #else
-  #define	OS_TASK_SIGNAL_ON		( SETOS_TASK_SIGNAL_ON )
+  #define    OS_TASK_SIGNAL_ON          ( SETOS_TASK_SIGNAL_ON )
 #endif
 
 // Milliseconds to OS Ticks
-#define OSM2T( x )                  ( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
+#define OSM2T( x )                      ( ( uOSTick_t )( ( x )*( OSTICK_RATE_HZ/1000.0 ) ) )
 // Frequency to OS Ticks
-#define OSF2T( x )                  ( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
+#define OSF2T( x )                      ( ( uOSTick_t )( ( OSTICK_RATE_HZ/( x ) ) ) )
 
 #ifdef __cplusplus
 }

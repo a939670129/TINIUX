@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE __forceinline
+    #define FIT_FORCE_INLINE        __forceinline
 #endif
 
 extern uOS32_t FitIntMask( void );
@@ -55,18 +55,18 @@ extern void FitIntUnlock( void );
 extern void FitSchedule( void );
 extern uOS32_t FitGetIPSR( void );
 
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
+#define FitNVIC_INT_CTRL_REG        ( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT       ( 1UL << 28UL )
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()					( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 
-#define FitIntMaskFromISR()			FitIntMask()
-#define FitIntUnmaskFromISR( x )	FitIntUnmask( x )
+#define FitIntMaskFromISR()         FitIntMask()
+#define FitIntUnmaskFromISR( x )    FitIntUnmask( x )
 
-#define FIT_QUICK_GET_PRIORITY		1
+#define FIT_QUICK_GET_PRIORITY      ( 1 )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( guxReadyPriorities ) ) )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
@@ -78,10 +78,10 @@ void FitSVCHandler( void );
 
 #if ( OS_LOWPOWER_ON!=0 )
 /* Tickless idle/low power functionality. */
-	#ifndef FitLowPowerIdle
-		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
-		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
-	#endif
+    #ifndef FitLowPowerIdle
+        extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+        #define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+    #endif
 #endif
 
 #ifdef __cplusplus

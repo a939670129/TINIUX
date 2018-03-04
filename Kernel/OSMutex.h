@@ -48,35 +48,35 @@ extern "C" {
 
 typedef struct tOSMutex
 {
-	char						pcMutexName[ OSNAME_MAX_LEN ];
-	sOS8_t *					MutexHolderHandle;
-	
-	tOSList_t 					tTaskListEventMutexV;		// Mutex Unlock TaskList;
-	tOSList_t 					tTaskListEventMutexP;		// Mutex Lock TaskList;
+    char                        pcMutexName[ OSNAME_MAX_LEN ];
+    sOS8_t *                    MutexHolderHandle;
+    
+    tOSList_t                   tTaskListEventMutexV;        // Mutex Unlock TaskList;
+    tOSList_t                   tTaskListEventMutexP;        // Mutex Lock TaskList;
 
-	volatile uOSBase_t 			uxCurNum;	
-	uOSBase_t 					uxMaxNum;
-	
-	uOSBase_t					uxMutexLocked;			// Mutex lock count
-	
-	volatile sOSBase_t 			xMutexPLock;			// Record the number of task which lock from the mutex while it was locked.
-	volatile sOSBase_t 			xMutexVLock;			// Record the number of task which unlock to the mutex while it was locked.
+    volatile uOSBase_t          uxCurNum;    
+    uOSBase_t                   uxMaxNum;
+    
+    uOSBase_t                   uxMutexLocked;            // Mutex lock count
+    
+    volatile sOSBase_t          xMutexPLock;            // Record the number of task which lock from the mutex while it was locked.
+    volatile sOSBase_t          xMutexVLock;            // Record the number of task which unlock to the mutex while it was locked.
 
-	sOSBase_t					xID;
+    sOSBase_t                   xID;
 } tOSMutex_t;
 
-typedef	tOSMutex_t*		OSMutexHandle_t;
+typedef    tOSMutex_t*          OSMutexHandle_t;
 
-OSMutexHandle_t OSMutexCreate( void ) TINIUX_FUNCTION;
+OSMutexHandle_t   OSMutexCreate( void ) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
-void 			OSMutexDelete( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
+void              OSMutexDelete( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
-sOSBase_t 		OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
-sOSBase_t 		OSMutexGetID(OSMutexHandle_t const MutexHandle) TINIUX_FUNCTION;
+sOSBase_t         OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t         OSMutexGetID(OSMutexHandle_t const MutexHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
-uOSBool_t 		OSMutexUnlock( OSMutexHandle_t MutexHandle) TINIUX_FUNCTION;
+uOSBool_t         OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSMutexUnlock( OSMutexHandle_t MutexHandle) TINIUX_FUNCTION;
 
 #endif //( OS_MUTEX_ON!=0 )
 

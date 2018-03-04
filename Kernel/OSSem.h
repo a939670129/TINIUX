@@ -48,36 +48,36 @@ extern "C" {
 
 typedef struct tOSSem
 {
-	char						pcSemName[ OSNAME_MAX_LEN ];
+    char                        pcSemName[ OSNAME_MAX_LEN ];
 
-	tOSList_t 					tTaskListEventSemV;		//Semaphore Post TaskList;
-	tOSList_t 					tTaskListEventSemP;		//Semaphore Pend TaskList;
+    tOSList_t                   tTaskListEventSemV;        //Semaphore Post TaskList;
+    tOSList_t                   tTaskListEventSemP;        //Semaphore Pend TaskList;
 
-	volatile uOSBase_t 			uxCurNum;	
-	uOSBase_t 					uxMaxNum;
+    volatile uOSBase_t          uxCurNum;    
+    uOSBase_t                   uxMaxNum;
 
-	volatile sOSBase_t 			xSemPLock;			// Record the number of task which pend from the semaphore while it was locked.
-	volatile sOSBase_t 			xSemVLock;			// Record the number of task which post to the semaphore while it was locked.
+    volatile sOSBase_t          xSemPLock;            // Record the number of task which pend from the semaphore while it was locked.
+    volatile sOSBase_t          xSemVLock;            // Record the number of task which post to the semaphore while it was locked.
 
-	sOSBase_t					xID;
+    sOSBase_t                   xID;
 } tOSSem_t;
 
 typedef tOSSem_t* OSSemHandle_t;
 
-OSSemHandle_t 	OSSemCreate( const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
-OSSemHandle_t 	OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
+OSSemHandle_t     OSSemCreate( const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
+OSSemHandle_t     OSSemCreateCount( const uOSBase_t uxMaxNum, const uOSBase_t uxInitialCount ) TINIUX_FUNCTION;
 
 #if ( OS_MEMFREE_ON != 0 )
-void 			OSSemDelete(OSSemHandle_t SemHandle) TINIUX_FUNCTION;
+void              OSSemDelete(OSSemHandle_t SemHandle) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
-sOSBase_t 		OSSemSetID(OSSemHandle_t SemHandle, sOSBase_t xID) TINIUX_FUNCTION;
-sOSBase_t 		OSSemGetID(OSSemHandle_t const SemHandle) TINIUX_FUNCTION;
+sOSBase_t         OSSemSetID(OSSemHandle_t SemHandle, sOSBase_t xID) TINIUX_FUNCTION;
+sOSBase_t         OSSemGetID(OSSemHandle_t const SemHandle) TINIUX_FUNCTION;
 
-uOSBool_t 		OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t         OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait) TINIUX_FUNCTION;
 
-uOSBool_t 		OSSemPost( OSSemHandle_t SemHandle) TINIUX_FUNCTION;
-uOSBool_t 		OSSemPostFromISR( OSSemHandle_t SemHandle ) TINIUX_FUNCTION;
+uOSBool_t         OSSemPost( OSSemHandle_t SemHandle) TINIUX_FUNCTION;
+uOSBool_t         OSSemPostFromISR( OSSemHandle_t SemHandle ) TINIUX_FUNCTION;
 
 #endif //(OS_SEMAPHORE_ON!=0)
 

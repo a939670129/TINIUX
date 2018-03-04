@@ -48,752 +48,752 @@ extern "C" {
 #if ( OS_MSGQ_ON!=0 )
 
 /* Constants used with the xMsgQPLock and xMsgQVLock structure members. */
-TINIUX_DATA static sOSBase_t const OSMSGQ_UNLOCKED			= ( ( sOSBase_t ) -1 );
-TINIUX_DATA static sOSBase_t const OSMSGQ_LOCKED			= ( ( sOSBase_t ) 0 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_UNLOCKED          = ( ( sOSBase_t ) -1 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_LOCKED            = ( ( sOSBase_t ) 0 );
 
 /* OSMsgQ send mode. */
-TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_BACK		= ( ( sOSBase_t ) 0 );
-TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_FRONT		= ( ( sOSBase_t ) 1 );
-TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_OVERWRITE	= ( ( sOSBase_t ) 2 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_BACK      = ( ( sOSBase_t ) 0 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_TO_FRONT     = ( ( sOSBase_t ) 1 );
+TINIUX_DATA static sOSBase_t const OSMSGQ_SEND_OVERWRITE    = ( ( sOSBase_t ) 2 );
 
 static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
 {
-	uOSBool_t bReturn = OS_FALSE;
+    uOSBool_t bReturn = OS_FALSE;
 
-	OSIntLock();
-	{
-		if( ptMsgQ->uxCurNum == ( uOSBase_t )  0 )
-		{
-			bReturn = OS_TRUE;
-		}
-		else
-		{
-			bReturn = OS_FALSE;
-		}
-	}
-	OSIntUnlock();
+    OSIntLock();
+    {
+        if( ptMsgQ->uxCurNum == ( uOSBase_t )  0 )
+        {
+            bReturn = OS_TRUE;
+        }
+        else
+        {
+            bReturn = OS_FALSE;
+        }
+    }
+    OSIntUnlock();
 
-	return bReturn;
+    return bReturn;
 }
 
 static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
 {
-	uOSBool_t bReturn = OS_FALSE;
+    uOSBool_t bReturn = OS_FALSE;
 
-	OSIntLock();
-	{
-		if( ptMsgQ->uxCurNum == ptMsgQ->uxMaxNum )
-		{
-			bReturn = OS_TRUE;
-		}
-		else
-		{
-			bReturn = OS_FALSE;
-		}
-	}
-	OSIntUnlock();
+    OSIntLock();
+    {
+        if( ptMsgQ->uxCurNum == ptMsgQ->uxMaxNum )
+        {
+            bReturn = OS_TRUE;
+        }
+        else
+        {
+            bReturn = OS_FALSE;
+        }
+    }
+    OSIntUnlock();
 
-	return bReturn;
+    return bReturn;
 }
 
-#define OSMsgQLock( ptMsgQ )								\
-	OSIntLock();											\
-	{														\
-		if( ( ptMsgQ )->xMsgQPLock == OSMSGQ_UNLOCKED )		\
-		{													\
-			( ptMsgQ )->xMsgQPLock = OSMSGQ_LOCKED;			\
-		}													\
-		if( ( ptMsgQ )->xMsgQVLock == OSMSGQ_UNLOCKED )		\
-		{													\
-			( ptMsgQ )->xMsgQVLock = OSMSGQ_LOCKED;			\
-		}													\
-	}														\
-	OSIntUnlock()
+#define OSMsgQLock( ptMsgQ )                                \
+    OSIntLock();                                            \
+    {                                                       \
+        if( ( ptMsgQ )->xMsgQPLock == OSMSGQ_UNLOCKED )     \
+        {                                                   \
+            ( ptMsgQ )->xMsgQPLock = OSMSGQ_LOCKED;         \
+        }                                                   \
+        if( ( ptMsgQ )->xMsgQVLock == OSMSGQ_UNLOCKED )     \
+        {                                                   \
+            ( ptMsgQ )->xMsgQVLock = OSMSGQ_LOCKED;         \
+        }                                                   \
+    }                                                       \
+    OSIntUnlock()
 
 
 static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
 {
-	/* THIS FUNCTION MUST BE CALLED WITH THE SCHEDULER LOCKED. */
+    /* THIS FUNCTION MUST BE CALLED WITH THE SCHEDULER LOCKED. */
 
-	OSIntLock();
-	{
-		sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
+    OSIntLock();
+    {
+        sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
 
-		while( xMsgQVLock > OSMSGQ_LOCKED )
-		{
-			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
-			{
-				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
-				{
-					OSTaskNeedSchedule();
-				}
-			}
-			else
-			{
-				break;
-			}
+        while( xMsgQVLock > OSMSGQ_LOCKED )
+        {
+            if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
+            {
+                if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
+                {
+                    OSTaskNeedSchedule();
+                }
+            }
+            else
+            {
+                break;
+            }
 
-			--xMsgQVLock;
-		}
+            --xMsgQVLock;
+        }
 
-		ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
-	}
-	OSIntUnlock();
+        ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
+    }
+    OSIntUnlock();
 
-	/* Do the same for the MsgQP lock. */
-	OSIntLock();
-	{
-		sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
-		
-		while( xMsgQPLock > OSMSGQ_LOCKED )
-		{
-			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
-			{
-				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
-				{
-					OSTaskNeedSchedule();
-				}
+    /* Do the same for the MsgQP lock. */
+    OSIntLock();
+    {
+        sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
+        
+        while( xMsgQPLock > OSMSGQ_LOCKED )
+        {
+            if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
+            {
+                if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
+                {
+                    OSTaskNeedSchedule();
+                }
 
-				--xMsgQPLock;
-			}
-			else
-			{
-				break;
-			}
-		}
+                --xMsgQPLock;
+            }
+            else
+            {
+                break;
+            }
+        }
 
-		ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
-	}
-	OSIntUnlock();
+        ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
+    }
+    OSIntUnlock();
 }
 
 static uOSBool_t OSMsgQCopyDataIn( tOSMsgQ_t * const ptMsgQ, const void *pvItemToQueue, const sOSBase_t xPosition )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
-	
-	if( xPosition == OSMSGQ_SEND_TO_BACK )
-	{
-		( void ) memcpy( ( void * ) ptMsgQ->pcWriteTo, pvItemToQueue, ( size_t ) ptMsgQ->uxItemSize );
-		ptMsgQ->pcWriteTo += ptMsgQ->uxItemSize;
-		if( ptMsgQ->pcWriteTo >= ptMsgQ->pcTail )
-		{
-			ptMsgQ->pcWriteTo = ptMsgQ->pcHead;
-		}
-	}
-	else
-	{
-		( void ) memcpy( ( void * ) ptMsgQ->pcReadFrom, pvItemToQueue, ( size_t ) ptMsgQ->uxItemSize );
-		ptMsgQ->pcReadFrom -= ptMsgQ->uxItemSize;
-		if( ptMsgQ->pcReadFrom < ptMsgQ->pcHead )
-		{
-			ptMsgQ->pcReadFrom = ( ptMsgQ->pcTail - ptMsgQ->uxItemSize );
-		}
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
+    
+    if( xPosition == OSMSGQ_SEND_TO_BACK )
+    {
+        ( void ) memcpy( ( void * ) ptMsgQ->pcWriteTo, pvItemToQueue, ( size_t ) ptMsgQ->uxItemSize );
+        ptMsgQ->pcWriteTo += ptMsgQ->uxItemSize;
+        if( ptMsgQ->pcWriteTo >= ptMsgQ->pcTail )
+        {
+            ptMsgQ->pcWriteTo = ptMsgQ->pcHead;
+        }
+    }
+    else
+    {
+        ( void ) memcpy( ( void * ) ptMsgQ->pcReadFrom, pvItemToQueue, ( size_t ) ptMsgQ->uxItemSize );
+        ptMsgQ->pcReadFrom -= ptMsgQ->uxItemSize;
+        if( ptMsgQ->pcReadFrom < ptMsgQ->pcHead )
+        {
+            ptMsgQ->pcReadFrom = ( ptMsgQ->pcTail - ptMsgQ->uxItemSize );
+        }
 
-		if( xPosition == OSMSGQ_SEND_OVERWRITE )
-		{
-			if( uxCurNum > ( uOSBase_t ) 0 )
-			{
-				--uxCurNum;
-			}
-		}
-	}
+        if( xPosition == OSMSGQ_SEND_OVERWRITE )
+        {
+            if( uxCurNum > ( uOSBase_t ) 0 )
+            {
+                --uxCurNum;
+            }
+        }
+    }
 
-	ptMsgQ->uxCurNum = uxCurNum + ( uOSBase_t ) 1U;
+    ptMsgQ->uxCurNum = uxCurNum + ( uOSBase_t ) 1U;
 
-	return bReturn;
+    return bReturn;
 }
 
 static void OSMsgQCopyDataOut( tOSMsgQ_t * const ptMsgQ, void * const pvBuffer )
 {
-	ptMsgQ->pcReadFrom += ptMsgQ->uxItemSize;
-	if( ptMsgQ->pcReadFrom >= ptMsgQ->pcTail )
-	{
-		ptMsgQ->pcReadFrom = ptMsgQ->pcHead;
-	}
+    ptMsgQ->pcReadFrom += ptMsgQ->uxItemSize;
+    if( ptMsgQ->pcReadFrom >= ptMsgQ->pcTail )
+    {
+        ptMsgQ->pcReadFrom = ptMsgQ->pcHead;
+    }
 
-	( void ) memcpy( ( void * ) pvBuffer, ( void * ) ptMsgQ->pcReadFrom, ( size_t ) ptMsgQ->uxItemSize );
+    ( void ) memcpy( ( void * ) pvBuffer, ( void * ) ptMsgQ->pcReadFrom, ( size_t ) ptMsgQ->uxItemSize );
 }
 
 sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
 {
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	OSIntLock();
-	{
-		ptMsgQ->pcTail = ptMsgQ->pcHead + ( ptMsgQ->uxMaxNum * ptMsgQ->uxItemSize );
-		ptMsgQ->uxCurNum = ( uOSBase_t ) 0U;
-		ptMsgQ->pcWriteTo = ptMsgQ->pcHead;
-		ptMsgQ->pcReadFrom = ptMsgQ->pcHead + ( ( ptMsgQ->uxMaxNum - ( uOSBase_t ) 1U ) * ptMsgQ->uxItemSize );
-		ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
-		ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
+    OSIntLock();
+    {
+        ptMsgQ->pcTail = ptMsgQ->pcHead + ( ptMsgQ->uxMaxNum * ptMsgQ->uxItemSize );
+        ptMsgQ->uxCurNum = ( uOSBase_t ) 0U;
+        ptMsgQ->pcWriteTo = ptMsgQ->pcHead;
+        ptMsgQ->pcReadFrom = ptMsgQ->pcHead + ( ( ptMsgQ->uxMaxNum - ( uOSBase_t ) 1U ) * ptMsgQ->uxItemSize );
+        ptMsgQ->xMsgQPLock = OSMSGQ_UNLOCKED;
+        ptMsgQ->xMsgQVLock = OSMSGQ_UNLOCKED;
 
-		if( bNewQueue == OS_FALSE )
-		{
-			if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
-			{
-				if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
-				{
-					OSSchedule();
-				}
-			}
-		}
-		else
-		{
-			OSListInitialise( &( ptMsgQ->tTaskListEventMsgQV ) );
-			OSListInitialise( &( ptMsgQ->tTaskListEventMsgQP ) );
-		}
-	}
-	OSIntUnlock();
+        if( bNewQueue == OS_FALSE )
+        {
+            if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
+            {
+                if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
+                {
+                    OSSchedule();
+                }
+            }
+        }
+        else
+        {
+            OSListInitialise( &( ptMsgQ->tTaskListEventMsgQV ) );
+            OSListInitialise( &( ptMsgQ->tTaskListEventMsgQP ) );
+        }
+    }
+    OSIntUnlock();
 
-	return OS_TRUE;
+    return OS_TRUE;
 }
 
 OSMsgQHandle_t OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t uxItemSize )
 {
-	tOSMsgQ_t *ptNewMsgQ = OS_NULL;
-	uOS32_t uxQSizeInBytes = (uOS32_t)0U;
-	OSMsgQHandle_t xReturn = OS_NULL;
+    tOSMsgQ_t *ptNewMsgQ = OS_NULL;
+    uOS32_t uxQSizeInBytes = (uOS32_t)0U;
+    OSMsgQHandle_t xReturn = OS_NULL;
 
-	if( uxItemSize == ( uOSBase_t ) 0 )
-	{
-		return xReturn;
-	}
-	else
-	{
-		uxQSizeInBytes = ( uOS32_t ) ( uxQueueLength * uxItemSize ) + ( uOS32_t ) 1U;
-	}
+    if( uxItemSize == ( uOSBase_t ) 0 )
+    {
+        return xReturn;
+    }
+    else
+    {
+        uxQSizeInBytes = ( uOS32_t ) ( uxQueueLength * uxItemSize ) + ( uOS32_t ) 1U;
+    }
 
-	ptNewMsgQ = ( tOSMsgQ_t * ) OSMemMalloc( sizeof( tOSMsgQ_t ) + uxQSizeInBytes );
+    ptNewMsgQ = ( tOSMsgQ_t * ) OSMemMalloc( sizeof( tOSMsgQ_t ) + uxQSizeInBytes );
 
-	if( ptNewMsgQ != OS_NULL )
-	{
-		ptNewMsgQ->pcHead = ( ( sOS8_t * ) ptNewMsgQ ) + sizeof( tOSMsgQ_t );
+    if( ptNewMsgQ != OS_NULL )
+    {
+        ptNewMsgQ->pcHead = ( ( sOS8_t * ) ptNewMsgQ ) + sizeof( tOSMsgQ_t );
 
-		ptNewMsgQ->uxMaxNum = uxQueueLength;
-		ptNewMsgQ->uxItemSize = uxItemSize;
-		( void ) OSMsgQReset( ptNewMsgQ, OS_TRUE );
+        ptNewMsgQ->uxMaxNum = uxQueueLength;
+        ptNewMsgQ->uxItemSize = uxItemSize;
+        ( void ) OSMsgQReset( ptNewMsgQ, OS_TRUE );
 
-		xReturn = ptNewMsgQ;
-	}
+        xReturn = ptNewMsgQ;
+    }
 
-	return xReturn;
+    return xReturn;
 }
 
 #if ( OS_MEMFREE_ON != 0 )
 void OSMsgQDelete( OSMsgQHandle_t MsgQHandle )
 {
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	OSMemFree( ptMsgQ );
+    OSMemFree( ptMsgQ );
 }
 #endif /* OS_MEMFREE_ON */
 
 sOSBase_t OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID)
 {
-	if(MsgQHandle == OS_NULL)
-	{
-		return (sOSBase_t)1;
-	}
-	OSIntLock();
-	{
-		MsgQHandle->xID = xID;
-	}
-	OSIntUnlock();
+    if(MsgQHandle == OS_NULL)
+    {
+        return (sOSBase_t)1;
+    }
+    OSIntLock();
+    {
+        MsgQHandle->xID = xID;
+    }
+    OSIntUnlock();
 
-	return (sOSBase_t)0;
+    return (sOSBase_t)0;
 }
 
 sOSBase_t OSMsgQGetID(OSMsgQHandle_t const MsgQHandle)
 {
-	sOSBase_t xID = 0;
-	
-	OSIntLock();
-	if(MsgQHandle != OS_NULL)
-	{
-		xID = MsgQHandle->xID;
-	}
-	OSIntUnlock();
+    sOSBase_t xID = 0;
+    
+    OSIntLock();
+    if(MsgQHandle != OS_NULL)
+    {
+        xID = MsgQHandle->xID;
+    }
+    OSIntUnlock();
 
-	return xID;	
+    return xID;    
 }
 
 static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait, const sOSBase_t xCopyPosition )
 {
-	uOSBool_t bEntryTimeSet = OS_FALSE, bNeedSchedule;
-	tOSTimeOut_t tTimeOut;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bEntryTimeSet = OS_FALSE, bNeedSchedule;
+    tOSTimeOut_t tTimeOut;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	for( ;; )
-	{
-		OSIntLock();
-		{
-			if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
-			{
-				bNeedSchedule = OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
+    for( ;; )
+    {
+        OSIntLock();
+        {
+            if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
+            {
+                bNeedSchedule = OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
 
-				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
-				{
-					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
-					{
-						OSSchedule();
-					}
-				}
-				else if( bNeedSchedule != OS_FALSE )
-				{
-					OSSchedule();
-				}
+                if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
+                {
+                    if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
+                    {
+                        OSSchedule();
+                    }
+                }
+                else if( bNeedSchedule != OS_FALSE )
+                {
+                    OSSchedule();
+                }
 
-				OSIntUnlock();
-				return OS_TRUE;
-			}
-			else
-			{
-				if( uxTicksToWait == ( uOSTick_t ) 0 )
-				{
-					OSIntUnlock();
-					//the MsgQ is full
-					return OS_FALSE;
-				}
-				else if( bEntryTimeSet == OS_FALSE )
-				{
-					OSTaskSetTimeOutState( &tTimeOut );
-					bEntryTimeSet = OS_TRUE;
-				}
-			}
-		}
-		OSIntUnlock();
+                OSIntUnlock();
+                return OS_TRUE;
+            }
+            else
+            {
+                if( uxTicksToWait == ( uOSTick_t ) 0 )
+                {
+                    OSIntUnlock();
+                    //the MsgQ is full
+                    return OS_FALSE;
+                }
+                else if( bEntryTimeSet == OS_FALSE )
+                {
+                    OSTaskSetTimeOutState( &tTimeOut );
+                    bEntryTimeSet = OS_TRUE;
+                }
+            }
+        }
+        OSIntUnlock();
 
-		/* Interrupts and other tasks can send to or receive from the MsgQ
-		To avoid confusion, we lock the scheduler and the MsgQ. */
-		OSScheduleLock();
-		OSMsgQLock( ptMsgQ );
+        /* Interrupts and other tasks can send to or receive from the MsgQ
+        To avoid confusion, we lock the scheduler and the MsgQ. */
+        OSScheduleLock();
+        OSMsgQLock( ptMsgQ );
 
-		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
-		{
-			if( OSMsgQIsFull( ptMsgQ ) != OS_FALSE )
-			{
-				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQV ), uxTicksToWait );
+        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        {
+            if( OSMsgQIsFull( ptMsgQ ) != OS_FALSE )
+            {
+                OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQV ), uxTicksToWait );
 
-				OSMsgQUnlock( ptMsgQ );
+                OSMsgQUnlock( ptMsgQ );
 
-				if( OSScheduleUnlock() == OS_FALSE )
-				{
-					OSSchedule();
-				}
-			}
-			else
-			{
-				/* Try again. */
-				OSMsgQUnlock( ptMsgQ );
-				( void ) OSScheduleUnlock();
-			}
-		}
-		else
-		{
-			/* The timeout has expired. */
-			OSMsgQUnlock( ptMsgQ );
-			( void ) OSScheduleUnlock();
-			//the MsgQ is full
-			return OS_FALSE;
-		}
-	}
+                if( OSScheduleUnlock() == OS_FALSE )
+                {
+                    OSSchedule();
+                }
+            }
+            else
+            {
+                /* Try again. */
+                OSMsgQUnlock( ptMsgQ );
+                ( void ) OSScheduleUnlock();
+            }
+        }
+        else
+        {
+            /* The timeout has expired. */
+            OSMsgQUnlock( ptMsgQ );
+            ( void ) OSScheduleUnlock();
+            //the MsgQ is full
+            return OS_FALSE;
+        }
+    }
 }
 
 uOSBool_t OSMsgQSend( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait)
 {
-	return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, uxTicksToWait, OSMSGQ_SEND_TO_BACK);
+    return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, uxTicksToWait, OSMSGQ_SEND_TO_BACK);
 }
 
 uOSBool_t OSMsgQOverwrite( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
 {
-	return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, ( uOSTick_t )0U, OSMSGQ_SEND_OVERWRITE);
+    return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, ( uOSTick_t )0U, OSMSGQ_SEND_OVERWRITE);
 }
 
 uOSBool_t OSMsgQSendToHead( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSTick_t uxTicksToWait)
 {
-	return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, uxTicksToWait, OSMSGQ_SEND_TO_FRONT);
+    return OSMsgQSendGeneral(MsgQHandle, pvItemToQueue, uxTicksToWait, OSMSGQ_SEND_TO_FRONT);
 }
 
 static uOSBool_t OSMsgQSendGeneralFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue, uOSBool_t * const pbNeedSchedule, const sOSBase_t xCopyPosition )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBase_t uxIntSave = (uOSBase_t)0U;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxIntSave = OSIntMaskFromISR();
-	{
-		if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
-		{
-			const sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
-	
-			( void ) OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
+    uxIntSave = OSIntMaskFromISR();
+    {
+        if( ( ptMsgQ->uxCurNum < ptMsgQ->uxMaxNum ) || ( xCopyPosition == OSMSGQ_SEND_OVERWRITE ) )
+        {
+            const sOSBase_t xMsgQVLock = ptMsgQ->xMsgQVLock;
+    
+            ( void ) OSMsgQCopyDataIn( ptMsgQ, pvItemToQueue, xCopyPosition );
 
-			if( xMsgQVLock == OSMSGQ_UNLOCKED )
-			{
-				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
-				{
-					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
-					{
-						if( pbNeedSchedule != OS_NULL )
-						{
-							*pbNeedSchedule = OS_TRUE;
-						}
-					}
-				}
-			}
-			else
-			{
-				ptMsgQ->xMsgQVLock = ( sOSBase_t )(xMsgQVLock + 1);
-			}
+            if( xMsgQVLock == OSMSGQ_UNLOCKED )
+            {
+                if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
+                {
+                    if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
+                    {
+                        if( pbNeedSchedule != OS_NULL )
+                        {
+                            *pbNeedSchedule = OS_TRUE;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                ptMsgQ->xMsgQVLock = ( sOSBase_t )(xMsgQVLock + 1);
+            }
 
-			bReturn = OS_TRUE;
-		}
-		else
-		{
-			//the MsgQ is full
-			bReturn = OS_FALSE;
-		}
-	}
-	OSIntUnmaskFromISR( uxIntSave );
+            bReturn = OS_TRUE;
+        }
+        else
+        {
+            //the MsgQ is full
+            bReturn = OS_FALSE;
+        }
+    }
+    OSIntUnmaskFromISR( uxIntSave );
 
-	return bReturn;
+    return bReturn;
 }
 
 uOSBool_t OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBool_t bNeedSchedule = OS_FALSE;
-	
-	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_BACK );
-	if(SCHEDULER_RUNNING == OSGetScheduleState())
-	{
-		OSScheduleFromISR( bNeedSchedule );
-	}
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBool_t bNeedSchedule = OS_FALSE;
+    
+    bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_BACK );
+    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    {
+        OSScheduleFromISR( bNeedSchedule );
+    }
 
-	return bReturn;
+    return bReturn;
 }
 
 uOSBool_t OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBool_t bNeedSchedule = OS_FALSE;
-	
-	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
-	if(SCHEDULER_RUNNING == OSGetScheduleState())
-	{
-		OSScheduleFromISR( bNeedSchedule );
-	}
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBool_t bNeedSchedule = OS_FALSE;
+    
+    bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
+    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    {
+        OSScheduleFromISR( bNeedSchedule );
+    }
 
-	return bReturn;
+    return bReturn;
 }
 
 uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvItemToQueue)
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBool_t bNeedSchedule = OS_FALSE;
-	
-	bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_FRONT );
-	if(SCHEDULER_RUNNING == OSGetScheduleState())
-	{
-		OSScheduleFromISR( bNeedSchedule );
-	}
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBool_t bNeedSchedule = OS_FALSE;
+    
+    bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_FRONT );
+    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    {
+        OSScheduleFromISR( bNeedSchedule );
+    }
 
-	return bReturn;
+    return bReturn;
 }
 
 uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait)
 {
-	uOSBool_t bEntryTimeSet = OS_FALSE;
-	tOSTimeOut_t tTimeOut;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bEntryTimeSet = OS_FALSE;
+    tOSTimeOut_t tTimeOut;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	for( ;; )
-	{
-		OSIntLock();
-		{
-			const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
-			
-			if( uxCurNum > ( uOSBase_t ) 0 )
-			{
-				OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
+    for( ;; )
+    {
+        OSIntLock();
+        {
+            const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
+            
+            if( uxCurNum > ( uOSBase_t ) 0 )
+            {
+                OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
 
-				ptMsgQ->uxCurNum = uxCurNum - ( uOSBase_t ) 1U;
+                ptMsgQ->uxCurNum = uxCurNum - ( uOSBase_t ) 1U;
 
-				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
-				{
-					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
-					{
-						OSSchedule();
-					}
-				}
+                if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
+                {
+                    if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
+                    {
+                        OSSchedule();
+                    }
+                }
 
-				OSIntUnlock();
-				return OS_TRUE;
-			}
-			else
-			{
-				if( uxTicksToWait == ( uOSTick_t ) 0 )
-				{
-					OSIntUnlock();
-					//the MsgQ is empty
-					return OS_FALSE;
-				}
-				else if( bEntryTimeSet == OS_FALSE )
-				{
-					OSTaskSetTimeOutState( &tTimeOut );
-					bEntryTimeSet = OS_TRUE;
-				}
-			}
-		}
-		OSIntUnlock();
+                OSIntUnlock();
+                return OS_TRUE;
+            }
+            else
+            {
+                if( uxTicksToWait == ( uOSTick_t ) 0 )
+                {
+                    OSIntUnlock();
+                    //the MsgQ is empty
+                    return OS_FALSE;
+                }
+                else if( bEntryTimeSet == OS_FALSE )
+                {
+                    OSTaskSetTimeOutState( &tTimeOut );
+                    bEntryTimeSet = OS_TRUE;
+                }
+            }
+        }
+        OSIntUnlock();
 
-		/* Interrupts and other tasks can send to or receive from the MsgQ
-		To avoid confusion, we lock the scheduler and the MsgQ. */
-		OSScheduleLock();
-		OSMsgQLock( ptMsgQ );
+        /* Interrupts and other tasks can send to or receive from the MsgQ
+        To avoid confusion, we lock the scheduler and the MsgQ. */
+        OSScheduleLock();
+        OSMsgQLock( ptMsgQ );
 
-		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
-		{
-			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
-			{
-				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
-				OSMsgQUnlock( ptMsgQ );
-				if( OSScheduleUnlock() == OS_FALSE )
-				{
-					OSSchedule();
-				}
-			}
-			else
-			{
-				/* Try again. */
-				OSMsgQUnlock( ptMsgQ );
-				( void ) OSScheduleUnlock();
-			}
-		}
-		else
-		{
-			OSMsgQUnlock( ptMsgQ );
-			( void ) OSScheduleUnlock();
-			
-			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
-			{
-				//the MsgQ is empty
-				return OS_FALSE;
-			}
-		}
-	}
+        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        {
+            if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+            {
+                OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
+                OSMsgQUnlock( ptMsgQ );
+                if( OSScheduleUnlock() == OS_FALSE )
+                {
+                    OSSchedule();
+                }
+            }
+            else
+            {
+                /* Try again. */
+                OSMsgQUnlock( ptMsgQ );
+                ( void ) OSScheduleUnlock();
+            }
+        }
+        else
+        {
+            OSMsgQUnlock( ptMsgQ );
+            ( void ) OSScheduleUnlock();
+            
+            if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+            {
+                //the MsgQ is empty
+                return OS_FALSE;
+            }
+        }
+    }
 }
 
 uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_t uxTicksToWait)
 {
-	uOSBool_t bEntryTimeSet = OS_FALSE;
-	tOSTimeOut_t tTimeOut;
-	sOS8_t *pcOriginalReadPosition = OS_NULL;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bEntryTimeSet = OS_FALSE;
+    tOSTimeOut_t tTimeOut;
+    sOS8_t *pcOriginalReadPosition = OS_NULL;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	for( ;; )
-	{
-		OSIntLock();
-		{
-			const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
-			
-			if( uxCurNum > ( uOSBase_t ) 0 )
-			{
-				pcOriginalReadPosition = ptMsgQ->pcReadFrom;
+    for( ;; )
+    {
+        OSIntLock();
+        {
+            const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
+            
+            if( uxCurNum > ( uOSBase_t ) 0 )
+            {
+                pcOriginalReadPosition = ptMsgQ->pcReadFrom;
 
-				OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
+                OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
 
-				/* The data is not being removed, so reset the read pointer. */
-				ptMsgQ->pcReadFrom = pcOriginalReadPosition;
+                /* The data is not being removed, so reset the read pointer. */
+                ptMsgQ->pcReadFrom = pcOriginalReadPosition;
 
-				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
-				{
-					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
-					{
-						OSSchedule();
-					}
-				}
+                if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQP ) ) == OS_FALSE )
+                {
+                    if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
+                    {
+                        OSSchedule();
+                    }
+                }
 
-				OSIntUnlock();
-				return OS_TRUE;
-			}
-			else
-			{
-				if( uxTicksToWait == ( uOSTick_t ) 0 )
-				{
-					OSIntUnlock();
-					//the MsgQ is empty
-					return OS_FALSE;
-				}
-				else if( bEntryTimeSet == OS_FALSE )
-				{
-					OSTaskSetTimeOutState( &tTimeOut );
-					bEntryTimeSet = OS_TRUE;
-				}
-			}
-		}
-		OSIntUnlock();
+                OSIntUnlock();
+                return OS_TRUE;
+            }
+            else
+            {
+                if( uxTicksToWait == ( uOSTick_t ) 0 )
+                {
+                    OSIntUnlock();
+                    //the MsgQ is empty
+                    return OS_FALSE;
+                }
+                else if( bEntryTimeSet == OS_FALSE )
+                {
+                    OSTaskSetTimeOutState( &tTimeOut );
+                    bEntryTimeSet = OS_TRUE;
+                }
+            }
+        }
+        OSIntUnlock();
 
-		/* Interrupts and other tasks can send to or receive from the MsgQ
-		To avoid confusion, we lock the scheduler and the MsgQ. */
-		OSScheduleLock();
-		OSMsgQLock( ptMsgQ );
+        /* Interrupts and other tasks can send to or receive from the MsgQ
+        To avoid confusion, we lock the scheduler and the MsgQ. */
+        OSScheduleLock();
+        OSMsgQLock( ptMsgQ );
 
-		if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
-		{
-			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
-			{
-				OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
-				OSMsgQUnlock( ptMsgQ );
-				if( OSScheduleUnlock() == OS_FALSE )
-				{
-					OSSchedule();
-				}
-			}
-			else
-			{
-				/* Try again. */
-				OSMsgQUnlock( ptMsgQ );
-				( void ) OSScheduleUnlock();
-			}
-		}
-		else
-		{
-			OSMsgQUnlock( ptMsgQ );
-			( void ) OSScheduleUnlock();
-			
-			if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
-			{
-				//the MsgQ is empty
-				return OS_FALSE;
-			}
-		}
-	}
+        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        {
+            if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+            {
+                OSTaskListEventAdd( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait );
+                OSMsgQUnlock( ptMsgQ );
+                if( OSScheduleUnlock() == OS_FALSE )
+                {
+                    OSSchedule();
+                }
+            }
+            else
+            {
+                /* Try again. */
+                OSMsgQUnlock( ptMsgQ );
+                ( void ) OSScheduleUnlock();
+            }
+        }
+        else
+        {
+            OSMsgQUnlock( ptMsgQ );
+            ( void ) OSScheduleUnlock();
+            
+            if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
+            {
+                //the MsgQ is empty
+                return OS_FALSE;
+            }
+        }
+    }
 }
 
 uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
-	uOSBool_t bNeedSchedule = OS_FALSE;
-	
-	uxIntSave = OSIntMaskFromISR();
-	{
-		const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
-		
-		if( uxCurNum > ( uOSBase_t ) 0 )
-		{
-			const sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
-			
-			OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
-			ptMsgQ->uxCurNum = uxCurNum - (uOSBase_t) 1U;
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBase_t uxIntSave = (uOSBase_t)0U;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bNeedSchedule = OS_FALSE;
+    
+    uxIntSave = OSIntMaskFromISR();
+    {
+        const uOSBase_t uxCurNum = ptMsgQ->uxCurNum;
+        
+        if( uxCurNum > ( uOSBase_t ) 0 )
+        {
+            const sOSBase_t xMsgQPLock = ptMsgQ->xMsgQPLock;
+            
+            OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
+            ptMsgQ->uxCurNum = uxCurNum - (uOSBase_t) 1U;
 
-			if( xMsgQPLock == OSMSGQ_UNLOCKED )
-			{
-				if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
-				{
-					if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
-					{
-						bNeedSchedule = OS_TRUE;
-					}
-				}
-			}
-			else
-			{
-				ptMsgQ->xMsgQPLock = ( sOSBase_t )(xMsgQPLock + 1);
-			}
-			bReturn = OS_TRUE;
-		}
-		else
-		{
-			bReturn = OS_FALSE;
-		}
-	}
-	OSIntUnmaskFromISR( uxIntSave );
+            if( xMsgQPLock == OSMSGQ_UNLOCKED )
+            {
+                if( OSListIsEmpty( &( ptMsgQ->tTaskListEventMsgQV ) ) == OS_FALSE )
+                {
+                    if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
+                    {
+                        bNeedSchedule = OS_TRUE;
+                    }
+                }
+            }
+            else
+            {
+                ptMsgQ->xMsgQPLock = ( sOSBase_t )(xMsgQPLock + 1);
+            }
+            bReturn = OS_TRUE;
+        }
+        else
+        {
+            bReturn = OS_FALSE;
+        }
+    }
+    OSIntUnmaskFromISR( uxIntSave );
 
-	if(SCHEDULER_RUNNING == OSGetScheduleState())
-	{
-		OSScheduleFromISR( bNeedSchedule );
-	}
-	
-	return bReturn;
+    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    {
+        OSScheduleFromISR( bNeedSchedule );
+    }
+    
+    return bReturn;
 }
 
 uOSBool_t OSMsgQPeekFromISR( OSMsgQHandle_t MsgQHandle,  void * const pvBuffer )
 {
-	uOSBool_t bReturn = OS_FALSE;
-	uOSBase_t uxIntSave = (uOSBase_t)0U;
-	sOS8_t *pcOriginalReadPosition = OS_NULL;
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    uOSBool_t bReturn = OS_FALSE;
+    uOSBase_t uxIntSave = (uOSBase_t)0U;
+    sOS8_t *pcOriginalReadPosition = OS_NULL;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	uxIntSave = OSIntMaskFromISR();
-	{
-		if( ptMsgQ->uxCurNum > ( uOSBase_t ) 0 )
-		{
-			pcOriginalReadPosition = ptMsgQ->pcReadFrom;
-			OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
-			ptMsgQ->pcReadFrom = pcOriginalReadPosition;
+    uxIntSave = OSIntMaskFromISR();
+    {
+        if( ptMsgQ->uxCurNum > ( uOSBase_t ) 0 )
+        {
+            pcOriginalReadPosition = ptMsgQ->pcReadFrom;
+            OSMsgQCopyDataOut( ptMsgQ, pvBuffer );
+            ptMsgQ->pcReadFrom = pcOriginalReadPosition;
 
-			bReturn = OS_TRUE;
-		}
-		else
-		{
-			bReturn = OS_FALSE;
-		}
-	}
-	OSIntUnmaskFromISR( uxIntSave );
+            bReturn = OS_TRUE;
+        }
+        else
+        {
+            bReturn = OS_FALSE;
+        }
+    }
+    OSIntUnmaskFromISR( uxIntSave );
 
-	return bReturn;
+    return bReturn;
 }
 
 #if ( OS_TIMER_ON!=0 )
 void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t bNeedSuspend )
 {
-	tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
-	if( bNeedSuspend != OS_FALSE )
-	{
-		uxTicksToWait = OSPEND_FOREVER_VALUE;
-	}
-	
-	OSMsgQLock( ptMsgQ );
-	if( ptMsgQ->uxCurNum == ( uOSBase_t ) 0U )
-	{
-		/* There is nothing in the MsgQ, block for the specified period. */
-		OSTaskBlockAndPend( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait, bNeedSuspend );
-	}
-	OSMsgQUnlock( ptMsgQ );
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    if( bNeedSuspend != OS_FALSE )
+    {
+        uxTicksToWait = OSPEND_FOREVER_VALUE;
+    }
+    
+    OSMsgQLock( ptMsgQ );
+    if( ptMsgQ->uxCurNum == ( uOSBase_t ) 0U )
+    {
+        /* There is nothing in the MsgQ, block for the specified period. */
+        OSTaskBlockAndPend( &( ptMsgQ->tTaskListEventMsgQP ), uxTicksToWait, bNeedSuspend );
+    }
+    OSMsgQUnlock( ptMsgQ );
 }
 #endif /* ( OS_TIMER_ON!=0 ) */
 
 uOSBase_t OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle )
 {
-	uOSBase_t uxReturn = (uOSBase_t)0U;
-	tOSMsgQ_t *ptMsgQ = OS_NULL;
+    uOSBase_t uxReturn = (uOSBase_t)0U;
+    tOSMsgQ_t *ptMsgQ = OS_NULL;
 
-	ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
-	OSIntLock();
-	{
-		uxReturn = ptMsgQ->uxMaxNum - ptMsgQ->uxCurNum;
-	}
-	OSIntUnlock();
+    OSIntLock();
+    {
+        uxReturn = ptMsgQ->uxMaxNum - ptMsgQ->uxCurNum;
+    }
+    OSIntUnlock();
 
-	return uxReturn;
+    return uxReturn;
 }
 
 uOSBase_t OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle )
 {
-	uOSBase_t uxReturn = (uOSBase_t)0U;
+    uOSBase_t uxReturn = (uOSBase_t)0U;
 
-	OSIntLock();
-	{
-		uxReturn = ( ( tOSMsgQ_t * ) MsgQHandle )->uxCurNum;
-	}
-	OSIntUnlock();
+    OSIntLock();
+    {
+        uxReturn = ( ( tOSMsgQ_t * ) MsgQHandle )->uxCurNum;
+    }
+    OSIntUnlock();
 
-	return uxReturn;
+    return uxReturn;
 }
 
 #endif //(OS_MSGQ_ON!=0)

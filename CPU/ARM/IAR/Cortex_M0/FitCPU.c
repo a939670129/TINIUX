@@ -44,27 +44,27 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 /* Constants required to manipulate the NVIC. */
-#define FitNVIC_SYSTICK_CTRL			( ( volatile uOS32_t *) 0xe000e010 )
-#define FitNVIC_SYSTICK_LOAD			( ( volatile uOS32_t *) 0xe000e014 )
-#define FitNVIC_SYSTICK_CURRENT_VALUE	( ( volatile uOS32_t *) 0xe000e018 )
-#define FitNVIC_SYSPRI2					( ( volatile uOS32_t *) 0xe000ed20 )
-#define FitNVIC_SYSTICK_CLK				0x00000004
-#define FitNVIC_SYSTICK_INT				0x00000002
-#define FitNVIC_SYSTICK_ENABLE			0x00000001
-#define FitNVIC_PENDSV_PRI				( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 16UL )
-#define FitNVIC_SYSTICK_PRI				( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 24UL )
+#define FitNVIC_SYSTICK_CTRL            ( ( volatile uOS32_t *) 0xe000e010 )
+#define FitNVIC_SYSTICK_LOAD            ( ( volatile uOS32_t *) 0xe000e014 )
+#define FitNVIC_SYSTICK_CURRENT_VALUE   ( ( volatile uOS32_t *) 0xe000e018 )
+#define FitNVIC_SYSPRI2                 ( ( volatile uOS32_t *) 0xe000ed20 )
+#define FitNVIC_SYSTICK_CLK             0x00000004
+#define FitNVIC_SYSTICK_INT             0x00000002
+#define FitNVIC_SYSTICK_ENABLE          0x00000001
+#define FitNVIC_PENDSV_PRI              ( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 16UL )
+#define FitNVIC_SYSTICK_PRI             ( ( ( uOS32_t ) OSMIN_HWINT_PRI ) << 24UL )
 
 /* Constants required to set up the initial stack. */
-#define FitINITIAL_XPSR					( 0x01000000 )
+#define FitINITIAL_XPSR                 ( 0x01000000 )
 
 #ifndef OSSYSTICK_CLOCK_HZ
-	#define OSSYSTICK_CLOCK_HZ 			OSCPU_CLOCK_HZ
-	/* Ensure the SysTick is clocked at the same frequency as the core. */
-	#define FitNVIC_SYSTICK_CLK_BIT		( 1UL << 2UL )
+    #define OSSYSTICK_CLOCK_HZ          OSCPU_CLOCK_HZ
+    /* Ensure the SysTick is clocked at the same frequency as the core. */
+    #define FitNVIC_SYSTICK_CLK_BIT     ( 1UL << 2UL )
 #else
-	/* The way the SysTick is clocked is not modified in case it is not the same
-	as the core. */
-	#define FitNVIC_SYSTICK_CLK_BIT		( 0 )
+    /* The way the SysTick is clocked is not modified in case it is not the same
+    as the core. */
+    #define FitNVIC_SYSTICK_CLK_BIT     ( 0 )
 #endif
 
 /* Each task maintains its own interrupt status in the lock nesting
@@ -80,30 +80,30 @@ static void FitTaskExitError( void );
  */
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters )
 {
-	/* Simulate the stack frame as it would be created by a context switch
-	interrupt. */
-	pxTopOfStack--; /* Offset added to account for the way the MCU uses the stack on entry/exit of interrupts. */
-	*pxTopOfStack = FitINITIAL_XPSR;	/* xPSR */
-	pxTopOfStack--;
-	*pxTopOfStack = ( uOSStack_t ) TaskFunction;	/* PC */
-	pxTopOfStack--;
-	*pxTopOfStack = ( uOSStack_t ) FitTaskExitError;	/* LR */
-	pxTopOfStack -= 5;	/* R12, R3, R2 and R1. */
-	*pxTopOfStack = ( uOSStack_t ) pvParameters;	/* R0 */
-	pxTopOfStack -= 8; /* R11..R4. */
+    /* Simulate the stack frame as it would be created by a context switch
+    interrupt. */
+    pxTopOfStack--; /* Offset added to account for the way the MCU uses the stack on entry/exit of interrupts. */
+    *pxTopOfStack = FitINITIAL_XPSR;                /* xPSR */
+    pxTopOfStack--;
+    *pxTopOfStack = ( uOSStack_t ) TaskFunction;    /* PC */
+    pxTopOfStack--;
+    *pxTopOfStack = ( uOSStack_t ) FitTaskExitError;/* LR */
+    pxTopOfStack -= 5;                              /* R12, R3, R2 and R1. */
+    *pxTopOfStack = ( uOSStack_t ) pvParameters;    /* R0 */
+    pxTopOfStack -= 8;                              /* R11..R4. */
 
-	return pxTopOfStack;
+    return pxTopOfStack;
 }
 /*-----------------------------------------------------------*/
 
 static void FitTaskExitError( void )
 {
-	/* A function that implements a task must not exit or attempt to return to
-	its caller as there is nothing to return to.  If a task wants to exit it
-	should instead call OSTaskDelete( OS_NULL ).*/
+    /* A function that implements a task must not exit or attempt to return to
+    its caller as there is nothing to return to.  If a task wants to exit it
+    should instead call OSTaskDelete( OS_NULL ).*/
 
-	FitIntMask();
-	for( ;; );
+    FitIntMask();
+    for( ;; );
 }
 /*-----------------------------------------------------------*/
 
@@ -112,22 +112,22 @@ static void FitTaskExitError( void )
  */
 sOSBase_t FitStartScheduler( void )
 {
-	/* Make PendSV and SysTick the lowest priority interrupts. */
-	*(FitNVIC_SYSPRI2) |= FitNVIC_PENDSV_PRI;
-	*(FitNVIC_SYSPRI2) |= FitNVIC_SYSTICK_PRI;
+    /* Make PendSV and SysTick the lowest priority interrupts. */
+    *(FitNVIC_SYSPRI2) |= FitNVIC_PENDSV_PRI;
+    *(FitNVIC_SYSPRI2) |= FitNVIC_SYSTICK_PRI;
 
-	/* Start the timer that generates the tick ISR.  Interrupts are disabled
-	here already. */
-	FitSetupTimerInterrupt();
+    /* Start the timer that generates the tick ISR.  Interrupts are disabled
+    here already. */
+    FitSetupTimerInterrupt();
 
-	/* Initialise the lock nesting count ready for the first task. */
-	guxIntLocked = 0;
+    /* Initialise the lock nesting count ready for the first task. */
+    guxIntLocked = 0;
 
-	/* Start the first task. */
-	FitStartFirstTask();
+    /* Start the first task. */
+    FitStartFirstTask();
 
-	/* Should not get here! */
-	return 0;
+    /* Should not get here! */
+    return 0;
 }
 /*-----------------------------------------------------------*/
 
@@ -138,49 +138,49 @@ void FitEndScheduler( void )
 
 void FitSchedule( void )
 {
-	/* Set a PendSV to request a context switch. */
-	*(FitNVIC_INT_CTRL) = FitNVIC_PENDSVSET;
+    /* Set a PendSV to request a context switch. */
+    *(FitNVIC_INT_CTRL) = FitNVIC_PENDSVSET;
 
-	/* Barriers are normally not required but do ensure the code is completely
-	within the specified behaviour for the architecture. */
-	__DSB();
-	__ISB();
+    /* Barriers are normally not required but do ensure the code is completely
+    within the specified behaviour for the architecture. */
+    __DSB();
+    __ISB();
 }
 /*-----------------------------------------------------------*/
 
 void FitIntLock( void )
 {
-	FitIntMask();
-	guxIntLocked++;
-	__DSB();
-	__ISB();
+    FitIntMask();
+    guxIntLocked++;
+    __DSB();
+    __ISB();
 }
 /*-----------------------------------------------------------*/
 
 void FitIntUnlock( void )
 {
-	guxIntLocked--;
-	if( guxIntLocked == 0 )
-	{
-		FitIntUnmask( 0 );
-	}
+    guxIntLocked--;
+    if( guxIntLocked == 0 )
+    {
+        FitIntUnmask( 0 );
+    }
 }
 /*-----------------------------------------------------------*/
 
 void FitOSTickISR( void )
 {
-	uOS32_t ulPreviousMask;
+    uOS32_t ulPreviousMask;
 
-	ulPreviousMask = FitIntMaskFromISR();
-	{
-		/* Increment the RTOS tick. */
-		if( OSTaskIncrementTick() != OS_FALSE )
-		{
-			/* Pend a context switch. */
-			*(FitNVIC_INT_CTRL) = FitNVIC_PENDSVSET;
-		}
-	}
-	FitIntUnmaskFromISR( ulPreviousMask );
+    ulPreviousMask = FitIntMaskFromISR();
+    {
+        /* Increment the RTOS tick. */
+        if( OSTaskIncrementTick() != OS_FALSE )
+        {
+            /* Pend a context switch. */
+            *(FitNVIC_INT_CTRL) = FitNVIC_PENDSVSET;
+        }
+    }
+    FitIntUnmaskFromISR( ulPreviousMask );
 }
 /*-----------------------------------------------------------*/
 
@@ -190,13 +190,13 @@ void FitOSTickISR( void )
  */
 static void FitSetupTimerInterrupt( void )
 {
-	/* Stop and reset the SysTick. */
-	*(FitNVIC_SYSTICK_CTRL) = 0UL;
-	*(FitNVIC_SYSTICK_CURRENT_VALUE) = 0UL;
-	
-	/* Configure SysTick to interrupt at the requested rate. */
-	*(FitNVIC_SYSTICK_LOAD) = ( OSSYSTICK_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
-	*(FitNVIC_SYSTICK_CTRL) = FitNVIC_SYSTICK_CLK | FitNVIC_SYSTICK_INT | FitNVIC_SYSTICK_ENABLE;
+    /* Stop and reset the SysTick. */
+    *(FitNVIC_SYSTICK_CTRL) = 0UL;
+    *(FitNVIC_SYSTICK_CURRENT_VALUE) = 0UL;
+    
+    /* Configure SysTick to interrupt at the requested rate. */
+    *(FitNVIC_SYSTICK_LOAD) = ( OSSYSTICK_CLOCK_HZ / OSTICK_RATE_HZ ) - 1UL;
+    *(FitNVIC_SYSTICK_CTRL) = FitNVIC_SYSTICK_CLK | FitNVIC_SYSTICK_INT | FitNVIC_SYSTICK_ENABLE;
 }
 
 #ifdef __cplusplus

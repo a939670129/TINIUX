@@ -50,24 +50,24 @@ Return      : None
 *****************************************************************************/
 void OSListInitialise( tOSList_t * const ptList )
 {
-	/* The list structure contains a list item which is used as sentinel item.  
-	To initialise the list. the sentinel item is inserted
-	as the only list entry. */
-	ptList->ptIndex = ( tOSListItem_t * ) &( ptList->tNilItem );
+    /* The list structure contains a list item which is used as sentinel item.  
+    To initialise the list. the sentinel item is inserted
+    as the only list entry. */
+    ptList->ptIndex = ( tOSListItem_t * ) &( ptList->tNilItem );
 
-	/* The list sentinel item value is the highest possible value in the list to
-	ensure it remains at the end of the list. */
-	ptList->tNilItem.uxItemValue = OSPEND_FOREVER_VALUE;
+    /* The list sentinel item value is the highest possible value in the list to
+    ensure it remains at the end of the list. */
+    ptList->tNilItem.uxItemValue = OSPEND_FOREVER_VALUE;
 
-	/* The list sentinel item next and previous pointers point to itself so we know
-	when the list is empty. */
-	ptList->tNilItem.ptNext = ( tOSListItem_t * ) &( ptList->tNilItem );
-	ptList->tNilItem.ptPrevious = ( tOSListItem_t * ) &( ptList->tNilItem );
+    /* The list sentinel item next and previous pointers point to itself so we know
+    when the list is empty. */
+    ptList->tNilItem.ptNext = ( tOSListItem_t * ) &( ptList->tNilItem );
+    ptList->tNilItem.ptPrevious = ( tOSListItem_t * ) &( ptList->tNilItem );
 
-	ptList->tNilItem.pvHolder = OS_NULL; //pvHolder is not use in tNilItem
-	ptList->tNilItem.pvList = OS_NULL;   //pvList is not use in tNilItem
+    ptList->tNilItem.pvHolder = OS_NULL; //pvHolder is not use in tNilItem
+    ptList->tNilItem.pvList = OS_NULL;   //pvList is not use in tNilItem
 
-	ptList->uxNumberOfItems = ( uOSBase_t ) 0U;
+    ptList->uxNumberOfItems = ( uOSBase_t ) 0U;
 }
 
 /*****************************************************************************
@@ -79,8 +79,8 @@ Return      : None
 *****************************************************************************/
 void OSListItemInitialise( tOSListItem_t * const ptListItem )
 {
-	/* Make sure the list item is not recorded as being on a list. */
-	ptListItem->pvList = OS_NULL;
+    /* Make sure the list item is not recorded as being on a list. */
+    ptListItem->pvList = OS_NULL;
 }
 
 /*****************************************************************************
@@ -94,18 +94,18 @@ Return      : None
 *****************************************************************************/
 void OSListInsertItemToEnd( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem )
 {
-	tOSListItem_t * const ptIndex = ptList->ptIndex;
+    tOSListItem_t * const ptIndex = ptList->ptIndex;
 
-	ptNewListItem->ptNext = ptIndex;
-	ptNewListItem->ptPrevious = ptIndex->ptPrevious;
+    ptNewListItem->ptNext = ptIndex;
+    ptNewListItem->ptPrevious = ptIndex->ptPrevious;
 
-	ptIndex->ptPrevious->ptNext = ptNewListItem;
-	ptIndex->ptPrevious = ptNewListItem;
+    ptIndex->ptPrevious->ptNext = ptNewListItem;
+    ptIndex->ptPrevious = ptNewListItem;
 
-	/* Remember which list the item is in. */
-	ptNewListItem->pvList = ( void * ) ptList;
+    /* Remember which list the item is in. */
+    ptNewListItem->pvList = ( void * ) ptList;
 
-	( ptList->uxNumberOfItems )++;
+    ( ptList->uxNumberOfItems )++;
 }
 
 /*****************************************************************************
@@ -118,38 +118,38 @@ Return      : None
 *****************************************************************************/
 void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem )
 {
-	tOSListItem_t *ptIterator = OS_NULL;
-	const uOSTick_t uxValueOfInsertion = ptNewListItem->uxItemValue;
+    tOSListItem_t *ptIterator = OS_NULL;
+    const uOSTick_t uxValueOfInsertion = ptNewListItem->uxItemValue;
 
-	/* If the list already contains a list item with the same item value then the
-	new list item should be placed after it.  This ensures that TCB's which are
-	stored in ready lists (all of which have the same uxItemValue value) get a
-	share of the CPU.  However, if the uxItemValue is the same as the sentinel item,
-	the iteration loop below will not end.  Therefore the value is checked
-	first, and the algorithm slightly modified if necessary. */
-	if( uxValueOfInsertion == OSPEND_FOREVER_VALUE )
-	{
-		ptIterator = ptList->tNilItem.ptPrevious;
-	}
-	else
-	{
-		for( ptIterator = ( tOSListItem_t * ) &( ptList->tNilItem ); ptIterator->ptNext->uxItemValue <= uxValueOfInsertion; ptIterator = ptIterator->ptNext )
-		{
-			/* There is nothing to do here, just iterating to the wanted
-			insertion position. */
-		}
-	}
+    /* If the list already contains a list item with the same item value then the
+    new list item should be placed after it.  This ensures that TCB's which are
+    stored in ready lists (all of which have the same uxItemValue value) get a
+    share of the CPU.  However, if the uxItemValue is the same as the sentinel item,
+    the iteration loop below will not end.  Therefore the value is checked
+    first, and the algorithm slightly modified if necessary. */
+    if( uxValueOfInsertion == OSPEND_FOREVER_VALUE )
+    {
+        ptIterator = ptList->tNilItem.ptPrevious;
+    }
+    else
+    {
+        for( ptIterator = ( tOSListItem_t * ) &( ptList->tNilItem ); ptIterator->ptNext->uxItemValue <= uxValueOfInsertion; ptIterator = ptIterator->ptNext )
+        {
+            /* There is nothing to do here, just iterating to the wanted
+            insertion position. */
+        }
+    }
 
-	ptNewListItem->ptNext = ptIterator->ptNext;
-	ptNewListItem->ptNext->ptPrevious = ptNewListItem;
-	ptNewListItem->ptPrevious = ptIterator;
-	ptIterator->ptNext = ptNewListItem;
+    ptNewListItem->ptNext = ptIterator->ptNext;
+    ptNewListItem->ptNext->ptPrevious = ptNewListItem;
+    ptNewListItem->ptPrevious = ptIterator;
+    ptIterator->ptNext = ptNewListItem;
 
-	/* Remember which list the item is in.  This allows fast removal of the
-	item later. */
-	ptNewListItem->pvList = ( void * ) ptList;
+    /* Remember which list the item is in.  This allows fast removal of the
+    item later. */
+    ptNewListItem->pvList = ( void * ) ptList;
 
-	( ptList->uxNumberOfItems )++;
+    ( ptList->uxNumberOfItems )++;
 }
 
 /*****************************************************************************
@@ -161,26 +161,26 @@ Return      : None
 *****************************************************************************/
 uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove )
 {
-	/* The list item knows which list it is in.  Obtain the list from the list
-	item. */
-	tOSList_t * const ptList = ( tOSList_t * ) ptItemToRemove->pvList;
-	tOSListItem_t * ptListItemTemp = OS_NULL;
-	
-	ptListItemTemp = ptItemToRemove->ptPrevious;
-	ptItemToRemove->ptNext->ptPrevious = ptListItemTemp;
-	ptListItemTemp = ptItemToRemove->ptNext;
-	ptItemToRemove->ptPrevious->ptNext = ptListItemTemp;
+    /* The list item knows which list it is in.  Obtain the list from the list
+    item. */
+    tOSList_t * const ptList = ( tOSList_t * ) ptItemToRemove->pvList;
+    tOSListItem_t * ptListItemTemp = OS_NULL;
+    
+    ptListItemTemp = ptItemToRemove->ptPrevious;
+    ptItemToRemove->ptNext->ptPrevious = ptListItemTemp;
+    ptListItemTemp = ptItemToRemove->ptNext;
+    ptItemToRemove->ptPrevious->ptNext = ptListItemTemp;
 
-	/* Make sure the index is left pointing to a valid item. */
-	if( ptList->ptIndex == ptItemToRemove )
-	{
-		ptList->ptIndex = ptItemToRemove->ptPrevious;
-	}
+    /* Make sure the index is left pointing to a valid item. */
+    if( ptList->ptIndex == ptItemToRemove )
+    {
+        ptList->ptIndex = ptItemToRemove->ptPrevious;
+    }
 
-	ptItemToRemove->pvList = OS_NULL;
-	( ptList->uxNumberOfItems )--;
+    ptItemToRemove->pvList = OS_NULL;
+    ( ptList->uxNumberOfItems )--;
 
-	return ptList->uxNumberOfItems;
+    return ptList->uxNumberOfItems;
 }
 
 #ifdef __cplusplus

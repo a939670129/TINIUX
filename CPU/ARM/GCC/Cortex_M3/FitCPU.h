@@ -51,43 +51,43 @@ extern void FitIntUnlock( void );
 extern void FitSchedule( void );
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
+    #define FIT_FORCE_INLINE inline __attribute__(( always_inline))
 #endif
 
 FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
 {
-	uOS32_t ulCurrentInterrupt;
+    uOS32_t ulCurrentInterrupt;
 
-	/* Obtain the number of the currently executing interrupt. */
-	__asm volatile
-	( 
-	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
-	);
-	
-	return ulCurrentInterrupt;
+    /* Obtain the number of the currently executing interrupt. */
+    __asm volatile
+    ( 
+    "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+    );
+    
+    return ulCurrentInterrupt;
 }
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitNVIC_INT_CTRL_REG        ( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT       ( 1UL << 28UL )
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 
 /* Generic helper function. */
 static FIT_FORCE_INLINE uOS8_t ucFitCountLeadingZeros( uint32_t ulBitmap )
 {
-	uOS8_t ucReturn;
+    uOS8_t ucReturn;
 
-	__asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) );
-	return ucReturn;
+    __asm volatile ( "clz %0, %1" : "=r" ( ucReturn ) : "r" ( ulBitmap ) );
+    return ucReturn;
 }
 
-#define FIT_QUICK_GET_PRIORITY	1
+#define FIT_QUICK_GET_PRIORITY      ( 1 )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - ucFitCountLeadingZeros( ( guxReadyPriorities ) ) )
 
-#define FitIntMaskFromISR()			FitIntMask()
-#define FitIntUnmaskFromISR( x )	FitIntUnmask( x )
+#define FitIntMaskFromISR()         FitIntMask()
+#define FitIntUnmaskFromISR( x )    FitIntUnmask( x )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 uOSBase_t FitStartScheduler( void );
@@ -98,10 +98,10 @@ void FitSVCHandler( void ) __attribute__ (( naked ));
 
 #if ( OS_LOWPOWER_ON!=0 )
 /* Tickless idle/low power functionality. */
-	#ifndef FitLowPowerIdle
-		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
-		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
-	#endif
+    #ifndef FitLowPowerIdle
+        extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+        #define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+    #endif
 #endif
 
 #ifdef __cplusplus

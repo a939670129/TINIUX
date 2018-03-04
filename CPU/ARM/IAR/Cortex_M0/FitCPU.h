@@ -46,9 +46,9 @@ extern "C" {
 
 /* Scheduler utilities. */
 extern void FitSchedule( void );
-#define FitNVIC_INT_CTRL			( ( volatile uOS32_t *) 0xe000ed04 )
-#define FitNVIC_PENDSVSET			0x10000000
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitNVIC_INT_CTRL            ( ( volatile uOS32_t *) 0xe000ed04 )
+#define FitNVIC_PENDSVSET           0x10000000
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
@@ -56,11 +56,11 @@ extern uOS32_t FitIntMask( void );
 extern void FitIntUnmask( uOS32_t ulMask );
 extern uOS32_t FitGetIPSR( void );
 
-#define FitIntMaskFromISR()			FitIntMask()
-#define FitIntUnmaskFromISR(x)		FitIntUnmask( x )
+#define FitIntMaskFromISR()         FitIntMask()
+#define FitIntUnmaskFromISR(x)      FitIntUnmask( x )
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );

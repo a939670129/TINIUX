@@ -45,69 +45,69 @@ extern "C" {
 #endif
 
 /* Constants used with memory barrier intrinsics. */
-#define FitSY_FULL_READ_WRITE		( 15 )
+#define FitSY_FULL_READ_WRITE        ( 15 )
 
 /* Scheduler utilities. */
-#define FitSchedule()															\
-{																				\
-	/* Set a PendSV to request a context switch. */								\
-	FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;								\
-																				\
-	/* Barriers are normally not required but do ensure the code is completely	\
-	within the specified behaviour for the architecture. */						\
-	__dsb( FitSY_FULL_READ_WRITE );												\
-	__isb( FitSY_FULL_READ_WRITE );												\
+#define FitSchedule()                                                            \
+{                                                                                \
+    /* Set a PendSV to request a context switch. */                              \
+    FitNVIC_INT_CTRL_REG = FitNVIC_PENDSVSET_BIT;                                \
+                                                                                 \
+    /* Barriers are normally not required but do ensure the code is completely   \
+    within the specified behaviour for the architecture. */                      \
+    __dsb( FitSY_FULL_READ_WRITE );                                              \
+    __isb( FitSY_FULL_READ_WRITE );                                              \
 }
 /*-----------------------------------------------------------*/
 
-#define FitNVIC_INT_CTRL_REG					( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT					( 1UL << 28UL )
+#define FitNVIC_INT_CTRL_REG                    ( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT                   ( 1UL << 28UL )
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()								( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()                        ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
-#define FitScheduleFromISR( b ) 				if( b ) FitSchedule()
+#define FitScheduleFromISR( b )                 if( b ) FitSchedule()
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
 extern uOS32_t FitGetIPSR( void );
 
-#define FitIntMask()							FitRaiseBasePRI()
-#define FitIntUnmask( x )						FitSetBasePRI( x )
+#define FitIntMask()                            FitRaiseBasePRI()
+#define FitIntUnmask( x )                       FitSetBasePRI( x )
 
-#define FitIntMaskFromISR()						FitIntMask()
-#define FitIntUnmaskFromISR( x )				FitIntUnmask( x )
+#define FitIntMaskFromISR()                     FitIntMask()
+#define FitIntUnmaskFromISR( x )                FitIntUnmask( x )
 
-#define FIT_QUICK_GET_PRIORITY	1
+#define FIT_QUICK_GET_PRIORITY    1
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( uxReadyPriorities ) ) )
 
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE __forceinline
+    #define FIT_FORCE_INLINE __forceinline
 #endif
 
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE void FitSetBasePRI( uOS32_t ulBASEPRI )
 {
-	__asm
-	{
-		/* Barrier instructions are not used as this function is only used to
-		lower the BASEPRI value. */
-		msr basepri, ulBASEPRI
-	}
+    __asm
+    {
+        /* Barrier instructions are not used as this function is only used to
+        lower the BASEPRI value. */
+        msr basepri, ulBASEPRI
+    }
 }
 /*-----------------------------------------------------------*/
 
 static FIT_FORCE_INLINE void FitClearBASEPRIFromISR( void )
 {
-	__asm
-	{
-		/* Set BASEPRI to 0 so no interrupts are masked.  This function is only
-		used to lower the mask in an interrupt, so memory barriers are not 
-		used. */
-		msr basepri, #0
-	}
+    __asm
+    {
+        /* Set BASEPRI to 0 so no interrupts are masked.  This function is only
+        used to lower the mask in an interrupt, so memory barriers are not 
+        used. */
+        msr basepri, #0
+    }
 }
 
 /*-----------------------------------------------------------*/
@@ -116,21 +116,22 @@ static FIT_FORCE_INLINE uOS32_t FitRaiseBasePRI( void )
 {
 uOS32_t ulReturn, ulNewBASEPRI = OSMAX_HWINT_PRI;
 
-	__asm
-	{
-		/* Set BASEPRI to the max syscall priority to effect a lock
-		section. */
-		mrs ulReturn, basepri
-		msr basepri, ulNewBASEPRI
-		dsb
-		isb
-	}
+    __asm
+    {
+        /* Set BASEPRI to the max syscall priority to effect a lock
+        section. */
+        mrs ulReturn, basepri
+        msr basepri, ulNewBASEPRI
+        dsb
+        isb
+    }
 
-	return ulReturn;
+    return ulReturn;
 }
 
-uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack,
-		OSTaskFunction_t TaskFunction, void *pvParameters );
+uOSStack_t *FitInitializeStack( uOSStack_t *     pxTopOfStack,
+                                OSTaskFunction_t TaskFunction, 
+                                void *           pvParameters );
 uOSBase_t FitStartScheduler( void );
 
 void FitPendSVHandler( void );
@@ -139,10 +140,10 @@ void FitSVCHandler( void );
 
 #if ( OS_LOWPOWER_ON!=0 )
 /* Tickless idle/low power functionality. */
-	#ifndef FitLowPowerIdle
-		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
-		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
-	#endif
+    #ifndef FitLowPowerIdle
+        extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+        #define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+    #endif
 #endif
 
 #ifdef __cplusplus

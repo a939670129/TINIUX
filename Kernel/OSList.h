@@ -46,20 +46,20 @@ extern "C" {
 
 struct OSListItem
 {
-	volatile uOSTick_t                  uxItemValue;	
-	struct OSListItem * volatile        ptNext;
-	struct OSListItem * volatile        ptPrevious;
-	void *                              pvHolder;
-	void * volatile                     pvList;
+    volatile uOSTick_t                  uxItemValue;    
+    struct OSListItem * volatile        ptNext;
+    struct OSListItem * volatile        ptPrevious;
+    void *                              pvHolder;
+    void * volatile                     pvList;
 };
-typedef struct OSListItem               tOSListItem_t;	
+typedef struct OSListItem               tOSListItem_t;    
 
 //circular doubly linked list with a single sentinel item.
 typedef struct OSList
 {
-	volatile uOSBase_t                  uxNumberOfItems;
-	tOSListItem_t * volatile            ptIndex;
-	tOSListItem_t                       tNilItem;            //tNilItem as sentinel item.
+    volatile uOSBase_t                  uxNumberOfItems;
+    tOSListItem_t * volatile            ptIndex;
+    tOSListItem_t                       tNilItem;            //tNilItem as sentinel item.
 } tOSList_t;
 
 #define OSListItemSetHolder( ptListItem, pxHolder )         ( ( ptListItem )->pvHolder = ( void * ) ( pxHolder ) )
@@ -77,15 +77,15 @@ typedef struct OSList
 
 #define OSListGetNextItemHolder(ptList, pxHolder)                                           \
 {                                                                                           \
-	tOSList_t * const ptConstList = ( ptList );                                             \
-	/* Increment the index to the next item and return the item, ensuring */                \
-	/* we don't return the marker used at the end of the list.  */                          \
-	( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                            \
-	if( ( void * ) ( ptConstList )->ptIndex == ( void * ) &( ( ptConstList )->tNilItem ) )  \
-	{                                                                                       \
-		( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                        \
-	}                                                                                       \
-	( pxHolder ) = ( ptConstList )->ptIndex->pvHolder;                                      \
+    tOSList_t * const ptConstList = ( ptList );                                             \
+    /* Increment the index to the next item and return the item, ensuring */                \
+    /* we don't return the marker used at the end of the list.  */                          \
+    ( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                            \
+    if( ( void * ) ( ptConstList )->ptIndex == ( void * ) &( ( ptConstList )->tNilItem ) )  \
+    {                                                                                       \
+        ( ptConstList )->ptIndex = ( ptConstList )->ptIndex->ptNext;                        \
+    }                                                                                       \
+    ( pxHolder ) = ( ptConstList )->ptIndex->pvHolder;                                      \
 }
 
 #define OSListGetHeadItemHolder( ptList )                   ( (&( ( ptList )->tNilItem ))->ptNext->pvHolder )

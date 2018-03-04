@@ -44,7 +44,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#define OSMEM_SIZE			OSTOTAL_HEAP_SIZE
+#define OSMEM_SIZE            OSTOTAL_HEAP_SIZE
 
 /** OSMEM_SIZE would have to be aligned, but using 64000 here instead of
  * 65535 leaves some room for alignment. */

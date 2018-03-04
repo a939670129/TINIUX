@@ -46,13 +46,13 @@ extern "C" {
 
 /* Scheduler utilities. */
 extern void FitSchedule( void );
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04UL ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitNVIC_INT_CTRL_REG        ( * ( ( volatile uOS32_t * ) 0xe000ed04UL ) )
+#define FitNVIC_PENDSVSET_BIT       ( 1UL << 28UL )
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 /*-----------------------------------------------------------*/
 
 #include <intrinsics.h>
-#define FIT_QUICK_GET_PRIORITY		1
+#define FIT_QUICK_GET_PRIORITY      ( 1 )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 
 extern void FitIntLock( void );
@@ -63,11 +63,11 @@ extern uOS32_t FitGetIPSR( void );
 
 /*-----------------------------------------------------------*/
 
-#define FitIntMaskFromISR()			FitIntMask()
-#define FitIntUnmaskFromISR( x )	FitIntUnmask( x )
+#define FitIntMaskFromISR()         FitIntMask()
+#define FitIntUnmaskFromISR( x )    FitIntUnmask( x )
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );
@@ -78,10 +78,10 @@ void FitSVCHandler( void );
 
 #if ( OS_LOWPOWER_ON!=0 )
 /* Tickless idle/low power functionality. */
-	#ifndef FitLowPowerIdle
-		extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
-		#define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
-	#endif
+    #ifndef FitLowPowerIdle
+        extern void FitTicklessIdle( uOSTick_t uxLowPowerTicks );
+        #define FitLowPowerIdle( uxLowPowerTicks ) FitTicklessIdle( uxLowPowerTicks )
+    #endif
 #endif
 
 #ifdef __cplusplus

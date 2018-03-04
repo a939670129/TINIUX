@@ -47,9 +47,9 @@ extern "C" {
 
 /* Scheduler utilities. */
 extern void FitSchedule( void );
-#define FitNVIC_INT_CTRL_REG		( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
-#define FitNVIC_PENDSVSET_BIT		( 1UL << 28UL )
-#define FitScheduleFromISR( b ) 	if( b ) FitSchedule()
+#define FitNVIC_INT_CTRL_REG        ( * ( ( volatile uOS32_t * ) 0xe000ed04 ) )
+#define FitNVIC_PENDSVSET_BIT       ( 1UL << 28UL )
+#define FitScheduleFromISR( b )     if( b ) FitSchedule()
 
 extern void FitIntLock( void );
 extern void FitIntUnlock( void );
@@ -57,27 +57,27 @@ extern uOS32_t FitIntMask( void ) __attribute__((naked));
 extern void FitIntUnmask( uOS32_t ulMask ) __attribute__((naked));
 
 #ifndef FIT_FORCE_INLINE
-	#define FIT_FORCE_INLINE inline __attribute__(( always_inline))
+    #define FIT_FORCE_INLINE inline __attribute__(( always_inline))
 #endif
 
 FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
 {
-	uOS32_t ulCurrentInterrupt;
+    uOS32_t ulCurrentInterrupt;
 
-	/* Obtain the number of the currently executing interrupt. */
-	__asm volatile
-	( 
-	"mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
-	);
-	
-	return ulCurrentInterrupt;
+    /* Obtain the number of the currently executing interrupt. */
+    __asm volatile
+    ( 
+    "mrs %0, ipsr" : "=r"( ulCurrentInterrupt ) 
+    );
+    
+    return ulCurrentInterrupt;
 }
 
 /* Determine whether we are in thread mode or handler mode. */
-#define FitIsInsideISR()			( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
+#define FitIsInsideISR()            ( ( uOSBool_t ) ( FitGetIPSR() != ( uOSBase_t )0 ) )
 
-#define FitIntMaskFromISR()			FitIntMask()
-#define FitIntUnmaskFromISR(x)		FitIntUnmask( x )
+#define FitIntMaskFromISR()         FitIntMask()
+#define FitIntUnmaskFromISR(x)      FitIntUnmask( x )
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 sOSBase_t FitStartScheduler( void );
