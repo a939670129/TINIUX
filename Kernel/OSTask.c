@@ -75,12 +75,12 @@ TINIUX_DATA static volatile  uOSBase_t guxTopReadyPriority         = OSLOWEAST_P
 #else
 #if ( OSTASK_PRIORITY_CLASS == 16U )
 TINIUX_DATA static uOS8_t gucPriorityMap[16];
-TINIUX_DATA static uOS8_t gucPriorityClass[4];
+TINIUX_DATA static volatile uOS8_t gucPriorityClass[4];
 TINIUX_DATA static volatile uOS8_t  gucPriorityClassIndex          = 0U;
 #else
 #if ( OSTASK_PRIORITY_CLASS == 64U )
 TINIUX_DATA static uOS8_t gucPriorityMap[256];
-TINIUX_DATA static uOS8_t gucPriorityClass[8];
+TINIUX_DATA static volatile uOS8_t gucPriorityClass[8];
 TINIUX_DATA static volatile uOS8_t gucPriorityClassIndex           = 0U;
 #else
 //default
@@ -132,7 +132,7 @@ uOSBase_t OSTaskInit( void )
 #else
 #if ( OSTASK_PRIORITY_CLASS == 16U )
     memset(gucPriorityMap, 0, 16);
-    memset(gucPriorityClass, 0, 4);
+    memset((void*)gucPriorityClass, 0, 4);
     for (uOS16_t i = 0; i < 16; i++)
     {
         gucPriorityMap[i] = 0;
@@ -148,7 +148,7 @@ uOSBase_t OSTaskInit( void )
 #else
 #if ( OSTASK_PRIORITY_CLASS == 64U )
     memset(gucPriorityMap, 0, 256);
-    memset(gucPriorityClass, 0, 8);
+    memset((void*)gucPriorityClass, 0, 8);
     for (uOS16_t i = 0; i < 256; i++)
     {
         gucPriorityMap[i] = 0;
