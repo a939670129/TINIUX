@@ -66,8 +66,10 @@ extern uOS32_t FitGetIPSR( void );
 #define FitIntMaskFromISR()         FitIntMask()
 #define FitIntUnmaskFromISR( x )    FitIntUnmask( x )
 
-#define FIT_QUICK_GET_PRIORITY      ( 1 )
+#if (OSHIGHEAST_PRIORITY<=32U)
+#define FIT_QUICK_GET_PRIORITY      ( 1U )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( guxReadyPriorities ) ) )
+#endif
 
 uOSStack_t *FitInitializeStack( uOSStack_t *pxTopOfStack, OSTaskFunction_t TaskFunction, void *pvParameters );
 uOSBase_t FitStartScheduler( void );

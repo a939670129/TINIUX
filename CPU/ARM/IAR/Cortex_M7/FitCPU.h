@@ -59,8 +59,10 @@ extern "C" {
 /*-----------------------------------------------------------*/
 
 #include <intrinsics.h>
-#define FIT_QUICK_GET_PRIORITY        1
+#if (OSHIGHEAST_PRIORITY<=32U)
+#define FIT_QUICK_GET_PRIORITY       ( 1U )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
+#endif
 
 #define FitDISABLE_INTERRUPTS()                              \
 {                                                            \

@@ -81,7 +81,8 @@ extern void FitIntUnlock( void );
     #define FIT_FORCE_INLINE inline __attribute__(( always_inline))
 #endif
 
-#define FIT_QUICK_GET_PRIORITY      1
+#if (OSHIGHEAST_PRIORITY<=32U)
+#define FIT_QUICK_GET_PRIORITY      ( 1U )
 /* Generic helper function. */
 static FIT_FORCE_INLINE uOS8_t FitCountLeadingZeros( uint32_t ulBitmap )
 {
@@ -91,7 +92,7 @@ static FIT_FORCE_INLINE uOS8_t FitCountLeadingZeros( uint32_t ulBitmap )
     return ucReturn;
 }
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - FitCountLeadingZeros( ( uxReadyPriorities ) ) )
-
+#endif
 
 FIT_FORCE_INLINE uOS32_t FitGetIPSR( void )
 {

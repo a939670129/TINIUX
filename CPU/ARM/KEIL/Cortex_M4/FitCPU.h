@@ -78,9 +78,10 @@ extern uOS32_t FitGetIPSR( void );
 #define FitIntMaskFromISR()                     FitIntMask()
 #define FitIntUnmaskFromISR( x )                FitIntUnmask( x )
 
-#define FIT_QUICK_GET_PRIORITY    1
+#if (OSHIGHEAST_PRIORITY<=32U)
+#define FIT_QUICK_GET_PRIORITY                  ( 1U )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __clz( ( uxReadyPriorities ) ) )
-
+#endif
 
 #ifndef FIT_FORCE_INLINE
     #define FIT_FORCE_INLINE __forceinline

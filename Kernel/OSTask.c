@@ -63,13 +63,30 @@ TINIUX_DATA static volatile  uOSBase_t guxTasksDeleted             = ( uOSBase_t
 /* Other file private variables. --------------------------------*/
 TINIUX_DATA static volatile  uOSBase_t guxCurrentNumberOfTasks     = ( uOSBase_t ) 0U;
 TINIUX_DATA static volatile  uOSTick_t guxTickCount                = ( uOSTick_t ) 0U;
-TINIUX_DATA static volatile  uOSBase_t guxTopReadyPriority         = OSLOWEAST_PRIORITY;
 TINIUX_DATA static volatile  uOSBool_t gbSchedulerRunning          = OS_FALSE;
 TINIUX_DATA static volatile  uOSBase_t guxPendedTicks              = ( uOSBase_t ) 0U;
 TINIUX_DATA static volatile  uOSBool_t gbNeedSchedule              = OS_FALSE;
 TINIUX_DATA static volatile  sOSBase_t gxOverflowCount             = ( sOSBase_t ) 0U;
 TINIUX_DATA static volatile  uOSTick_t guxNextTaskUnblockTime      = ( uOSTick_t ) 0U;
 TINIUX_DATA static volatile  uOSBase_t guxSchedulerLocked          = ( uOSBase_t ) OS_FALSE;
+
+#if ( FIT_QUICK_GET_PRIORITY == 1U )
+TINIUX_DATA static volatile  uOSBase_t guxTopReadyPriority         = OSLOWEAST_PRIORITY;
+#else
+#if ( OSTASK_PRIORITY_CLASS == 16U )
+TINIUX_DATA static uOS8_t gucPriorityMap[16];
+TINIUX_DATA static uOS8_t gucPriorityClass[4];
+TINIUX_DATA static volatile uOS8_t  gucPriorityClassIndex          = 0U;
+#else
+#if ( OSTASK_PRIORITY_CLASS == 64U )
+TINIUX_DATA static uOS8_t gucPriorityMap[256];
+TINIUX_DATA static uOS8_t gucPriorityClass[8];
+TINIUX_DATA static volatile uOS8_t gucPriorityClassIndex           = 0U;
+#else
+//default
+#endif
+#endif
+#endif
 
 #if ( OS_TASK_SIGNAL_ON!=0 )
 TINIUX_DATA static uOSBase_t const SIG_STATE_NOTWAITING            = ( ( uOS8_t ) 0 );
@@ -103,21 +120,80 @@ uOSBase_t OSTaskInit( void )
 
     guxCurrentNumberOfTasks     = ( uOSBase_t ) 0U;
     guxTickCount                = ( uOSTick_t ) 0U;
-    guxTopReadyPriority         = OSLOWEAST_PRIORITY;
     gbSchedulerRunning          = OS_FALSE;
     guxPendedTicks              = ( uOSBase_t ) 0U;
     gbNeedSchedule              = OS_FALSE;
     gxOverflowCount             = ( sOSBase_t ) 0U;
     guxNextTaskUnblockTime      = ( uOSTick_t ) 0U;
     guxSchedulerLocked          = ( uOSBase_t ) OS_FALSE;
+    
+#if ( FIT_QUICK_GET_PRIORITY == 1U )
+    guxTopReadyPriority         = OSLOWEAST_PRIORITY;
+#else
+#if ( OSTASK_PRIORITY_CLASS == 16U )
+    memset(gucPriorityMap, 0, 16);
+    memset(gucPriorityClass, 0, 4);
+    for (uOS16_t i = 0; i < 16; i++)
+    {
+        gucPriorityMap[i] = 0;
+        for (uOS16_t j = 0; j < 4; j++)
+        {
+            if (((i << j) & 0x8) != 0)
+            {
+                gucPriorityMap[i] = 3 - j;
+                break;
+            }
+        }
+    }
+#else
+#if ( OSTASK_PRIORITY_CLASS == 64U )
+    memset(gucPriorityMap, 0, 256);
+    memset(gucPriorityClass, 0, 8);
+    for (uOS16_t i = 0; i < 256; i++)
+    {
+        gucPriorityMap[i] = 0;
+        for (uOS16_t j = 0; j < 8; j++)
+        {
+            if (((i << j) & 0x80) != 0)
+            {
+                gucPriorityMap[i] = 7 - j;
+                break;
+            }
+        }
+    }
+#else
+//default
+#endif
+#endif
+#endif
 
     return 0U;
 }
 
 static void OSTaskRecordReadyPriority(uOSBase_t uxPriority)
 {
-#if ( FIT_QUICK_GET_PRIORITY == 1 )
+#if ( FIT_QUICK_GET_PRIORITY == 1U )
     guxTopReadyPriority |= ( 1UL << ( uxPriority ) ) ;
+#else
+#if ( OSTASK_PRIORITY_CLASS == 16U )
+    uOS16_t iPriorityClassIndex = 0U;
+    uOS16_t iPriorityRemainder = 0U;
+    iPriorityClassIndex = uxPriority >> 2U;
+    iPriorityRemainder = uxPriority & 0x03U;
+    gucPriorityClass[iPriorityClassIndex] |= 1U << iPriorityRemainder;
+    gucPriorityClassIndex |= 1U << iPriorityClassIndex;
+#else
+#if ( OSTASK_PRIORITY_CLASS == 64U )
+    uOS16_t iPriorityClassIndex = 0U;
+    uOS16_t iPriorityRemainder = 0U;
+    iPriorityClassIndex = uxPriority >> 3U;
+    iPriorityRemainder = uxPriority & 0x07U;
+    gucPriorityClass[iPriorityClassIndex] |= 1U << iPriorityRemainder;
+    gucPriorityClassIndex |= 1U << iPriorityClassIndex;
+#else
+//default
+#endif
+#endif
 #endif
 
     /* Just to avoid compiler warnings. */
@@ -126,11 +202,37 @@ static void OSTaskRecordReadyPriority(uOSBase_t uxPriority)
 
 static void OSTaskResetReadyPriority(uOSBase_t uxPriority)
 {
-#if ( FIT_QUICK_GET_PRIORITY == 1 )
+#if ( FIT_QUICK_GET_PRIORITY == 1U )
     if( OSListGetLength( &( gtOSTaskListReady[ ( uxPriority ) ] ) ) == ( uOSBase_t ) 0 )
     {
         guxTopReadyPriority &= ~( 1UL << ( uxPriority ) );
     }
+#else
+#if ( OSTASK_PRIORITY_CLASS == 16U )
+    int iPriorityClassIndex = 0U;
+    int iPriorityRemainder = 0U;
+    iPriorityClassIndex = uxPriority >> 2U;
+    iPriorityRemainder = uxPriority & 0x03U;
+    gucPriorityClass[iPriorityClassIndex] &= ~(1U << iPriorityRemainder);
+    if (gucPriorityClass[iPriorityClassIndex] == 0U)
+    {
+        gucPriorityClassIndex &= ~(1U << iPriorityClassIndex);
+    }
+#else
+#if ( OSTASK_PRIORITY_CLASS == 64U )
+    int iPriorityClassIndex = 0U;
+    int iPriorityRemainder = 0U;
+    iPriorityClassIndex = uxPriority >> 3U;
+    iPriorityRemainder = uxPriority & 0x07U;
+    gucPriorityClass[iPriorityClassIndex] &= ~(1U << iPriorityRemainder);
+    if (gucPriorityClass[iPriorityClassIndex] == 0U)
+    {
+        gucPriorityClassIndex &= ~(1U << iPriorityClassIndex);
+    }
+#else
+//default
+#endif
+#endif
 #endif
 
     /* Just to avoid compiler warnings. */
@@ -141,14 +243,27 @@ static uOSBase_t OSTaskFindHighestReadyPriority()
 {
     uOSBase_t uxTopPriority = OSHIGHEAST_PRIORITY - 1;
 
-#if ( FIT_QUICK_GET_PRIORITY == 1 )
+#if ( FIT_QUICK_GET_PRIORITY == 1U )
     FitGET_HIGHEST_PRIORITY( uxTopPriority, guxTopReadyPriority );
 #else
+#if ( OSTASK_PRIORITY_CLASS == 16U )
+    uOS16_t iPriorityClassIndex = gucPriorityMap[gucPriorityClassIndex];
+    uOS16_t iPriorityRemainderIndex = gucPriorityClass[iPriorityClassIndex];
+    uxTopPriority = gucPriorityMap[iPriorityRemainderIndex] + (iPriorityClassIndex << 2U);
+#else
+#if ( OSTASK_PRIORITY_CLASS == 64U )
+    uOS16_t iPriorityClassIndex = gucPriorityMap[gucPriorityClassIndex];
+    uOS16_t iPriorityRemainderIndex = gucPriorityClass[iPriorityClassIndex];
+    uxTopPriority = gucPriorityMap[iPriorityRemainderIndex] + (iPriorityClassIndex << 3U);
+#else
+//default
     /* Find the highest priority queue that contains ready tasks. */
     while( OSListIsEmpty( &( gtOSTaskListReady[ uxTopPriority ] ) ) )
     {
         --uxTopPriority;
     }
+#endif
+#endif
 #endif
     return uxTopPriority;
 }
