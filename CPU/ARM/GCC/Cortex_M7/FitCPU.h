@@ -82,7 +82,7 @@ extern void FitIntUnlock( void );
 #endif
 
 #if (OSHIGHEAST_PRIORITY<=32U)
-#define FIT_QUICK_GET_PRIORITY      ( 1U )
+#define FITQUICK_GET_PRIORITY      ( 1U )
 /* Generic helper function. */
 static FIT_FORCE_INLINE uOS8_t FitCountLeadingZeros( uint32_t ulBitmap )
 {

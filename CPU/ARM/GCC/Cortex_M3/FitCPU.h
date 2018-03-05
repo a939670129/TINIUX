@@ -84,7 +84,7 @@ static FIT_FORCE_INLINE uOS8_t ucFitCountLeadingZeros( uint32_t ulBitmap )
 }
 
 #if (OSHIGHEAST_PRIORITY<=32U)
-#define FIT_QUICK_GET_PRIORITY      ( 1U )
+#define FITQUICK_GET_PRIORITY      ( 1U )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, guxReadyPriorities ) uxTopPriority = ( 31 - ucFitCountLeadingZeros( ( guxReadyPriorities ) ) )
 #endif
 

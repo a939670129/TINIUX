@@ -53,7 +53,7 @@ extern void FitSchedule( void );
 
 #include <intrinsics.h>
 #if (OSHIGHEAST_PRIORITY<=32U)
-#define FIT_QUICK_GET_PRIORITY      ( 1U )
+#define FITQUICK_GET_PRIORITY      ( 1U )
 #define FitGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __CLZ( ( uxReadyPriorities ) ) )
 #endif
 
