@@ -94,7 +94,7 @@ typedef struct OSList
 
 void OSListItemInitialise( tOSListItem_t * const ptListItem );
 
-void OSListInitialise( tOSList_t * const ptList );
+void OSListInit( tOSList_t * const ptList );
 void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem );
 void OSListInsertItemToEnd( tOSList_t * const ptList, tOSListItem_t * const ptNewListItem );
 uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove );

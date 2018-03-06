@@ -186,8 +186,8 @@ sOSBase_t OSSemReset( OSSemHandle_t SemHandle, uOSBool_t bNewQueue )
         }
         else
         {
-            OSListInitialise( &( ptSem->tTaskListEventSemV ) );
-            OSListInitialise( &( ptSem->tTaskListEventSemP ) );
+            OSListInit( &( ptSem->tTaskListEventSemV ) );
+            OSListInit( &( ptSem->tTaskListEventSemP ) );
         }
     }
     OSIntUnlock();

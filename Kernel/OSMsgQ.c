@@ -240,8 +240,8 @@ sOSBase_t OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue )
         }
         else
         {
-            OSListInitialise( &( ptMsgQ->tTaskListEventMsgQV ) );
-            OSListInitialise( &( ptMsgQ->tTaskListEventMsgQP ) );
+            OSListInit( &( ptMsgQ->tTaskListEventMsgQV ) );
+            OSListInit( &( ptMsgQ->tTaskListEventMsgQP ) );
         }
     }
     OSIntUnlock();

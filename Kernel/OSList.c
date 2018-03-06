@@ -42,13 +42,13 @@ extern "C" {
 #endif
 
 /*****************************************************************************
-Function    : OSListInitialise 
+Function    : OSListInit 
 Description : Initialise a list. 
 Input       : ptList -- Pointer of the list to be initialised.
 Output      : None 
 Return      : None 
 *****************************************************************************/
-void OSListInitialise( tOSList_t * const ptList )
+void OSListInit( tOSList_t * const ptList )
 {
     /* The list structure contains a list item which is used as sentinel item.  
     To initialise the list. the sentinel item is inserted

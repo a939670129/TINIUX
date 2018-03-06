@@ -181,8 +181,8 @@ OSMutexHandle_t OSMutexCreate( void )
         ptNewMutex->xMutexVLock = MUTEX_STATUS_UNLOCKED;
 
         /* Ensure the event queues start with the correct state. */
-        OSListInitialise( &( ptNewMutex->tTaskListEventMutexV ) );
-        OSListInitialise( &( ptNewMutex->tTaskListEventMutexP ) );
+        OSListInit( &( ptNewMutex->tTaskListEventMutexV ) );
+        OSListInit( &( ptNewMutex->tTaskListEventMutexP ) );
     }
     return (OSMutexHandle_t)ptNewMutex;
 }

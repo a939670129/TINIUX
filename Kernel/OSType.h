@@ -94,8 +94,8 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #ifndef SETOS_MAX_PRIORITIES
   #define    OSTASK_MAX_PRIORITY       ( 8U )
 #else
-  #if (SETOS_MAX_PRIORITIES>64U)
-    #define    OSTASK_MAX_PRIORITY     ( 64U )
+  #if (SETOS_MAX_PRIORITIES>32U)
+    #define    OSTASK_MAX_PRIORITY     ( 32U )
   #else
     #define    OSTASK_MAX_PRIORITY     ( SETOS_MAX_PRIORITIES )
   #endif
@@ -103,22 +103,6 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
 #define      OSLOWEAST_PRIORITY        ( 0U )
 #define      OSHIGHEAST_PRIORITY       ( OSTASK_MAX_PRIORITY )
-
-// Use quick schedule mode or not
-#ifndef SETOS_USE_QUICK_SCHEDULE
-  #define    OSQUICK_SCHEDULE_ON       ( 0U )
-#else
-  #define    OSQUICK_SCHEDULE_ON       ( SETOS_USE_QUICK_SCHEDULE )
-#endif
-#if ( OSQUICK_SCHEDULE_ON!=0 )
-    #if (OSHIGHEAST_PRIORITY>16U)
-        #define OSQUICK_GET_PRIORITY   ( 2U )
-    #else
-        #define OSQUICK_GET_PRIORITY   ( 1U )
-    #endif
-#else
-    #define     OSQUICK_GET_PRIORITY   ( 0U )
-#endif
 
 // The total heap size of the TINIUX
 #ifndef SETOS_TOTAL_HEAP_SIZE
@@ -143,7 +127,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
 // Enable delete task or not
 #ifndef SETOS_ENABLE_MEMFREE
-  #define    OS_MEMFREE_ON             ( 0 )
+  #define    OS_MEMFREE_ON             ( 0U )
 #else
   #define    OS_MEMFREE_ON             ( SETOS_ENABLE_MEMFREE )
 #endif

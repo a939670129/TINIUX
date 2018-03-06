@@ -91,8 +91,8 @@ static void OSTimerInitListsAndCmdMsgQ( void )
     {
         if( gOSTimerCmdMsgQHandle == OS_NULL )
         {
-            OSListInitialise( &gtOSTimerList1 );
-            OSListInitialise( &gtOSTimerList2 );
+            OSListInit( &gtOSTimerList1 );
+            OSListInit( &gtOSTimerList2 );
             gptOSTimerList = &gtOSTimerList1;
             gptOSOFTimerList = &gtOSTimerList2;
 
