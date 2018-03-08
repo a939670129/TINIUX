@@ -73,8 +73,8 @@ extern "C" {
             #endif
         #endif
         TINIUX_DATA static uOS8_t gucSubPriorityMap[SUBPRI_BITMAP_MAXNUM];
-        TINIUX_DATA static volatile uOS8_t gucSubPriority[SUBPRI_MAXNUM];
-        TINIUX_DATA static volatile uOS8_t gucSubPriorityIndex  = 0U;
+        TINIUX_DATA static volatile uOS8_t gucSubPriorityBit[SUBPRI_MAXNUM];
+        TINIUX_DATA static volatile uOS8_t gucSubPriorityGroupBit  = 0U;
     #else
     //default do nothing
     #endif
@@ -119,7 +119,7 @@ uOSBase_t OSScheduleInit( void )
 #if ( OSQUICK_GET_PRIORITY != 0U )
     for (uOS16_t i = 0; i < SUBPRI_MAXNUM; i++)
     {
-        gucSubPriority[i] = 0;
+        gucSubPriorityBit[i] = 0;
     }
     for (uOS16_t i = 0; i < SUBPRI_BITMAP_MAXNUM; i++)
     {
@@ -480,10 +480,10 @@ void OSSetReadyPriority(uOSBase_t uxPriority)
     guxTopReadyPriority |= ( 1UL << ( uxPriority ) ) ;
 #else
 #if ( OSQUICK_GET_PRIORITY != 0U )
-    uOS16_t iSubPriorityIndex = uxPriority >> SUBPRI_MASK_WIDTH;
-    uOS16_t iSubPriorityRemainder = uxPriority & SUBPRI_MASK_VALUE;
-    gucSubPriority[iSubPriorityIndex] |= 1U << iSubPriorityRemainder;
-    gucSubPriorityIndex |= 1U << iSubPriorityIndex;
+    uOS16_t iSubPriorityGroup = uxPriority >> SUBPRI_MASK_WIDTH;
+    uOS16_t iPriorityRemainder = uxPriority & SUBPRI_MASK_VALUE;
+    gucSubPriorityBit[iSubPriorityGroup] |= 1U << iPriorityRemainder;
+    gucSubPriorityGroupBit |= 1U << iSubPriorityGroup;
 #else
     //Default do nothing
 #endif
@@ -504,12 +504,12 @@ void OSResetReadyPriority(uOSBase_t uxPriority)
 #if ( OSQUICK_GET_PRIORITY != 0U )
     if( OSTaskListReadyNum( uxPriority ) == ( uOSBase_t ) 0 )
     {
-        uOS16_t iSubPriorityIndex = uxPriority >> SUBPRI_MASK_WIDTH;
-        uOS16_t iSubPriorityRemainder = uxPriority & SUBPRI_MASK_VALUE;
-        gucSubPriority[iSubPriorityIndex] &= ~(1U << iSubPriorityRemainder);
-        if (gucSubPriority[iSubPriorityIndex] == 0U)
+        uOS16_t iSubPriorityGroup = uxPriority >> SUBPRI_MASK_WIDTH;
+        uOS16_t iPriorityRemainder = uxPriority & SUBPRI_MASK_VALUE;
+        gucSubPriorityBit[iSubPriorityGroup] &= ~(1U << iPriorityRemainder);
+        if (gucSubPriorityBit[iSubPriorityGroup] == 0U)
         {
-            gucSubPriorityIndex &= ~(1U << iSubPriorityIndex);
+            gucSubPriorityGroupBit &= ~(1U << iSubPriorityGroup);
         }
     }
 #else
@@ -529,9 +529,9 @@ uOSBase_t OSGetTopReadyPriority( void )
     FitGET_HIGHEST_PRIORITY( uxTopPriority, guxTopReadyPriority );
 #else
 #if ( OSQUICK_GET_PRIORITY != 0U )
-    uOS16_t iSubPriorityIndex = gucSubPriorityMap[gucSubPriorityIndex];
-    uOS16_t iPriorityRemainderIndex = gucSubPriority[iSubPriorityIndex];
-    uxTopPriority = gucSubPriorityMap[iPriorityRemainderIndex] + (iSubPriorityIndex << SUBPRI_MASK_WIDTH);
+    uOS16_t iSubPriorityGroup = gucSubPriorityMap[gucSubPriorityGroupBit];
+    uOS16_t iPriorityRemainderBit = gucSubPriorityBit[iSubPriorityGroup];
+    uxTopPriority = gucSubPriorityMap[iPriorityRemainderBit] + (iSubPriorityGroup << SUBPRI_MASK_WIDTH);
 #else
     /* Default, Find the highest priority queue that contains ready tasks. */
     while( OSTaskListReadyNum( uxTopPriority ) == 0U )
