@@ -118,7 +118,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
             {
                 if( OSTaskListEventRemove( &( ptMutex->tTaskListEventMutexP ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
             }
             else
@@ -144,7 +144,7 @@ static void OSMutexStatusUnlock( tOSMutex_t * const ptMutex )
             {
                 if( OSTaskListEventRemove( &( ptMutex->tTaskListEventMutexV ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
 
                 --xMutexPLock;
@@ -295,7 +295,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -307,7 +307,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
         OSScheduleLock();
         OSMutexStatusLock( ptMutex );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSMutexIsEmpty( ptMutex ) != OS_FALSE )
             {
@@ -423,7 +423,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -435,7 +435,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
         OSScheduleLock();
         OSMutexStatusLock( ptMutex );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSMutexIsFull( ptMutex ) != OS_FALSE )
             {

@@ -174,7 +174,7 @@ void FitOSTickISR( void )
     ulPreviousMask = FitIntMaskFromISR();
     {
         /* Increment the RTOS tick. */
-        if( OSTaskIncrementTick() != OS_FALSE )
+        if( OSIncrementTickCount() != OS_FALSE )
         {
             /* Pend a context switch. */
             *(FitNVIC_INT_CTRL) = FitNVIC_PENDSVSET;

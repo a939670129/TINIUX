@@ -366,7 +366,7 @@ void FitOSTickISR( void ) __interrupt 5 __naked
     FitSaveTaskContex();
     FitCopyStackToXRam();
 
-    if( OSTaskIncrementTick() != OS_FALSE )
+    if( OSIncrementTickCount() != OS_FALSE )
     {
         OSTaskSwitchContext();
     }

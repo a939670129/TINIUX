@@ -125,7 +125,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
             {
                 if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQP ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
             }
             else
@@ -151,7 +151,7 @@ static void OSMsgQUnlock( tOSMsgQ_t * const ptMsgQ )
             {
                 if( OSTaskListEventRemove( &( ptMsgQ->tTaskListEventMsgQV ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
 
                 --xMsgQPLock;
@@ -357,7 +357,7 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -369,7 +369,7 @@ static uOSBool_t OSMsgQSendGeneral( OSMsgQHandle_t MsgQHandle, const void * cons
         OSScheduleLock();
         OSMsgQLock( ptMsgQ );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSMsgQIsFull( ptMsgQ ) != OS_FALSE )
             {
@@ -466,7 +466,7 @@ uOSBool_t OSMsgQSendFromISR( OSMsgQHandle_t MsgQHandle, const void * const pvIte
     uOSBool_t bNeedSchedule = OS_FALSE;
     
     bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_BACK );
-    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    if(SCHEDULER_RUNNING == OSScheduleGetState())
     {
         OSScheduleFromISR( bNeedSchedule );
     }
@@ -480,7 +480,7 @@ uOSBool_t OSMsgQOverwriteFromISR( OSMsgQHandle_t MsgQHandle, const void * const 
     uOSBool_t bNeedSchedule = OS_FALSE;
     
     bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_OVERWRITE );
-    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    if(SCHEDULER_RUNNING == OSScheduleGetState())
     {
         OSScheduleFromISR( bNeedSchedule );
     }
@@ -494,7 +494,7 @@ uOSBool_t OSMsgQSendToHeadFromISR( OSMsgQHandle_t MsgQHandle, const void * const
     uOSBool_t bNeedSchedule = OS_FALSE;
     
     bReturn = OSMsgQSendGeneralFromISR( ( OSMsgQHandle_t )MsgQHandle, pvItemToQueue, &bNeedSchedule, OSMSGQ_SEND_TO_FRONT );
-    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    if(SCHEDULER_RUNNING == OSScheduleGetState())
     {
         OSScheduleFromISR( bNeedSchedule );
     }
@@ -541,7 +541,7 @@ uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTi
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -553,7 +553,7 @@ uOSBool_t OSMsgQReceive( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTi
         OSScheduleLock();
         OSMsgQLock( ptMsgQ );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
             {
@@ -628,7 +628,7 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -640,7 +640,7 @@ uOSBool_t OSMsgQPeek( OSMsgQHandle_t MsgQHandle, void * const pvBuffer, uOSTick_
         OSScheduleLock();
         OSMsgQLock( ptMsgQ );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSMsgQIsEmpty( ptMsgQ ) != OS_FALSE )
             {
@@ -713,7 +713,7 @@ uOSBool_t OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const pvBuffer
     }
     OSIntUnmaskFromISR( uxIntSave );
 
-    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    if(SCHEDULER_RUNNING == OSScheduleGetState())
     {
         OSScheduleFromISR( bNeedSchedule );
     }

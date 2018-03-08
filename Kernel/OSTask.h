@@ -54,24 +54,6 @@ typedef enum
     eTaskStateNum
 }eOSTaskState_t;
 
-#define SCHEDULER_LOCKED                    ( ( sOSBase_t ) 0 )
-#define SCHEDULER_NOT_STARTED               ( ( sOSBase_t ) 1 )
-#define SCHEDULER_RUNNING                   ( ( sOSBase_t ) 2 )
-
-#define OSIntLock()                         FitIntLock()
-#define OSIntUnlock()                       FitIntUnlock()
-
-#define OSIntMaskFromISR()                  FitIntMaskFromISR()
-#define OSIntUnmaskFromISR( x )             FitIntUnmaskFromISR( x )
-
-#define OSIntMask()                         FitIntMask()
-#define OSIntUnmask( x )                    FitIntUnmask( x )
-
-#define OSSchedule()                        FitSchedule()
-#define OSScheduleFromISR( b )              FitScheduleFromISR( b )
-
-#define OSIsInsideISR()                     FitIsInsideISR()
-
 /*
  * Task control block.  A task control block (TCB) is allocated for each task,
  * and stores task state information, including a pointer to the task's context
@@ -108,20 +90,6 @@ typedef struct OSTaskControlBlock
 
 typedef    tOSTCB_t*        OSTaskHandle_t;
 
-uOSBase_t    OSInit( void ) TINIUX_FUNCTION;
-uOSBase_t    OSStart( void ) TINIUX_FUNCTION;
-uOSTick_t    OSGetTickCount( void ) TINIUX_FUNCTION;
-uOSTick_t    OSGetTickCountFromISR( void ) TINIUX_FUNCTION;
-void         OSScheduleLock( void ) TINIUX_FUNCTION;
-uOSBool_t    OSScheduleUnlock( void ) TINIUX_FUNCTION;
-sOSBase_t    OSGetScheduleState( void ) TINIUX_FUNCTION;
-OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
-
-#if ( OS_LOWPOWER_ON!=0 )
-void         OSFixTickCount( const uOSTick_t uxTicksToFix ) TINIUX_FUNCTION;
-uOSBool_t    OSEnableLowPowerIdle( void ) TINIUX_FUNCTION;
-#endif //OS_LOWPOWER_ON
-
 uOSBase_t    OSTaskInit( void ) TINIUX_FUNCTION;
 OSTaskHandle_t OSTaskCreate(OSTaskFunction_t    pxTaskFunction,
                             void*               pvParameter,
@@ -134,18 +102,28 @@ void         OSTaskDelete( OSTaskHandle_t xTaskToDelete ) TINIUX_FUNCTION;
 void         OSTaskSleep( const uOSTick_t uxTicksToSleep ) TINIUX_FUNCTION;
 sOSBase_t    OSTaskSetID(OSTaskHandle_t TaskHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t    OSTaskGetID(OSTaskHandle_t const TaskHandle) TINIUX_FUNCTION;
+uOSBase_t    OSTaskGetPriority( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
+uOSBase_t    OSTaskGetPriorityFromISR( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 
 void         OSTaskListEventAdd( tOSList_t * const ptEventList, const uOSTick_t uxTicksToWait ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskListEventRemove( const tOSList_t * const ptEventList ) TINIUX_FUNCTION;
-uOSBool_t    OSTaskIncrementTick( void ) TINIUX_FUNCTION;
-void         OSTaskNeedSchedule( void ) TINIUX_FUNCTION;
+void         OSTaskListReadyAdd(tOSTCB_t* ptTCB) TINIUX_FUNCTION;
+uOSBase_t    OSTaskListReadyNum( uOSBase_t uxPriority ) TINIUX_FUNCTION;
+uOSBase_t    OSTaskListPendNum( void ) TINIUX_FUNCTION;
+uOSBase_t    OSTaskListReadyPoolNum( void ) TINIUX_FUNCTION;
+OSTaskHandle_t OSTaskListPendHeadItem( void ) TINIUX_FUNCTION;
+OSTaskHandle_t OSTaskListReadyPoolHeadItem( void ) TINIUX_FUNCTION;
+
+void         OSTaskListPendSwitch( void ) TINIUX_FUNCTION;
 void         OSTaskSwitchContext( void ) TINIUX_FUNCTION;
-void         OSTaskSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) TINIUX_FUNCTION;
-uOSBool_t    OSTaskGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) TINIUX_FUNCTION;
 
 void         OSTaskSuspend( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 void         OSTaskResume( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 sOSBase_t    OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
+
+uOSBase_t    OSTaskGetCurrentTaskNum( void ) TINIUX_FUNCTION;
+OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
+void         OSIdleTask( void *pvParameters) TINIUX_FUNCTION;
 
 #if ( OS_MUTEX_ON!= 0 )
 void *       OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;

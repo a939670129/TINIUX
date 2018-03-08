@@ -175,7 +175,7 @@ uOSBool_t OSTimerSendCmdMsg( OSTimerHandle_t xTimer, const sOSBase_t xCmdMsgType
 
         if( xCmdMsgType < TMCMD_FIRST_FROM_ISR_TYPE )
         {
-            if( OSGetScheduleState() == SCHEDULER_RUNNING )
+            if( OSScheduleGetState() == SCHEDULER_RUNNING )
             {
                 bReturn = OSMsgQSend( gOSTimerCmdMsgQHandle, &tCmdMsg, uxTicksToWait );
             }

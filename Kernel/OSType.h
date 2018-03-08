@@ -66,7 +66,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define      OS_FAIL                   ( OS_FALSE )
 
 #ifndef SETOS_CPU_CLOCK_HZ
-  #define    OSCPU_CLOCK_HZ            ( ( unsigned long )36000000 )
+  #define    OSCPU_CLOCK_HZ            ( ( unsigned long )36000000JL )
 #else
   #define    OSCPU_CLOCK_HZ            ( ( unsigned long ) SETOS_CPU_CLOCK_HZ )
 #endif
@@ -90,12 +90,12 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #endif
 #define      OSMEM_ALIGNMENT_MASK      ( OSMEM_ALIGNMENT-1 )
 
-// Priority range of the TINIUX 0~31
+// Priority range of the TINIUX 0~63
 #ifndef SETOS_MAX_PRIORITIES
   #define    OSTASK_MAX_PRIORITY       ( 8U )
 #else
-  #if (SETOS_MAX_PRIORITIES>32U)
-    #define    OSTASK_MAX_PRIORITY     ( 32U )
+  #if (SETOS_MAX_PRIORITIES>64U)
+    #define    OSTASK_MAX_PRIORITY     ( 64U )
   #else
     #define    OSTASK_MAX_PRIORITY     ( SETOS_MAX_PRIORITIES )
   #endif
@@ -103,6 +103,26 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
 #define      OSLOWEAST_PRIORITY        ( 0U )
 #define      OSHIGHEAST_PRIORITY       ( OSTASK_MAX_PRIORITY )
+
+// Use quick schedule mode or not
+#ifndef SETOS_USE_QUICK_SCHEDULE
+  #define    OSQUICK_SCHEDULE_ON       ( 0U )
+#else
+  #define    OSQUICK_SCHEDULE_ON       ( SETOS_USE_QUICK_SCHEDULE )
+#endif
+#if ( OSQUICK_SCHEDULE_ON!=0 )
+    #if (OSHIGHEAST_PRIORITY>16U)
+        #define OSQUICK_GET_PRIORITY        ( 3U )
+    #else
+        #if (OSHIGHEAST_PRIORITY>4U)
+            #define OSQUICK_GET_PRIORITY    ( 2U )
+        #else
+            #define OSQUICK_GET_PRIORITY    ( 1U )
+        #endif
+    #endif
+#else
+    #define     OSQUICK_GET_PRIORITY        ( 0U )
+#endif
 
 // The total heap size of the TINIUX
 #ifndef SETOS_TOTAL_HEAP_SIZE

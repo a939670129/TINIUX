@@ -346,7 +346,7 @@ void FitOSTickISR( void )
     ( void ) OSIntMaskFromISR();
     {
         /* Increment the RTOS tick. */
-        if( OSTaskIncrementTick() != OS_FALSE )
+        if( OSIncrementTickCount() != OS_FALSE )
         {
             /* A context switch is required.  Context switching is performed in
             the PendSV interrupt.  Pend the PendSV interrupt. */

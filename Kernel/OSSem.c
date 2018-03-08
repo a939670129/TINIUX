@@ -122,7 +122,7 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
             {
                 if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemP ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
             }
             else
@@ -148,7 +148,7 @@ static void OSSemStateUnlock( tOSSem_t * const ptSem )
             {
                 if( OSTaskListEventRemove( &( ptSem->tTaskListEventSemV ) ) != OS_FALSE )
                 {
-                    OSTaskNeedSchedule();
+                    OSNeedSchedule();
                 }
 
                 --xSemPLock;
@@ -301,7 +301,7 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -313,7 +313,7 @@ uOSBool_t OSSemPend( OSSemHandle_t SemHandle, uOSTick_t uxTicksToWait )
         OSScheduleLock();
         OSSemStateLock( ptSem );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSSemIsEmpty( ptSem ) != OS_FALSE )
             {
@@ -384,7 +384,7 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
                 }
                 else if( bEntryTimeSet == OS_FALSE )
                 {
-                    OSTaskSetTimeOutState( &tTimeOut );
+                    OSSetTimeOutState( &tTimeOut );
                     bEntryTimeSet = OS_TRUE;
                 }
             }
@@ -396,7 +396,7 @@ uOSBool_t OSSemPost( OSSemHandle_t SemHandle )
         OSScheduleLock();
         OSSemStateLock( ptSem );
 
-        if( OSTaskGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
+        if( OSGetTimeOutState( &tTimeOut, &uxTicksToWait ) == OS_FALSE )
         {
             if( OSSemIsFull( ptSem ) != OS_FALSE )
             {
@@ -470,7 +470,7 @@ uOSBool_t OSSemPostFromISR( OSSemHandle_t SemHandle )
     }
     OSIntUnmaskFromISR( uxIntSave );
 
-    if(SCHEDULER_RUNNING == OSGetScheduleState())
+    if(SCHEDULER_RUNNING == OSScheduleGetState())
     {
         OSScheduleFromISR( bNeedSchedule );
     }

@@ -369,7 +369,7 @@ void FitOSTickISR( void ) __interrupt 1 __naked
     TL0     = gucTLReload;
     TH0     = gucTHReload;
     
-    if( OSTaskIncrementTick() != OS_FALSE )
+    if( OSIncrementTickCount() != OS_FALSE )
     {
         OSTaskSwitchContext();
     }

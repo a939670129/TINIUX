@@ -35,37 +35,65 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  applicable export control laws and regulations. 
 ***********************************************************************************************************/
 
-// !!!注：应用程序可以根据需要调整Tiniux系统API接口函数及相关功能模块的开关 !!!
+#ifndef __OS_SCHEDULE_H_
+#define __OS_SCHEDULE_H_
 
-#ifndef __OS_PRESET_H_
-#define __OS_PRESET_H_
+#include "OSType.h"
 
-#include <mcs51/8051.h>
-/*-----------------------------------------------------------
- * Application specific definitions.
- *
- * These definitions should be adjusted for your particular hardware and
- * application requirements.
- *
- *----------------------------------------------------------*/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define SETOS_CPU_CLOCK_HZ                      ( ( unsigned long ) 24000000 ) //定义CPU运行主频 (如72000000)
-#define SETOS_TICK_RATE_HZ                      ( 1000 )             //定义TINIUX系统中ticks频率
+#define SCHEDULER_LOCKED                    ( ( sOSBase_t ) 0 )
+#define SCHEDULER_NOT_STARTED               ( ( sOSBase_t ) 1 )
+#define SCHEDULER_RUNNING                   ( ( sOSBase_t ) 2 )
 
-#define SETOS_MINIMAL_STACK_SIZE                ( ( unsigned short ) 100 )     //任务运行时的Stack空间，51架构下系统中所有任务运行时均使用此大小的stack空间
-#define SETOS_TOTAL_HEAP_SIZE                   ( 1024*2 )    //定义系统占用的Heap空间
-#define SETOS_ENABLE_MEMFREE                    ( 0 )        //是否允许释放内存，允许后可以在系统运行时删除Task MsgQ Semaphone Mutex Timer等
-#define SETOS_LOWPOWER_MODE                     ( 0 )        //是否开启低功耗模式
-#define SETOS_MAX_NAME_LEN                      ( 8 )        //定义任务、信号量、消息队列等变量中的名称长度
-#define SETOS_MAX_PRIORITIES                    ( 4 )        //定义任务最大优先级
-#define SETOS_TASK_SIGNAL_ON                    ( 1 )        //是否启动轻量级的任务同步信号，功能类似Semaphore MsgQ，内存占用要小于Semaphore MsgQ
-#define SETOS_USE_SEMAPHORE                     ( 0 )        //是否启用系统信号量功能 0关闭 1启用
-#define SETOS_USE_MUTEX                         ( 0 )        //是否启用互斥信号量功能 0关闭 1启用
-#define SETOS_USE_MSGQ                          ( 0 )        //是否启用系统消息队列功能 0关闭 1启用
-#define SETOS_MSGQ_MAX_MSGNUM                   ( 5 )        //定义消息队列中消息的门限值
-#define SETOS_USE_TIMER                         ( 0 )        //是否使用系统软件定时器
-#define SETOS_USE_QUICK_SCHEDULE                ( 0 )        //是否启动快速调度算法
-#define SETOS_PEND_FOREVER_VALUE                ( 0xFFFF )        //定义信号量及消息队列中永久等待的数值
+#define OSIntLock()                         FitIntLock()
+#define OSIntUnlock()                       FitIntUnlock()
 
-#endif /* __OS_PRESET_H_ */
+#define OSIntMaskFromISR()                  FitIntMaskFromISR()
+#define OSIntUnmaskFromISR( x )             FitIntUnmaskFromISR( x )
 
+#define OSIntMask()                         FitIntMask()
+#define OSIntUnmask( x )                    FitIntUnmask( x )
+
+#define OSSchedule()                        FitSchedule()
+#define OSScheduleFromISR( b )              FitScheduleFromISR( b )
+
+#define OSIsInsideISR()                     FitIsInsideISR()
+
+uOSBase_t    OSInit( void ) TINIUX_FUNCTION;
+uOSBase_t    OSStart( void ) TINIUX_FUNCTION;
+
+uOSBase_t    OSScheduleInit( void ) TINIUX_FUNCTION;
+void         OSScheduleLock( void ) TINIUX_FUNCTION;
+uOSBool_t    OSScheduleUnlock( void ) TINIUX_FUNCTION;
+uOSBool_t    OSScheduleIsLocked( void ) TINIUX_FUNCTION;
+
+sOSBase_t    OSScheduleGetState( void ) TINIUX_FUNCTION;
+void         OSNeedSchedule( void ) TINIUX_FUNCTION;
+
+uOSBool_t    OSIncrementTickCount( void ) TINIUX_FUNCTION;
+uOSTick_t    OSGetTickCount( void ) TINIUX_FUNCTION;
+uOSTick_t    OSGetTickCountFromISR( void ) TINIUX_FUNCTION;
+
+void         OSSetTimeOutState( tOSTimeOut_t * const ptTimeOut ) TINIUX_FUNCTION;
+uOSBool_t    OSGetTimeOutState( tOSTimeOut_t * const ptTimeOut, uOSTick_t * const puxTicksToWait ) TINIUX_FUNCTION;
+
+
+#if ( OS_LOWPOWER_ON!=0 )
+void         OSFixTickCount( const uOSTick_t uxTicksToFix ) TINIUX_FUNCTION;
+uOSBool_t    OSEnableLowPowerIdle( void ) TINIUX_FUNCTION;
+uOSTick_t    OSGetBlockTickCount( void ) TINIUX_FUNCTION;
+#endif //OS_LOWPOWER_ON
+void         OSUpdateUnblockTime( void ) TINIUX_FUNCTION;
+
+void         OSSetReadyPriority(uOSBase_t uxPriority) TINIUX_FUNCTION;
+void         OSResetReadyPriority(uOSBase_t uxPriority) TINIUX_FUNCTION;
+uOSBase_t    OSGetTopReadyPriority( void ) TINIUX_FUNCTION;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //__OS_SCHEDULE_H_
