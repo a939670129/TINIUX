@@ -66,7 +66,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define      OS_FAIL                   ( OS_FALSE )
 
 #ifndef SETOS_CPU_CLOCK_HZ
-  #define    OSCPU_CLOCK_HZ            ( ( unsigned long )36000000JL )
+  #define    OSCPU_CLOCK_HZ            ( ( unsigned long )36000000UL )
 #else
   #define    OSCPU_CLOCK_HZ            ( ( unsigned long ) SETOS_CPU_CLOCK_HZ )
 #endif
@@ -106,7 +106,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 
 // Use time slice mode or not
 #ifndef SETOS_TIME_SLICE_ON
-  #define    OSTIME_SLICE_ON           ( 0U )
+  #define    OSTIME_SLICE_ON           ( 1U )
 #else
   #define    OSTIME_SLICE_ON           ( SETOS_TIME_SLICE_ON )
 #endif
