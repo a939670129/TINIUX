@@ -227,6 +227,12 @@ uOSBool_t OSIncrementTickCount( void )
                 }
             }
         }
+        #if (OSTIME_SLICE_ON != 0U)
+        if( OSTaskNeedTimeSlice() == OS_TRUE )
+        {
+            bNeedSchedule = OS_TRUE;
+        }
+        #endif //(OSTIME_SLICE_ON != 0U)
     }
     else
     {

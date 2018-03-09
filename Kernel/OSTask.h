@@ -117,6 +117,9 @@ OSTaskHandle_t OSTaskListReadyPoolHeadItem( void ) TINIUX_FUNCTION;
 void         OSTaskListPendSwitch( void ) TINIUX_FUNCTION;
 void         OSTaskSwitchContext( void ) TINIUX_FUNCTION;
 
+#if (OSTIME_SLICE_ON != 0U)
+uOSBool_t    OSTaskNeedTimeSlice( void ) TINIUX_FUNCTION;
+#endif //(OSTIME_SLICE_ON != 0U)
 void         OSTaskSuspend( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 void         OSTaskResume( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;
 sOSBase_t    OSTaskResumeFromISR( OSTaskHandle_t TaskHandle ) TINIUX_FUNCTION;

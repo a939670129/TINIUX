@@ -104,6 +104,13 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #define      OSLOWEAST_PRIORITY        ( 0U )
 #define      OSHIGHEAST_PRIORITY       ( OSTASK_MAX_PRIORITY )
 
+// Use time slice mode or not
+#ifndef SETOS_TIME_SLICE_ON
+  #define    OSTIME_SLICE_ON           ( 0U )
+#else
+  #define    OSTIME_SLICE_ON           ( SETOS_TIME_SLICE_ON )
+#endif
+
 // Use quick schedule mode or not
 #ifndef SETOS_USE_QUICK_SCHEDULE
   #define    OSQUICK_SCHEDULE_ON       ( 0U )

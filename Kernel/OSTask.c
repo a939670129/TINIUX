@@ -863,9 +863,14 @@ void OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskH
         }
     }
 }
-
 #endif /* ( OS_MUTEX_ON!=0 ) */
 
+#if (OSTIME_SLICE_ON != 0U)
+uOSBool_t OSTaskNeedTimeSlice( void )
+{
+    return (uOSBool_t)(OSListGetLength( &( gtOSTaskListReady[ gptCurrentTCB-> uxPriority ] ) )>0U);
+}
+#endif //(OSTIME_SLICE_ON != 0U)
 
 void OSTaskSuspend( OSTaskHandle_t TaskHandle )
 {
