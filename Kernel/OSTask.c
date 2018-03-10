@@ -1259,8 +1259,11 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToW
 
     OSIntLock();
     {
-        /* Output the current signal value. */
-        *pxSigValue = gptCurrentTCB->xSigValue;
+        if( pxSigValue != OS_NULL )
+        {
+            /* Output the current signal value. */
+            *pxSigValue = gptCurrentTCB->xSigValue;
+        }
 
         /* If xSigValue is set then either the task never entered the
         blocked state (because a signal was already pending) or the
