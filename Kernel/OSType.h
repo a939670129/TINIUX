@@ -183,7 +183,7 @@ typedef enum {OS_SUCESS = 0, OS_ERROR = !OS_SUCESS} uOSStatus_t;
 #ifndef SETOS_PEND_FOREVER_VALUE
   #define    OSPEND_FOREVER_VALUE      ( ( uOSTick_t ) 0xFFFFFFFFUL )
 #else
-  #define    OSPEND_FOREVER_VALUE      ( SETOS_PEND_FOREVER_VALUE )
+  #define    OSPEND_FOREVER_VALUE      ( ( uOSTick_t ) SETOS_PEND_FOREVER_VALUE )
 #endif
 
 // Use semaphore or not
