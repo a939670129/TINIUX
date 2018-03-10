@@ -70,6 +70,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SETOS_MSGQ_MAX_MSGNUM                   ( 5 )        //定义消息队列中消息的门限值
 #define SETOS_USE_TIMER                         ( 1 )        //是否使用系统软件定时器
 #define SETOS_USE_QUICK_SCHEDULE                ( 1 )        //是否启动快速调度算法
+#define SETOS_TIME_SLICE_ON                     ( 1 )        //是否启用时间片轮转（time slice）调度机制
 #define SETOS_PEND_FOREVER_VALUE                ( 0xFFFFFFFF )        //定义信号量及消息队列中永久等待的数值
 
 /* Cortex-M specific definitions. */
