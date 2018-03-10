@@ -1228,11 +1228,10 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
     }
     return bReturn;
 }
-uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWait)
+uOSBool_t OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToWait)
 {
     uOSBool_t bReturn = OS_FALSE;
-    ( void )xSigValue;
-    
+
     OSIntLock();
     {
         /* Only block if a signal is not already pending. */
@@ -1261,7 +1260,7 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWai
     OSIntLock();
     {
         /* Output the current signal value. */
-        xSigValue = gptCurrentTCB->xSigValue;
+        *pxSigValue = gptCurrentTCB->xSigValue;
 
         /* If xSigValue is set then either the task never entered the
         blocked state (because a signal was already pending) or the

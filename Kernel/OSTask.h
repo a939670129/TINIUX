@@ -143,7 +143,7 @@ void         OSTaskBlockAndPend( tOSList_t * const ptEventList, uOSTick_t uxTick
 uOSBool_t    OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmit( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
-uOSBool_t    OSTaskSignalWaitMsg( sOSBase_t xSigValue, uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t    OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalClear( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
