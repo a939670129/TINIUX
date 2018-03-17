@@ -61,7 +61,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SETOS_TOTAL_HEAP_SIZE                   ( 1024*3 )      //定义系统占用的Heap空间
 #define SETOS_ENABLE_MEMFREE                    ( 1 )           //是否允许释放内存，允许后可以在系统运行时删除Task MsgQ Semaphone Mutex Timer等
 #define SETOS_LOWPOWER_MODE                     ( 1 )           //是否开启低功耗模式
-#define SETOS_MAX_NAME_LEN                      ( 10 )          //定义任务、信号量、消息队列等变量中的名称长度
+#define SETOS_MAX_NAME_LEN                      ( 8 )          //定义任务、信号量、消息队列等变量中的名称长度
 #define SETOS_MAX_PRIORITIES                    ( 8 )           //定义任务最大优先级
 #define SETOS_TASK_SIGNAL_ON                    ( 1 )           //是否启动轻量级的任务同步信号，功能类似Semaphore MsgQ，内存占用要小于Semaphore MsgQ
 #define SETOS_USE_SEMAPHORE                     ( 1 )           //是否启用系统信号量功能 0关闭 1启用
