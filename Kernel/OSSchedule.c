@@ -105,6 +105,9 @@ uOSBase_t OSInit( void )
 
 uOSBase_t OSScheduleInit( void )
 {
+    uOS16_t uiSubPriIndex = 0;
+    uOS16_t uiBitIndex = 0;
+    
     guxTickCount                = ( uOSTick_t ) 0U;
     gbSchedulerRunning          = OS_FALSE;
     guxPendedTicks              = ( uOSBase_t ) 0U;
@@ -117,18 +120,18 @@ uOSBase_t OSScheduleInit( void )
     guxTopReadyPriority         = OSLOWEAST_PRIORITY;
 #else
 #if ( OSQUICK_GET_PRIORITY != 0U )
-    for (uOS16_t i = 0; i < SUBPRI_MAXNUM; i++)
+    for (uiSubPriIndex = 0; uiSubPriIndex < SUBPRI_MAXNUM; uiSubPriIndex++)
     {
-        gucSubPriorityBit[i] = 0;
+        gucSubPriorityBit[uiSubPriIndex] = 0;
     }
-    for (uOS16_t i = 0; i < SUBPRI_BITMAP_MAXNUM; i++)
+    for (uiSubPriIndex = 0; uiSubPriIndex < SUBPRI_BITMAP_MAXNUM; uiSubPriIndex++)
     {
-        gucSubPriorityMap[i] = 0;
-        for (uOS16_t j = 0; j < SUBPRI_BITMAP_WIDTH; j++)
+        gucSubPriorityMap[uiSubPriIndex] = 0;
+        for (uiBitIndex = 0; uiBitIndex < SUBPRI_BITMAP_WIDTH; uiBitIndex++)
         {
-            if (((i << j) & SUBPRI_BITMAP_TOPBIT) != 0)
+            if (((uiSubPriIndex << uiBitIndex) & SUBPRI_BITMAP_TOPBIT) != 0)
             {
-                gucSubPriorityMap[i] = SUBPRI_TOPPRI - j;
+                gucSubPriorityMap[uiSubPriIndex] = SUBPRI_TOPPRI - uiBitIndex;
                 break;
             }
         }
