@@ -105,21 +105,14 @@ uOSBase_t OSInit( void )
 
 uOSBase_t OSScheduleInit( void )
 {
-    uOS16_t uiSubPriIndex = 0;
-    uOS16_t uiBitIndex = 0;
-    
-    guxTickCount                = ( uOSTick_t ) 0U;
-    gbSchedulerRunning          = OS_FALSE;
-    guxPendedTicks              = ( uOSBase_t ) 0U;
-    gbNeedSchedule              = OS_FALSE;
-    guxSchedulerLocked          = ( uOSBase_t ) OS_FALSE;
-    guxNextUnblockTime          = ( uOSTick_t ) 0U;
-    gxOverflowCount             = ( sOSBase_t ) 0U;
 
 #if ( FITQUICK_GET_PRIORITY == 1U )
     guxTopReadyPriority         = OSLOWEAST_PRIORITY;
 #else
 #if ( OSQUICK_GET_PRIORITY != 0U )
+    uOS16_t uiSubPriIndex = 0;
+    uOS16_t uiBitIndex = 0;
+
     for (uiSubPriIndex = 0; uiSubPriIndex < SUBPRI_MAXNUM; uiSubPriIndex++)
     {
         gucSubPriorityBit[uiSubPriIndex] = 0;
@@ -140,6 +133,14 @@ uOSBase_t OSScheduleInit( void )
     //Default do nothing
 #endif
 #endif
+    
+    guxTickCount                = ( uOSTick_t ) 0U;
+    gbSchedulerRunning          = OS_FALSE;
+    guxPendedTicks              = ( uOSBase_t ) 0U;
+    gbNeedSchedule              = OS_FALSE;
+    guxSchedulerLocked          = ( uOSBase_t ) OS_FALSE;
+    guxNextUnblockTime          = ( uOSTick_t ) 0U;
+    gxOverflowCount             = ( sOSBase_t ) 0U;
 
     return 0;
 }
