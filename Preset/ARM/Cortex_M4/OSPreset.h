@@ -57,7 +57,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SETOS_CPU_CLOCK_HZ                      ( SystemCoreClock ) //定义CPU运行主频 (如72000000)
 #define SETOS_TICK_RATE_HZ                      ( 1000 )            //定义TINIUX系统中ticks频率
 
-#define SETOS_MINIMAL_STACK_SIZE                ( 64 )          //定义任务占用的最小Stack空间
+#define SETOS_MINIMAL_STACK_SIZE                ( 72 )          //定义任务占用的最小Stack空间
 #define SETOS_TOTAL_HEAP_SIZE                   ( 1024*4 )      //定义系统占用的Heap空间
 #define SETOS_ENABLE_MEMFREE                    ( 1 )           //是否允许释放内存，允许后可以在系统运行时删除Task MsgQ Semaphone Mutex Timer等
 #define SETOS_LOWPOWER_MODE                     ( 1 )           //是否开启低功耗模式
