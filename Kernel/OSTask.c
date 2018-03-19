@@ -61,9 +61,9 @@ TINIUX_DATA static volatile  uOSBase_t guxTasksDeleted              = ( uOSBase_
 #endif /* OS_MEMFREE_ON */
 
 #if ( OS_TASK_SIGNAL_ON!=0 )
-TINIUX_DATA static uOSBase_t const SIG_STATE_NOTWAITING             = ( ( uOS8_t ) 0 );
-TINIUX_DATA static uOSBase_t const SIG_STATE_WAITING                = ( ( uOS8_t ) 1 );
-TINIUX_DATA static uOSBase_t const SIG_STATE_RECEIVED               = ( ( uOS8_t ) 2 );
+TINIUX_DATA static uOS8_t const SIG_STATE_NOTWAITING                = ( ( uOS8_t ) 0 );
+TINIUX_DATA static uOS8_t const SIG_STATE_WAITING                   = ( ( uOS8_t ) 1 );
+TINIUX_DATA static uOS8_t const SIG_STATE_RECEIVED                  = ( ( uOS8_t ) 2 );
 #endif
 
 static void OSTaskListInit( void )
