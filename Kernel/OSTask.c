@@ -183,8 +183,8 @@ static void OSTaskInitTCB( tOSTCB_t * const ptTCB, const char * const pcName, uO
     
     #if ( OS_TASK_SIGNAL_ON!=0 )
     {
-        ptTCB->uxSigState = SIG_STATE_NOTWAITING;        /*< Task signal state: NotWaiting Waiting Received. */
-        ptTCB->xSigValue = 0;                            /*< Task signal value: Msg or count. */        
+        ptTCB->ucSigState = SIG_STATE_NOTWAITING;        /*< Task signal state: NotWaiting Waiting Received. */
+        ptTCB->uiSigValue = 0;                            /*< Task signal value: Msg or count. */        
     }
     #endif // OS_TASK_SIGNAL_ON!=0
         
@@ -900,11 +900,11 @@ void OSTaskSuspend( OSTaskHandle_t TaskHandle )
 
         #if( OS_TASK_SIGNAL_ON!=0 )
         {
-            if( ptTCB->uxSigState == SIG_STATE_WAITING )
+            if( ptTCB->ucSigState == SIG_STATE_WAITING )
             {
                 /* The task was blocked to wait for a signal, but is
                 now suspended, so no signal was received. */
-                ptTCB->uxSigState = SIG_STATE_NOTWAITING;
+                ptTCB->ucSigState = SIG_STATE_NOTWAITING;
             }
         }
         #endif
@@ -1095,10 +1095,10 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
     OSIntLock();
     {
         /* Only block if the signal count is not already non-zero. */
-        if( gptCurrentTCB->xSigValue == 0UL )
+        if( gptCurrentTCB->uiSigValue == 0UL )
         {
             /* Mark this task as waiting for a signal. */
-            gptCurrentTCB->uxSigState = SIG_STATE_WAITING;
+            gptCurrentTCB->ucSigState = SIG_STATE_WAITING;
 
             if( uxTicksToWait > ( uOSTick_t ) 0 )
             {
@@ -1112,16 +1112,16 @@ uOSBool_t OSTaskSignalWait( uOSTick_t const uxTicksToWait)
 
     OSIntLock();
     {
-        xTemp = gptCurrentTCB->xSigValue;
+        xTemp = gptCurrentTCB->uiSigValue;
 
         if( (uOS32_t)xTemp > 0UL )
         {
-            gptCurrentTCB->xSigValue = xTemp - (uOSBase_t)1;
+            gptCurrentTCB->uiSigValue = xTemp - (uOSBase_t)1;
             
             bReturn = OS_TRUE;
         }
 
-        gptCurrentTCB->uxSigState = SIG_STATE_NOTWAITING;
+        gptCurrentTCB->ucSigState = SIG_STATE_NOTWAITING;
     }
     OSIntUnlock();
 
@@ -1137,16 +1137,16 @@ uOSBool_t OSTaskSignalEmit( OSTaskHandle_t const TaskHandle )
 
     OSIntLock();
     {
-        ucOldState = ptTCB->uxSigState;
+        ucOldState = ptTCB->ucSigState;
 
-        ptTCB->uxSigState = SIG_STATE_RECEIVED;
-        if( ptTCB->xSigValue>0xF )
+        ptTCB->ucSigState = SIG_STATE_RECEIVED;
+        if( ptTCB->uiSigValue>0xF )
         {
             bReturn = OS_FALSE;
         }
         else
         {
-            ptTCB->xSigValue += 1;
+            ptTCB->uiSigValue += 1;
             bReturn = OS_TRUE;
         }
         /* If the task is in the blocked state specifically to wait for a
@@ -1182,16 +1182,16 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
 
     uxIntSave = OSIntMaskFromISR();
     {
-        ucOldState = ptTCB->uxSigState;
-        ptTCB->uxSigState = SIG_STATE_RECEIVED;
+        ucOldState = ptTCB->ucSigState;
+        ptTCB->ucSigState = SIG_STATE_RECEIVED;
 
-        if( ptTCB->xSigValue>0xF )
+        if( ptTCB->uiSigValue>0xF )
         {
             bReturn = OS_FALSE;
         }
         else
         {
-            ptTCB->xSigValue += 1;
+            ptTCB->uiSigValue += 1;
             bReturn = OS_TRUE;
         }
 
@@ -1228,20 +1228,20 @@ uOSBool_t OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle )
     }
     return bReturn;
 }
-uOSBool_t OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToWait)
+uOSBool_t OSTaskSignalWaitMsg( uOS32_t* puiSigValue, uOSTick_t const uxTicksToWait)
 {
     uOSBool_t bReturn = OS_FALSE;
 
     OSIntLock();
     {
         /* Only block if a signal is not already pending. */
-        if( gptCurrentTCB->uxSigState != SIG_STATE_RECEIVED )
+        if( gptCurrentTCB->ucSigState != SIG_STATE_RECEIVED )
         {
             /* clear the value to zero. */
-            gptCurrentTCB->xSigValue = 0;
+            gptCurrentTCB->uiSigValue = 0;
 
             /* Mark this task as waiting for a signal. */
-            gptCurrentTCB->uxSigState = SIG_STATE_WAITING;
+            gptCurrentTCB->ucSigState = SIG_STATE_WAITING;
 
             if( uxTicksToWait > ( uOSTick_t ) 0 )
             {
@@ -1259,17 +1259,17 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToW
 
     OSIntLock();
     {
-        if( pxSigValue != OS_NULL )
+        if( puiSigValue != OS_NULL )
         {
             /* Output the current signal value. */
-            *pxSigValue = gptCurrentTCB->xSigValue;
+            *puiSigValue = gptCurrentTCB->uiSigValue;
         }
 
-        /* If xSigValue is set then either the task never entered the
+        /* If uiSigValue is set then either the task never entered the
         blocked state (because a signal was already pending) or the
         task unblocked because of a signal.  Otherwise the task
         unblocked because of a timeout. */
-        if( gptCurrentTCB->uxSigState != SIG_STATE_RECEIVED )
+        if( gptCurrentTCB->ucSigState != SIG_STATE_RECEIVED )
         {
             /* A signal was not received. */
             bReturn = OS_FALSE;
@@ -1278,17 +1278,17 @@ uOSBool_t OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToW
         {
             /* A signal was already pending or a signal was
             received while the task was waiting. */
-            gptCurrentTCB->xSigValue = 0;
+            gptCurrentTCB->uiSigValue = 0;
             bReturn = OS_TRUE;
         }
 
-        gptCurrentTCB->uxSigState = SIG_STATE_NOTWAITING;
+        gptCurrentTCB->ucSigState = SIG_STATE_NOTWAITING;
     }
     OSIntUnlock();
 
     return bReturn;
 }
-uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite )
+uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, uOS32_t const uiSigValue, uOSBool_t bOverWrite )
 {
     tOSTCB_t * ptTCB = OS_NULL;
     uOSBool_t bReturn = OS_FALSE;
@@ -1298,12 +1298,12 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 
     OSIntLock();
     {
-        ucOldState = ptTCB->uxSigState;
+        ucOldState = ptTCB->ucSigState;
 
-        ptTCB->uxSigState = SIG_STATE_RECEIVED;
+        ptTCB->ucSigState = SIG_STATE_RECEIVED;
         if( ucOldState != SIG_STATE_RECEIVED || bOverWrite == OS_TRUE )
         {
-            ptTCB->xSigValue = xSigValue;
+            ptTCB->uiSigValue = uiSigValue;
             bReturn = OS_TRUE;
         }
         else
@@ -1333,7 +1333,7 @@ uOSBool_t OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const 
 
     return bReturn;
 }
-uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite )
+uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, uOS32_t const uiSigValue, uOSBool_t bOverWrite )
 {
     tOSTCB_t * ptTCB = OS_NULL;
     uOS8_t ucOldState = SIG_STATE_NOTWAITING;
@@ -1345,11 +1345,11 @@ uOSBool_t OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t
 
     uxIntSave = OSIntMaskFromISR();
     {
-        ucOldState = ptTCB->uxSigState;
-        ptTCB->uxSigState = SIG_STATE_RECEIVED;
+        ucOldState = ptTCB->ucSigState;
+        ptTCB->ucSigState = SIG_STATE_RECEIVED;
         if( ucOldState != SIG_STATE_RECEIVED || bOverWrite == OS_TRUE )
         {
-            ptTCB->xSigValue = xSigValue;
+            ptTCB->uiSigValue = uiSigValue;
             bReturn = OS_TRUE;
         }
         else
@@ -1402,10 +1402,10 @@ uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
 
     OSIntLock();
     {
-        if( ptTCB->uxSigState == SIG_STATE_RECEIVED )
+        if( ptTCB->ucSigState == SIG_STATE_RECEIVED )
         {
-            ptTCB->uxSigState = SIG_STATE_NOTWAITING;
-            ptTCB->xSigValue = 0;
+            ptTCB->ucSigState = SIG_STATE_NOTWAITING;
+            ptTCB->uiSigValue = 0;
             bReturn = OS_TRUE;
         }
         else

@@ -80,10 +80,9 @@ typedef struct OSTaskControlBlock
 
     sOSBase_t               xID;
     
-#if ( OS_TASK_SIGNAL_ON!=0 )
-    uOSBase_t               uxSigType;            /*< Task signal type: SEM_SIG MSG_SIG MSG_SIG_OVERWRITE. */
-    uOSBase_t               uxSigState;           /*< Task signal state: NotWaiting Waiting GotSignal. */
-    sOSBase_t               xSigValue;            /*< Task signal value: Msg or count. */
+#if ( OS_TASK_SIGNAL_ON!=0 )                      /*< Task signal: SEM_SIG MSG_SIG MSG_SIG_OVERWRITE. */
+    volatile uOS8_t         ucSigState;           /*< Task signal state: NotWaiting Waiting GotSignal. */
+    volatile uOS32_t        uiSigValue;           /*< Task signal value: Msg or count. */
 #endif
 
 } tOSTCB_t;
@@ -143,9 +142,9 @@ void         OSTaskBlockAndPend( tOSList_t * const ptEventList, uOSTick_t uxTick
 uOSBool_t    OSTaskSignalWait( uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmit( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalEmitFromISR( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
-uOSBool_t    OSTaskSignalWaitMsg( sOSBase_t* pxSigValue, uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
-uOSBool_t    OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
-uOSBool_t    OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, sOSBase_t const xSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
+uOSBool_t    OSTaskSignalWaitMsg( uOS32_t* puiSigValue, uOSTick_t const uxTicksToWait) TINIUX_FUNCTION;
+uOSBool_t    OSTaskSignalEmitMsg( OSTaskHandle_t const TaskHandle, uOS32_t const uiSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
+uOSBool_t    OSTaskSignalEmitMsgFromISR( OSTaskHandle_t const TaskHandle, uOS32_t const uiSigValue, uOSBool_t bOverWrite ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskSignalClear( OSTaskHandle_t const TaskHandle ) TINIUX_FUNCTION;
 #endif
 
