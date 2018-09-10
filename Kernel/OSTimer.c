@@ -542,7 +542,7 @@ uOSBool_t OSTimerIsActive(OSTimerHandle_t TimerHandle)
 	/* Is the timer in the list of active timers? */
 	OSIntLock();
 	{
-		if( OSListContainListItem( NULL, &( ptTimer->tTimerListItem ) ) != OS_FALSE )
+		if( OSListContainListItem( OS_NULL, &( ptTimer->tTimerListItem ) ) != OS_FALSE )
 		{
 			bIsActive = OS_FALSE;
 		}

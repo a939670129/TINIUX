@@ -1438,44 +1438,6 @@ uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
     return bReturn;    
 }
 
-	static configSTACK_DEPTH_TYPE prvTaskCheckFreeStackSpace( const uint8_t * pucStackByte )
-	{
-	uint32_t ulCount = 0U;
-
-		while( *pucStackByte == ( uint8_t ) tskSTACK_FILL_BYTE )
-		{
-			pucStackByte -= portSTACK_GROWTH;
-			ulCount++;
-		}
-
-		ulCount /= ( uint32_t ) sizeof( StackType_t ); /*lint !e961 Casting is not redundant on smaller architectures. */
-
-		return ( configSTACK_DEPTH_TYPE ) ulCount;
-	}
-    
-	UBaseType_t uxTaskGetStackHighWaterMark( TaskHandle_t xTask )
-	{
-	TCB_t *pxTCB;
-	uint8_t *pucEndOfStack;
-	UBaseType_t uxReturn;
-
-		pxTCB = prvGetTCBFromHandle( xTask );
-
-		#if portSTACK_GROWTH < 0
-		{
-			pucEndOfStack = ( uint8_t * ) pxTCB->pxStack;
-		}
-		#else
-		{
-			pucEndOfStack = ( uint8_t * ) pxTCB->pxEndOfStack;
-		}
-		#endif
-
-		uxReturn = ( UBaseType_t ) prvTaskCheckFreeStackSpace( pucEndOfStack );
-
-		return uxReturn;
-	}
-    
 #endif
 
 #ifdef __cplusplus
