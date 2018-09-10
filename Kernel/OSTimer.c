@@ -534,6 +534,28 @@ uOSBool_t OSTimerStopFromISR(OSTimerHandle_t const TimerHandle)
     return OSTimerSendCmdMsg( TimerHandle, TMCMD_STOP_FROM_ISR, 0U, 0U );
 }
 
+uOSBool_t OSTimerIsActive(OSTimerHandle_t TimerHandle)
+{
+    uOSBool_t bIsActive;
+    tOSTimer_t *ptTimer = ( tOSTimer_t * )TimerHandle;
+
+	/* Is the timer in the list of active timers? */
+	OSIntLock();
+	{
+		if( OSListContainListItem( NULL, &( ptTimer->tTimerListItem ) ) != OS_FALSE )
+		{
+			bIsActive = OS_FALSE;
+		}
+		else
+		{
+			bIsActive = OS_TRUE;
+		}
+	}
+	OSIntUnlock();
+
+	return bIsActive;
+}
+
 sOSBase_t OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID)
 {
     if(TimerHandle == OS_NULL)

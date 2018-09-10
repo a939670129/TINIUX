@@ -75,6 +75,9 @@ OSMsgQHandle_t    OSMsgQCreate( const uOSBase_t uxQueueLength, const uOSBase_t u
 void             OSMsgQDelete( OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
+uOSBool_t         OSMsgQIsEmptyFromISR( const tOSMsgQ_t *ptMsgQ ) TINIUX_FUNCTION;
+uOSBool_t         OSMsgQIsFullFromISR( const tOSMsgQ_t *ptMsgQ ) TINIUX_FUNCTION;
+
 sOSBase_t         OSMsgQSetID(OSMsgQHandle_t MsgQHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t         OSMsgQGetID(OSMsgQHandle_t const MsgQHandle) TINIUX_FUNCTION;
 
@@ -95,6 +98,7 @@ uOSBool_t         OSMsgQReceiveFromISR( OSMsgQHandle_t MsgQHandle, void * const 
 
 uOSBase_t         OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 uOSBase_t         OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
+uOSBase_t         OSMsgQGetMsgNumFromISR( const OSMsgQHandle_t MsgQHandle ) TINIUX_FUNCTION;
 
 sOSBase_t        OSMsgQReset( OSMsgQHandle_t MsgQHandle, uOSBool_t bNewQueue ) TINIUX_FUNCTION;
 

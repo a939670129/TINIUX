@@ -196,6 +196,29 @@ void OSMutexDelete( OSMutexHandle_t MutexHandle )
 }
 #endif /* OS_MEMFREE_ON */
 
+OSTaskHandle_t OSMutexGetHolder( OSMutexHandle_t MutexHandle )
+{
+    OSTaskHandle_t TaskHandle;
+    tOSMutex_t * const ptMutex = ( tOSMutex_t * ) MutexHandle;
+
+    OSIntLock();
+    {
+        TaskHandle = ptMutex->MutexHolderHandle;
+    }
+    OSIntUnlock();
+
+    return TaskHandle;
+}
+
+OSTaskHandle_t OSMutexGetHolderFromISR( OSMutexHandle_t MutexHandle )
+{
+    OSTaskHandle_t TaskHandle;
+
+    TaskHandle = ( ( tOSMutex_t * ) MutexHandle )->MutexHolderHandle;
+
+    return TaskHandle;
+}
+
 sOSBase_t OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID)
 {
     if(MutexHandle == OS_NULL)
@@ -255,7 +278,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
     uOSBool_t bInheritanceOccurred = OS_FALSE;
 
     //the mutex have been locked
-    if( ptMutex->MutexHolderHandle == ( void * ) OSGetCurrentTaskHandle() ) 
+    if( ptMutex->MutexHolderHandle == OSGetCurrentTaskHandle() ) 
     {
         ( ptMutex->uxMutexLocked )++;
         return OS_TRUE;
@@ -270,7 +293,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
             if( uxCurNum > ( uOSBase_t ) 0 )
             {
                 ptMutex->uxCurNum = uxCurNum - 1;
-                ptMutex->MutexHolderHandle = ( sOS8_t * ) OSTaskGetMutexHolder();
+                ptMutex->MutexHolderHandle = OSTaskGetMutexHolder();
                 //mutex locked successfully
                 ( ptMutex->uxMutexLocked )++;
                                 
@@ -313,7 +336,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
             {
                 OSIntLock();
                 {
-                    bInheritanceOccurred = OSTaskPriorityInherit( ( void * ) ptMutex->MutexHolderHandle );
+                    bInheritanceOccurred = OSTaskPriorityInherit( ptMutex->MutexHolderHandle );
                 }
                 OSIntUnlock();
                 
@@ -350,7 +373,7 @@ uOSBool_t OSMutexLock( OSMutexHandle_t MutexHandle, uOSTick_t uxTicksToWait )
                         again, but only as low as the next highest priority
                         task that is waiting for the same mutex. */
                         uxHighestWaitingPriority = OSMutexGetDisinheritPriorityAfterTimeout( ptMutex );
-                        OSTaskPriorityDisinheritAfterTimeout( ( void * ) ptMutex->MutexHolderHandle, uxHighestWaitingPriority );
+                        OSTaskPriorityDisinheritAfterTimeout( ptMutex->MutexHolderHandle, uxHighestWaitingPriority );
                     }
                     OSIntUnlock();
                 }
@@ -371,7 +394,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
     uOSTick_t uxTicksToWait = MUTEX_UNLOCK_BLOCK_TIME;
 
     /* The calling task is not the holder, the mutex cannot be unlocked here. */
-    if( ptMutex->MutexHolderHandle != ( void * ) OSGetCurrentTaskHandle() )
+    if( ptMutex->MutexHolderHandle != OSGetCurrentTaskHandle() )
     {
         return OS_FALSE;
     }
@@ -394,7 +417,7 @@ uOSBool_t OSMutexUnlock( OSMutexHandle_t MutexHandle )
             if( uxCurNum < ptMutex->uxMaxNum )
             {
                 /* The mutex is no longer being held. */
-                bNeedSchedule = OSTaskPriorityDisinherit( ( void * ) ptMutex->MutexHolderHandle );
+                bNeedSchedule = OSTaskPriorityDisinherit( ptMutex->MutexHolderHandle );
                 ptMutex->MutexHolderHandle = OS_NULL;
                 ptMutex->uxCurNum = uxCurNum + 1;
 

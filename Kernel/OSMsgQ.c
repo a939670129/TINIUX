@@ -76,6 +76,23 @@ static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
     return bReturn;
 }
 
+uOSBool_t OSMsgQIsEmptyFromISR( const tOSMsgQ_t *ptMsgQ )
+{
+    uOSBool_t bReturn = OS_FALSE;
+    tOSMsgQ_t *const ptMsgQTemp = ptMsgQ;
+
+    if( ptMsgQ->uxCurNum == ( uOSBase_t )  0 )
+    {
+        bReturn = OS_TRUE;
+    }
+    else
+    {
+        bReturn = OS_FALSE;
+    }
+
+    return bReturn;
+}
+
 static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
 {
     uOSBool_t bReturn = OS_FALSE;
@@ -92,6 +109,23 @@ static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
         }
     }
     OSIntUnlock();
+
+    return bReturn;
+}
+
+uOSBool_t OSMsgQIsFullFromISR( const tOSMsgQ_t *ptMsgQ )
+{
+    uOSBool_t bReturn = OS_FALSE;
+    tOSMsgQ_t *const ptMsgQTemp = ptMsgQ;
+
+    if( ptMsgQTemp->uxCurNum == ptMsgQTemp->uxMaxNum )
+    {
+        bReturn = OS_TRUE;
+    }
+    else
+    {
+        bReturn = OS_FALSE;
+    }
 
     return bReturn;
 }
@@ -770,9 +804,7 @@ void OSMsgQWait( OSMsgQHandle_t MsgQHandle, uOSTick_t uxTicksToWait, uOSBool_t b
 uOSBase_t OSMsgQGetSpaceNum( const OSMsgQHandle_t MsgQHandle )
 {
     uOSBase_t uxReturn = (uOSBase_t)0U;
-    tOSMsgQ_t *ptMsgQ = OS_NULL;
-
-    ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
 
     OSIntLock();
     {
@@ -792,6 +824,16 @@ uOSBase_t OSMsgQGetMsgNum( const OSMsgQHandle_t MsgQHandle )
         uxReturn = ( ( tOSMsgQ_t * ) MsgQHandle )->uxCurNum;
     }
     OSIntUnlock();
+
+    return uxReturn;
+}
+
+uOSBase_t OSMsgQGetMsgNumFromISR( const OSMsgQHandle_t MsgQHandle )
+{
+    uOSBase_t uxReturn = (uOSBase_t)0U;
+    tOSMsgQ_t * const ptMsgQ = ( tOSMsgQ_t * ) MsgQHandle;
+    
+    uxReturn = ( ( tOSMsgQ_t * ) ptMsgQ )->uxCurNum;
 
     return uxReturn;
 }

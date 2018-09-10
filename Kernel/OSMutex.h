@@ -49,7 +49,7 @@ extern "C" {
 typedef struct tOSMutex
 {
     char                        pcMutexName[ OSNAME_MAX_LEN ];
-    sOS8_t *                    MutexHolderHandle;
+    OSTaskHandle_t              MutexHolderHandle;
     
     tOSList_t                   tTaskListEventMutexV;   // Mutex Unlock TaskList;
     tOSList_t                   tTaskListEventMutexP;   // Mutex Lock TaskList;
@@ -71,6 +71,9 @@ OSMutexHandle_t   OSMutexCreate( void ) TINIUX_FUNCTION;
 #if ( OS_MEMFREE_ON != 0 )
 void              OSMutexDelete( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
+
+OSTaskHandle_t    OSMutexGetHolder( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
+OSTaskHandle_t    OSMutexGetHolderFromISR( OSMutexHandle_t MutexHandle ) TINIUX_FUNCTION;
 
 sOSBase_t         OSMutexSetID(OSMutexHandle_t MutexHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t         OSMutexGetID(OSMutexHandle_t const MutexHandle) TINIUX_FUNCTION;

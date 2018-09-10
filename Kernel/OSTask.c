@@ -554,7 +554,9 @@ OSTaskHandle_t OSGetCurrentTaskHandle( void )
 eOSTaskState_t OSTaskGetState( OSTaskHandle_t TaskHandle )
 {
     eOSTaskState_t eReturn = eTaskStateRuning;
-    tOSList_t *ptStateList = OS_NULL;
+    tOSList_t const *ptStateList = OS_NULL;
+    tOSList_t const *ptOSTaskListPend = OS_NULL;
+    tOSList_t const *ptOSTaskListLongPeriodPend = OS_NULL;
     const tOSTCB_t * const ptTCB = ( tOSTCB_t * ) TaskHandle;
 
     if( ptTCB == gptCurrentTCB )
@@ -566,10 +568,12 @@ eOSTaskState_t OSTaskGetState( OSTaskHandle_t TaskHandle )
         OSIntLock();
         {
             ptStateList = ( tOSList_t * ) OSListItemGetList( &( ptTCB->tTaskListItem ) );
+            ptOSTaskListPend = gptOSTaskListPend;
+            ptOSTaskListLongPeriodPend = gptOSTaskListLongPeriodPend;
         }
         OSIntUnlock();
 
-        if( ( ptStateList == gptOSTaskListPend ) || ( ptStateList == gptOSTaskListLongPeriodPend ) )
+        if( ( ptStateList == ptOSTaskListPend ) || ( ptStateList == ptOSTaskListLongPeriodPend ) )
         {
             eReturn = eTaskStateBlocked;
         }
@@ -578,6 +582,22 @@ eOSTaskState_t OSTaskGetState( OSTaskHandle_t TaskHandle )
             if( OSListItemGetList( &( ptTCB->tEventListItem ) ) == OS_NULL )
             {
                 eReturn = eTaskStateSuspended;
+                #if( OS_TASK_SIGNAL_ON == 1 )
+                {
+                    if( ptTCB->ucSigState == SIG_STATE_WAITING )
+                    {
+                        eReturn = eTaskStateBlocked;
+                    }
+                    else
+                    {
+                        eReturn = eTaskStateSuspended;
+                    }
+                }
+                #else
+                {
+                    eReturn = eTaskStateSuspended;
+                }
+                #endif
             }
             else
             {
@@ -714,7 +734,7 @@ void OSTaskSetPriority( OSTaskHandle_t TaskHandle, uOSBase_t uxNewPriority )
 }
 
 #if ( OS_MUTEX_ON!= 0 )
-void *OSTaskGetMutexHolder( void )
+OSTaskHandle_t OSTaskGetMutexHolder( void )
 {
     if( gptCurrentTCB != OS_NULL )
     {
@@ -1417,6 +1437,45 @@ uOSBool_t OSTaskSignalClear( OSTaskHandle_t const TaskHandle )
 
     return bReturn;    
 }
+
+	static configSTACK_DEPTH_TYPE prvTaskCheckFreeStackSpace( const uint8_t * pucStackByte )
+	{
+	uint32_t ulCount = 0U;
+
+		while( *pucStackByte == ( uint8_t ) tskSTACK_FILL_BYTE )
+		{
+			pucStackByte -= portSTACK_GROWTH;
+			ulCount++;
+		}
+
+		ulCount /= ( uint32_t ) sizeof( StackType_t ); /*lint !e961 Casting is not redundant on smaller architectures. */
+
+		return ( configSTACK_DEPTH_TYPE ) ulCount;
+	}
+    
+	UBaseType_t uxTaskGetStackHighWaterMark( TaskHandle_t xTask )
+	{
+	TCB_t *pxTCB;
+	uint8_t *pucEndOfStack;
+	UBaseType_t uxReturn;
+
+		pxTCB = prvGetTCBFromHandle( xTask );
+
+		#if portSTACK_GROWTH < 0
+		{
+			pucEndOfStack = ( uint8_t * ) pxTCB->pxStack;
+		}
+		#else
+		{
+			pucEndOfStack = ( uint8_t * ) pxTCB->pxEndOfStack;
+		}
+		#endif
+
+		uxReturn = ( UBaseType_t ) prvTaskCheckFreeStackSpace( pucEndOfStack );
+
+		return uxReturn;
+	}
+    
 #endif
 
 #ifdef __cplusplus

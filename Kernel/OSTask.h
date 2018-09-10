@@ -128,7 +128,7 @@ OSTaskHandle_t OSGetCurrentTaskHandle( void ) TINIUX_FUNCTION;
 void         OSIdleTask( void *pvParameters) TINIUX_FUNCTION;
 
 #if ( OS_MUTEX_ON!= 0 )
-void *       OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;
+OSTaskHandle_t OSTaskGetMutexHolder( void ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskPriorityInherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
 uOSBool_t    OSTaskPriorityDisinherit( OSTaskHandle_t const MutexHolderTaskHandle ) TINIUX_FUNCTION;
 void         OSTaskPriorityDisinheritAfterTimeout( OSTaskHandle_t const MutexHolderTaskHandle, uOSBase_t uxHighestPriorityWaitingTask ) TINIUX_FUNCTION;

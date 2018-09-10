@@ -44,13 +44,14 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
+struct OSList;
 struct OSListItem
 {
     volatile uOSTick_t                  uxItemValue;    
     struct OSListItem * volatile        ptNext;
     struct OSListItem * volatile        ptPrevious;
     void *                              pvHolder;
-    void * volatile                     pvList;
+    struct OSList * volatile            ptList;
 };
 typedef struct OSListItem               tOSListItem_t;    
 
@@ -67,7 +68,7 @@ typedef struct OSList
 #define OSListItemSetValue( ptListItem, xValue )            ( ( ptListItem )->uxItemValue = ( xValue ) )
 #define OSListItemGetValue( ptListItem )                    ( ( ptListItem )->uxItemValue )
 #define OSListItemGetNextItem( ptListItem )                 ( ( ptListItem )->ptNext )
-#define OSListItemGetList( ptListItem )                     ( ( ptListItem )->pvList )
+#define OSListItemGetList( ptListItem )                     ( ( ptListItem )->ptList )
 
 #define OSlistGetHeadItemValue( ptList )                    ( ( ( ptList )->tNilItem ).ptNext->uxItemValue )
 #define OSListGetHeadItem( ptList )                         ( ( ( ptList )->tNilItem ).ptNext )
@@ -89,7 +90,7 @@ typedef struct OSList
 }
 
 #define OSListGetHeadItemHolder( ptList )                   ( (&( ( ptList )->tNilItem ))->ptNext->pvHolder )
-#define OSListContainListItem( ptList, ptListItem )         ( ( uOSBool_t ) ( ( ptListItem )->pvList == ( void * ) ( ptList ) ) )
+#define OSListContainListItem( ptList, ptListItem )         ( ( uOSBool_t ) ( ( ptListItem )->ptList == ( ptList ) ) )
 #define OSListIsInitialised( ptList )                       ( ( uOSBool_t ) ( ( ptList )->tNilItem.uxItemValue == OSPEND_FOREVER_VALUE ) )
 
 void OSListItemInitialise( tOSListItem_t * const ptListItem );

@@ -75,6 +75,7 @@ uOSBool_t         OSTimerDelete(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
 #endif /* OS_MEMFREE_ON */
 
 uOSBool_t         OSTimerDeleteFromISR(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
+uOSBool_t         OSTimerIsActive(OSTimerHandle_t TimerHandle) TINIUX_FUNCTION;
 sOSBase_t         OSTimerSetID(OSTimerHandle_t TimerHandle, sOSBase_t xID) TINIUX_FUNCTION;
 sOSBase_t         OSTimerGetID(OSTimerHandle_t const TimerHandle) TINIUX_FUNCTION;
 

@@ -65,7 +65,7 @@ void OSListInit( tOSList_t * const ptList )
     ptList->tNilItem.ptPrevious = ( tOSListItem_t * ) &( ptList->tNilItem );
 
     ptList->tNilItem.pvHolder = OS_NULL; //pvHolder is not use in tNilItem
-    ptList->tNilItem.pvList = OS_NULL;   //pvList is not use in tNilItem
+    ptList->tNilItem.ptList = OS_NULL;   //ptList is not use in tNilItem
 
     ptList->uxNumberOfItems = ( uOSBase_t ) 0U;
 }
@@ -80,7 +80,7 @@ Return      : None
 void OSListItemInitialise( tOSListItem_t * const ptListItem )
 {
     /* Make sure the list item is not recorded as being on a list. */
-    ptListItem->pvList = OS_NULL;
+    ptListItem->ptList = OS_NULL;
 }
 
 /*****************************************************************************
@@ -103,7 +103,7 @@ void OSListInsertItemToEnd( tOSList_t * const ptList, tOSListItem_t * const ptNe
     ptIndex->ptPrevious = ptNewListItem;
 
     /* Remember which list the item is in. */
-    ptNewListItem->pvList = ( void * ) ptList;
+    ptNewListItem->ptList = ptList;
 
     ( ptList->uxNumberOfItems )++;
 }
@@ -147,7 +147,7 @@ void OSListInsertItem( tOSList_t * const ptList, tOSListItem_t * const ptNewList
 
     /* Remember which list the item is in.  This allows fast removal of the
     item later. */
-    ptNewListItem->pvList = ( void * ) ptList;
+    ptNewListItem->ptList = ptList;
 
     ( ptList->uxNumberOfItems )++;
 }
@@ -163,7 +163,7 @@ uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove )
 {
     /* The list item knows which list it is in.  Obtain the list from the list
     item. */
-    tOSList_t * const ptList = ( tOSList_t * ) ptItemToRemove->pvList;
+    tOSList_t * const ptList = ptItemToRemove->ptList;
     tOSListItem_t * ptListItemTemp = OS_NULL;
     
     ptListItemTemp = ptItemToRemove->ptPrevious;
@@ -177,7 +177,7 @@ uOSBase_t OSListRemoveItem( tOSListItem_t * const ptItemToRemove )
         ptList->ptIndex = ptItemToRemove->ptPrevious;
     }
 
-    ptItemToRemove->pvList = OS_NULL;
+    ptItemToRemove->ptList = OS_NULL;
     ( ptList->uxNumberOfItems )--;
 
     return ptList->uxNumberOfItems;
