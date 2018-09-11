@@ -79,9 +79,9 @@ static uOSBool_t OSMsgQIsEmpty( const tOSMsgQ_t *ptMsgQ )
 uOSBool_t OSMsgQIsEmptyFromISR( const tOSMsgQ_t *ptMsgQ )
 {
     uOSBool_t bReturn = OS_FALSE;
-    tOSMsgQ_t *const ptMsgQTemp = ptMsgQ;
+    tOSMsgQ_t *const ptMsgQTemp = (tOSMsgQ_t *)ptMsgQ;
 
-    if( ptMsgQ->uxCurNum == ( uOSBase_t )  0 )
+    if( ptMsgQTemp->uxCurNum == ( uOSBase_t )  0 )
     {
         bReturn = OS_TRUE;
     }
@@ -116,7 +116,7 @@ static uOSBool_t OSMsgQIsFull( const tOSMsgQ_t *ptMsgQ )
 uOSBool_t OSMsgQIsFullFromISR( const tOSMsgQ_t *ptMsgQ )
 {
     uOSBool_t bReturn = OS_FALSE;
-    tOSMsgQ_t *const ptMsgQTemp = ptMsgQ;
+    tOSMsgQ_t *const ptMsgQTemp = (tOSMsgQ_t *)ptMsgQ;
 
     if( ptMsgQTemp->uxCurNum == ptMsgQTemp->uxMaxNum )
     {
